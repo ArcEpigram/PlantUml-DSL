@@ -1,0 +1,9 @@
+@startuml
+start
+:Elements and Relations registration;
+:Including elements into Diagram;
+:Setup elements alignment;
+:Setup Diagram options;
+:Render Diagram;
+stop
+@enduml

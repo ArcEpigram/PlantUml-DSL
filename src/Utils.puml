@@ -1,0 +1,14 @@
+@startuml
+''----------------------------------------------------------------------------------------------------------------------
+'' Get PlantUml DSL library version.
+'' example: !$ver = $get_library_version()
+!function $get_library_version()
+    !if %file_exists("../version.json")
+        !$ver = %load_json("../version.json")
+    !else if %file_exists("version.json")
+        !$ver = %load_json("version.json")
+    !endif
+    !return $ver.version
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+@enduml

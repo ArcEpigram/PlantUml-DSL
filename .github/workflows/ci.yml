@@ -1,0 +1,66 @@
+name: CI/CD
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - uses: arduino/setup-task@v2
+
+      - name: Install Commitizen
+        run: pip install commitizen
+
+      - name: Download PlantUML
+        run: task download-plantuml
+
+      - name: Run tests
+        run: task test
+
+      - name: Build library
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: task build
+
+      - name: Bump version, push tag, and create release
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if cz bump --dry-run --yes 2>/dev/null; then
+            cz bump --yes --changelog --bump-message 'chore(release): v$new_version [skip ci]'
+            git push origin main --tags
+
+            VERSION=$(git describe --tags --abbrev=0)
+            awk "/^## $VERSION/{flag=1; next} /^## /{flag=0} flag" \
+              CHANGELOG.md > /tmp/release_body.md
+
+            gh release create "$VERSION" \
+              --title "$VERSION" \
+              --notes-file /tmp/release_body.md \
+              out/PlantUml-DSL.zip
+          else
+            echo "No conventional commits since last tag — skipping release"
+          fi

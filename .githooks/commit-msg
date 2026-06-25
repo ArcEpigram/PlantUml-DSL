@@ -1,0 +1,25 @@
+#!/bin/sh
+#
+# Commit-msg hook: validates commit messages using Commitizen (cz)
+# Enforces Conventional Commits format.
+#
+
+# Try py launcher (Windows), then python3/python via PATH
+if command -v py >/dev/null 2>&1; then
+    for ver in "" "-3.13" "-3.12" "-3.11" "-3.10" "-3"; do
+        if py $ver -c "import commitizen" 2>/dev/null; then
+            exec py $ver -m commitizen.cli check --commit-msg-file "$1"
+        fi
+    done
+fi
+
+for p in python3 python; do
+    if command -v "$p" >/dev/null 2>&1; then
+        if "$p" -c "import commitizen" 2>/dev/null; then
+            exec "$p" -m commitizen.cli check --commit-msg-file "$1"
+        fi
+    fi
+done
+
+echo "error: Commitizen not found. Run: task init"
+exit 1

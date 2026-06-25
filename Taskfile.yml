@@ -1,0 +1,83 @@
+version: "3"
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list
+
+  init:
+    desc: Initialize repository — install dependencies and set up git hooks
+    cmds:
+      - task: deps
+      - task: tools
+      - task: hooks
+    silent: false
+
+  deps:
+    internal: true
+    desc: Install Commitzen CLI
+    cmds:
+      - pip install commitizen
+    status:
+      - python -c "import commitizen" 2>/dev/null
+
+  hooks:
+    internal: true
+    desc: Register .githooks directory so hooks run on every commit
+    cmds:
+      - git config core.hooksPath .githooks
+      - echo "Git hooks path set to .githooks/"
+    status:
+      - test "$(git config core.hooksPath)" = ".githooks"
+
+  tools:
+    internal: true
+    desc: Download CLI tools needed by the project
+    cmds:
+      - task: download-plantuml
+
+  download-plantuml:
+    desc: Download latest PlantUML release to bin/
+    cmds:
+      - mkdir -p bin
+      - |
+        TAG=$(curl -sL https://api.github.com/repos/plantuml/plantuml/releases/latest \
+          | grep '"tag_name":' | cut -d'"' -f4)
+        VER=${TAG#v}
+        curl -sL "https://github.com/plantuml/plantuml/releases/download/$TAG/plantuml-$VER.jar" \
+          -o bin/plantuml.jar
+        echo "Downloaded $TAG to bin/plantuml.jar"
+    status:
+      - test -f bin/plantuml.jar
+
+  test:
+    desc: Run all unit tests with PlantUML
+    cmds:
+      - java -jar bin/plantuml.jar -checkonly tests/*.Tests.puml
+      - echo "All tests passed"
+
+  build:
+    desc: Package src/ and version.json into a versioned zip archive
+    cmds:
+      - mkdir -p out
+      - |
+        python -c "
+        import json, zipfile, pathlib
+        ver = json.loads(pathlib.Path('version.json').read_text())['version']
+        name = f'PlantUml-DSL.zip'
+        pathlib.Path('out').mkdir(parents=True, exist_ok=True)
+        archive_path = pathlib.Path('out') / name
+        with zipfile.ZipFile(archive_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+            for f in sorted(pathlib.Path('src').rglob('*.puml')):
+                zf.write(f, f.relative_to('src'))
+            zf.write('version.json', 'version.json')
+        print(f'Archive created: {archive_path}')
+        "
+    silent: true
+
+  clean:
+    desc: Remove build artifacts in out/
+    cmds:
+      - python -c "import shutil, pathlib; shutil.rmtree(pathlib.Path('out'), ignore_errors=True)"
+    silent: true
