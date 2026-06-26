@@ -37,21 +37,7 @@ task clean    # Remove build artifacts
 Always run `task test` after making changes to `src/` or `tests/`.
 
 ## Coding Conventions
-
-### DSL files (`src/*.puml`)
-- Wrap every file in `@startuml` / `@enduml`
-- Separate sections with `''----...----` (60 dashes)
-- Each `!function` / `!procedure` must have a doc comment with usage example
-- Use `camelCase` for function names, `PascalCase` for file names
-- Indent with 4 spaces
-- Use `!include` with relative paths only
-
-### Tests (`tests/*.Tests.puml`)
-- One test file per source module: `Utils.puml` → `Utils.Tests.puml`
-- Arrange/Act/Assert pattern inside `!procedure`
-- Call the test procedure directly at the bottom of the file (after `Tests RUN!` section)
-- Use `!assert` for validation
-- Include source with `!include ../src/<FileName>.puml`
+- Read [programming-guideline](./doc/programming-guideline.md) before read or write source code.
 
 ## Versioning and Releases
 - Version stored in `version.json` and `pyproject.toml`
