@@ -81,3 +81,14 @@ tasks:
     cmds:
       - python -c "import shutil, pathlib; shutil.rmtree(pathlib.Path('out'), ignore_errors=True)"
     silent: true
+
+  check:
+    desc: Run tests (pre-commit check)
+    cmds:
+      - task: test
+
+  ci:
+    desc: Emulate CI pipeline locally (test + build)
+    cmds:
+      - task: test
+      - task: build

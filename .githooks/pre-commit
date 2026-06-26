@@ -1,0 +1,16 @@
+#!/bin/sh
+#
+# Pre-commit hook: runs all tests before allowing a commit
+# Ensures trunk stays green in Trunk-Based Development workflow.
+#
+
+echo "Running tests before commit..."
+
+if ! task test >/dev/null 2>&1; then
+    echo ""
+    echo "Tests failed. Commit blocked."
+    echo "Run 'task test' to see details."
+    exit 1
+fi
+
+echo "Tests passed."
