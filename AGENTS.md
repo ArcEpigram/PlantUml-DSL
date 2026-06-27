@@ -57,6 +57,7 @@ Always run `task test` after making changes to `src/` or `tests/`.
 ## Strong Rules
 - Always read a file before changing it.
 - Do not change or remove my text in MD documents. If you need it, add you text in quotes.
+- After making changes and before committing, always re-read `git diff` or the modified files to verify exactly what is being committed — not just your own changes.
 
 ## Notes & Constraints
 - PlantUML CLI (`-checkonly`) requires Java — tests will fail without it
