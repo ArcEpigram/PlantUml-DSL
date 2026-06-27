@@ -10,12 +10,20 @@
     '' Assert
     !$pattern = "/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/gm"
     !assert %size(%splitstr_regex($actual, $pattern)) == 1
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure format_should_create_a_string_from_pattern_and_positional_arguments()
+    '' Arrange, Act
+    !$actual = $format("This is %1 with arguments %2 and %3.", "expression", "x", "y")
 
+    '' Assert
+    !assert "This is expression with arguments x and y." == $actual
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Tests RUN!
 ''----------------------------------------------------------------------------------------------------------------------
 get_library_version_returns_semantic_version_number()
+format_should_create_a_string_from_pattern_and_positional_arguments()
 ''----------------------------------------------------------------------------------------------------------------------
 caption OK
 @enduml

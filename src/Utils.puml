@@ -22,4 +22,43 @@
     !assert %false() : 'FAIL: "' + $message + '" in "' + $source + '"'
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
+'' Converts the value of objects to strings based on the
+'' formats specified and inserts them into another string.
+'' example: !$text = $format("This is %1 with arguments %2 and %3.", "expression", "x", "y")
+!function $format($text, $p1, $p2="", $p3="", $p4="", $p5="", $p6="", $p7="", $p8="")
+    !$result = ""
+    !$pos1 = %strpos($text, "%1")
+    !$pos2 = %strpos($text, "%2")
+    !$pos3 = %strpos($text, "%3")
+    !$pos4 = %strpos($text, "%4")
+    !$pos5 = %strpos($text, "%5")
+    !$pos6 = %strpos($text, "%6")
+    !$pos7 = %strpos($text, "%7")
+    !$pos8 = %strpos($text, "%8")
+
+    !foreach $fragment in %splitstr($text, "%")
+        !if (%substr($fragment, 0, 1) == "1")
+            !$result = $result + $p1 + %substr($fragment, 1, %strlen($fragment) - 1)
+        !elseif (%substr($fragment, 0, 1) == "2")
+            !$result = $result + $p2 + %substr($fragment, 1, %strlen($fragment) - 1)
+        !elseif (%substr($fragment, 0, 1) == "3")
+            !$result = $result + $p3 + %substr($fragment, 1, %strlen($fragment) - 1)
+        !elseif (%substr($fragment, 0, 1) == "4")
+            !$result = $result + $p4 + %substr($fragment, 1, %strlen($fragment) - 1)
+        !elseif (%substr($fragment, 0, 1) == "5")
+            !$result = $result + $p5 + %substr($fragment, 1, %strlen($fragment) - 1)
+        !elseif (%substr($fragment, 0, 1) == "6")
+            !$result = $result + $p6 + %substr($fragment, 1, %strlen($fragment) - 1)
+        !elseif (%substr($fragment, 0, 1) == "7")
+            !$result = $result + $p7 + %substr($fragment, 1, %strlen($fragment) - 1)
+        !elseif (%substr($fragment, 0, 1) == "8")
+            !$result = $result + $p8 + %substr($fragment, 1, %strlen($fragment) - 1)
+        !else
+            !$result = $result + $fragment
+        !endif
+    !endfor
+
+    !return $result
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
 @enduml
