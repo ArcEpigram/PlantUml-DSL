@@ -11,7 +11,48 @@
     !return $ver.version
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
+'' Prints trace messages in tabular form directly onto the diagram.
 !procedure $trace($message, $source="")
+    !$TRACE_MESSAGES = "log_messages"
+    !if $source == ""
+        !$source = %filename()
+    !endif
+
+    !if (%not(%variable_exists($TRACE_MESSAGES)))
+        $__init_trace_log($TRACE_MESSAGES)
+    !endif
+
+    !$log_messages = %get_variable_value($TRACE_MESSAGES)
+
+    !if %mod(%size($log_messages), 2) == 0
+        !$row_color = "<#f0f0f0>"
+    !else
+        !$row_color = "<#white>"
+    !endif
+
+    !$current_row_number = %size($log_messages)
+
+    !$log_row = $format('%1| %2 | %3 | %4 |', $row_color, $current_row_number, $message, $source)
+    !$log_messages = $append_to_list($log_messages, $log_row)
+    %set_variable_value($TRACE_MESSAGES, $log_messages)
+
+    title
+    Трассировочные сообщения:
+    !foreach $row in $log_messages
+    $row
+    !endfor
+    end title
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure $trace_clear()
+    $__init_trace_log("log_messages")
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure $__init_trace_log($msg_list)
+    !$log_messages = [\
+        "<#lightyellow>|= # |= Message |= Source |"\
+    ]
+    %set_variable_value($msg_list, $log_messages)
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Converts the value of objects to strings based on the
@@ -70,17 +111,28 @@
 ''----------------------------------------------------------------------------------------------------------------------
 '' Appends an item to a JSON array and returns the modified array.
 '' args: $collection - JSON array to append to
-''       $item - item to append
+''       $item - JSON-object, string or number
 '' returns: new JSON array with $item appended at the end
 '' example: !$extended = $append_to_list($my_array, "new_value")
 !function $append_to_list($collection, $item)
     !$str = %string($collection)
     !$len = %strlen($str)
+    !$item_raw = %string($item)
+    !$first_char = %substr($item_raw, 0, 1)
+    !if $item_raw == "true" || $item_raw == "false" || $item_raw == "null"
+        !$json_item = $item_raw
+    !elseif $first_char == "{" || $first_char == "[" || $first_char == '"'
+        !$json_item = $item_raw
+    !elseif %strpos("0123456789", $first_char) >= 0 || $first_char == "-" || $first_char == "."
+        !$json_item = $item_raw
+    !else
+        !$json_item = $format('"%1"', $item_raw)
+    !endif
     !if $len == 2
-        !return %str2json($format("[%1]", %string($item)))
+        !return %str2json($format("[%1]", $json_item))
     !endif
     !$without_bracket = %substr($str, 0, $len - 1)
-    !$with_item = $format("%1, %2]", $without_bracket, %string($item))
+    !$with_item = $format("%1, %2]", $without_bracket, $json_item)
     !return %str2json($with_item)
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------

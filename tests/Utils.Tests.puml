@@ -54,6 +54,18 @@
     !assert $actual[2] == 3
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
+!procedure append_to_list_should_add_string_to_end()
+    '' Arrange
+    !$collection = ["X", "Y"]
+
+    '' Act
+    !$actual = $append_to_list($collection, "Z")
+
+    '' Assert
+    !assert %size($actual) == 3
+    !assert $actual[2] == "Z"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
 !procedure append_to_list_should_add_to_empty_collection()
     '' Arrange
     !$collection = []
@@ -73,6 +85,7 @@ format_should_create_a_string_from_pattern_and_positional_arguments()
 contain_in_list_should_find_existing_item()
 contain_in_list_should_not_find_missing_item()
 append_to_list_should_add_item_to_end()
+append_to_list_should_add_string_to_end()
 append_to_list_should_add_to_empty_collection()
 ''----------------------------------------------------------------------------------------------------------------------
 caption OK
