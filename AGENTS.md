@@ -5,6 +5,9 @@
 [Contributing rules](./CONTRIBUTING.md)
 [Pull Request Template](./.github/PULL_REQUEST_TEMPLATE.md)
 
+## Useful links
+[PlantUML Preprocessing](https://plantuml.com/preprocessing)
+
 ## Repository Structure
 ```
 src/        —  DSL library files (*.puml): `!function`, `!procedure` macros

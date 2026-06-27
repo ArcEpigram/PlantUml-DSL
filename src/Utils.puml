@@ -14,7 +14,12 @@
 !procedure $trace($message, $source=%filename())
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
+'' Force the script execution abort with error.
+'' args: $message - error message to display
+''       $source - source file name (defaults to %filename())
+'' example: $fail("Something went wrong")
 !procedure $fail($message, $source=%filename())
+    !assert %false() : 'FAIL: "' + $message + '" in "' + $source + '"'
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 @enduml
