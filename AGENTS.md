@@ -63,3 +63,5 @@ Always run `task test` after making changes to `src/` or `tests/`.
 - PlantUML CLI (`-checkonly`) requires Java — tests will fail without it
 - Do not alter the structure or keys of `version.json`
 - Tests use relative `!include` paths only — no absolute paths
+- If string concatenation is required, use the `$format()` function whenever possible (but not necessarily).
+- PlantUML supports forward references.

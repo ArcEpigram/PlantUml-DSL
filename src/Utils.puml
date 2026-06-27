@@ -14,29 +14,6 @@
 !procedure $trace($message, $source="")
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
-'' Checks whether an item exists in a collection.
-'' args: $collection - JSON array to search in
-''       $item - item to look for
-'' returns: %true() if $item is found in $collection, %false() otherwise
-'' example: !$found = $contain_in_list($my_array, "target_value")
-!function $contain_in_list($collection, $item)
-    !$exists = %false()
-    !foreach $e in $collection
-        !if $e == $item
-            !return %true()
-        !endif
-    !endfor
-    !return $exists
-!endfunction
-''----------------------------------------------------------------------------------------------------------------------
-'' Force the script execution abort with error.
-'' args: $message - error message to display
-''       $source - source file name (defaults to %filename())
-'' example: $fail("Something went wrong")
-!procedure $fail($message, $source=%filename())
-    !assert %false() : 'FAIL: "' + $message + '" in "' + $source + '"'
-!endprocedure
-''----------------------------------------------------------------------------------------------------------------------
 '' Converts the value of objects to strings based on the
 '' formats specified and inserts them into another string.
 '' example: !$text = $format("This is %1 with arguments %2 and %3.", "expression", "x", "y")
@@ -76,4 +53,43 @@
     !return $result
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
+'' Checks whether an item exists in a collection.
+'' args: $collection - JSON array to search in
+''       $item - item to look for
+'' returns: %true() if $item is found in $collection, %false() otherwise
+'' example: !$found = $contain_in_list($my_array, "target_value")
+!function $contain_in_list($collection, $item)
+    !$exists = %false()
+    !foreach $e in $collection
+        !if $e == $item
+            !return %true()
+        !endif
+    !endfor
+    !return $exists
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Appends an item to a JSON array and returns the modified array.
+'' args: $collection - JSON array to append to
+''       $item - item to append
+'' returns: new JSON array with $item appended at the end
+'' example: !$extended = $append_to_list($my_array, "new_value")
+!function $append_to_list($collection, $item)
+    !$str = %string($collection)
+    !$len = %strlen($str)
+    !if $len == 2
+        !return %str2json($format("[%1]", %string($item)))
+    !endif
+    !$without_bracket = %substr($str, 0, $len - 1)
+    !$with_item = $format("%1, %2]", $without_bracket, %string($item))
+    !return %str2json($with_item)
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Force the script execution abort with error.
+'' args: $message - error message to display
+''       $source - source file name (defaults to %filename())
+'' example: $fail("Something went wrong")
+!procedure $fail($message, $source=%filename())
+    !assert %false() : $format('FAIL: "%1" in "%2"', $message, $source)
+!endprocedure
+
 @enduml
