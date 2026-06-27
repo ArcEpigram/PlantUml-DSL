@@ -1,9 +1,9 @@
 # AGENTS.md
 
 ## Project Overview
-PlantUML DSL — reusable `.puml` macros and functions library for PlantUML diagrams.
-Automation via **Task** (task runner), versioning via **Commitizen** (Conventional Commits),
-testing via PlantUML CLI `-checkonly`.
+[Project description](./README.md)
+[Contributing rules](./CONTRIBUTING.md)
+[Pull Request Template](./.github/PULL_REQUEST_TEMPLATE.md)
 
 ## Repository Structure
 ```
@@ -22,7 +22,7 @@ out/        —  Build artifacts (zipped library)
 - **Task** (taskfile.dev) — task runner; `choco install go-task` / `brew install go-task`
 - **Commitizen** — installed automatically via `task init`
 
-Initialize the project:
+## Initialize the project
 ```bash
 task init    # installs commitizen, downloads plantuml.jar, registers git hooks
 ```
@@ -39,33 +39,23 @@ Always run `task test` after making changes to `src/` or `tests/`.
 ## Coding Conventions
 - Read [programming-guideline](./doc/programming-guideline.md) before read or write source code.
 
+## Branching Strategy
+- GitHub Flow + Forking Workflow
+
 ## Versioning and Releases
-- Version stored in `version.json` and `pyproject.toml`
-- Bump with: `cz bump`
+- Use semantic versioning (SemVer).
+- Auto versioning by Commitzen util
+  - on commit used git hooks that invokes Commitzen
+  - Commitzen check/validate commit message
+  - Commitzen increment project version number in SemVer format
+- Version stored in `version.json` (and `pyproject.toml`)
 - Tag format: `v<version>`
-- After bump: version.json auto-updates, changelog entries appended
 
-## Common Workflows
-
-### Adding a new DSL function
-1. Add `!function` to a file in `src/` (create a new file if needed)
-2. Join the new source file into the library if creating one
-3. Create corresponding `tests/<Name>.Tests.puml`
-4. Run `task test`
-5. Commit with Conventional Commits format
-
-### Adding a usage example
-1. Create a `.puml` file in `playground/`
-
-### Cutting a release
-1. `cz bump`
-2. `task build`
-3. Archive appears in `out/`
+## Strong Rules
+- Always read a file before changing it.
+- Do not change or remove my text in MD documents. If you need it, add you text in quotes.
 
 ## Notes & Constraints
 - PlantUML CLI (`-checkonly`) requires Java — tests will fail without it
-- DSL functions may depend on `version.json` (see `$get_library_version` in `Utils.puml`)
 - Do not alter the structure or keys of `version.json`
-- All `@startuml` / `@enduml` blocks are mandatory
 - Tests use relative `!include` paths only — no absolute paths
-- Source files are zipped as-is into `out/`; keep file paths relative to `src/`
