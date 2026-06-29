@@ -169,6 +169,47 @@
 
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
+'' Sets or replaces a key-value pair in a JSON object and returns the modified object.
+'' args: $json - JSON object to update
+''       $key - key name (string)
+''       $value - JSON-object, string, number, boolean or null
+'' returns: new JSON object with the key-value pair set
+'' example: !$obj = $json_set($obj, "name", "Alice")
+!function $json_set($json, $key, $value)
+    !$str = %string($json)
+
+    !$value_raw = %string($value)
+    !$first_char = %substr($value_raw, 0, 1)
+    !if $value_raw == "true" || $value_raw == "false" || $value_raw == "null"
+        !$json_value = $value_raw
+    !elseif $first_char == "{" || $first_char == "[" || $first_char == '"'
+        !$json_value = $value_raw
+    !elseif %strpos("0123456789", $first_char) >= 0 || $first_char == "-" || $first_char == "."
+        !$json_value = $value_raw
+    !else
+        !$json_value = $format('"%1"', $value_raw)
+    !endif
+
+    !$json_key = $format('"%1"', $key)
+    !$key_pos = %strpos($str, $json_key)
+    !$key_len = %size($json_key)
+
+    !$before = %substr($str, 0, $key_pos)
+
+    !$after_key = %substr($str, $key_pos + $key_len + 2)
+    !$close = %strpos($after_key, "}")
+    !$comma = %strpos($after_key, ",")
+    !if $comma >= 0
+        !$value_end = $comma
+    !else
+        !$value_end = $close
+    !endif
+
+    !$after = %substr($after_key, $value_end)
+
+    !return %str2json($format("%1%2: %3%4", $before, $json_key, $json_value, $after))
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
 '' Force the script execution abort with error.
 '' args: $message - error message to display
 ''       $source - source file name (defaults to %filename())

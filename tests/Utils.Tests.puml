@@ -103,6 +103,40 @@
     !assert $json.Pos.Lon == 20
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
+!procedure json_set_should_modify_json_attribute_value()
+    '' Arrange
+    !$json = { "X": 10 }
+
+    '' Act
+    !$json = $json_set($json, "X", 12345)
+
+    '' Assert
+    !assert $json.X == 12345
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure json_set_should_replace_string_value()
+    '' Arrange
+    !$json = { "City": "Moscow" }
+
+    '' Act
+    !$json = $json_set($json, "City", "London")
+
+    '' Assert
+    !assert $json.City == "London"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure json_set_should_preserve_other_keys()
+    '' Arrange
+    !$json = { "X": 10, "Y": 20 }
+
+    '' Act
+    !$json = $json_set($json, "X", 30)
+
+    '' Assert
+    !assert $json.X == 30
+    !assert $json.Y == 20
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
 '' Tests RUN!
 ''----------------------------------------------------------------------------------------------------------------------
 get_library_version_returns_semantic_version_number()
@@ -114,6 +148,9 @@ append_to_list_should_add_string_to_end()
 append_to_list_should_add_to_empty_collection()
 json_add_append_key_and_value_to_json_object()
 json_add_append_nested_json_to_json_object()
+json_set_should_modify_json_attribute_value()
+json_set_should_replace_string_value()
+json_set_should_preserve_other_keys()
 ''----------------------------------------------------------------------------------------------------------------------
 caption OK
 @enduml
