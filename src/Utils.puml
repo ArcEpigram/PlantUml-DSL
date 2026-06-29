@@ -117,17 +117,7 @@
 !function $append_to_list($collection, $item)
     !$str = %string($collection)
     !$len = %strlen($str)
-    !$item_raw = %string($item)
-    !$first_char = %substr($item_raw, 0, 1)
-    !if $item_raw == "true" || $item_raw == "false" || $item_raw == "null"
-        !$json_item = $item_raw
-    !elseif $first_char == "{" || $first_char == "[" || $first_char == '"'
-        !$json_item = $item_raw
-    !elseif %strpos("0123456789", $first_char) >= 0 || $first_char == "-" || $first_char == "."
-        !$json_item = $item_raw
-    !else
-        !$json_item = $format('"%1"', $item_raw)
-    !endif
+    !$json_item = $__serialize_json_value($item)
     !if $len == 2
         !return %str2json($format("[%1]", $json_item))
     !endif
@@ -146,17 +136,7 @@
     !$str = %string($json)
     !$len = %size($str)
 
-    !$value_raw = %string($value)
-    !$first_char = %substr($value_raw, 0, 1)
-    !if $value_raw == "true" || $value_raw == "false" || $value_raw == "null"
-        !$json_value = $value_raw
-    !elseif $first_char == "{" || $first_char == "[" || $first_char == '"'
-        !$json_value = $value_raw
-    !elseif %strpos("0123456789", $first_char) >= 0 || $first_char == "-" || $first_char == "."
-        !$json_value = $value_raw
-    !else
-        !$json_value = $format('"%1"', $value_raw)
-    !endif
+    !$json_value = $__serialize_json_value($value)
 
     !$json_key = $format('"%1"', $key)
 
@@ -178,17 +158,7 @@
 !function $json_set($json, $key, $value)
     !$str = %string($json)
 
-    !$value_raw = %string($value)
-    !$first_char = %substr($value_raw, 0, 1)
-    !if $value_raw == "true" || $value_raw == "false" || $value_raw == "null"
-        !$json_value = $value_raw
-    !elseif $first_char == "{" || $first_char == "[" || $first_char == '"'
-        !$json_value = $value_raw
-    !elseif %strpos("0123456789", $first_char) >= 0 || $first_char == "-" || $first_char == "."
-        !$json_value = $value_raw
-    !else
-        !$json_value = $format('"%1"', $value_raw)
-    !endif
+    !$json_value = $__serialize_json_value($value)
 
     !$json_key = $format('"%1"', $key)
     !$key_pos = %strpos($str, $json_key)
@@ -217,5 +187,25 @@
 !procedure $fail($message, $source=%filename())
     !assert %false() : $format('FAIL: "%1" in "%2"', $message, $source)
 !endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Serializes a value into its JSON-compatible string representation.
+'' If the value is already a JSON literal (number, boolean, null, object, array, quoted string),
+'' returns it as-is; otherwise wraps it in double quotes.
+'' args: $value - any PlantUML value
+'' returns: JSON-compatible string representation
+'' example: !$json_val = $__serialize_json_value("hello")
+!function $__serialize_json_value($value)
+    !$raw = %string($value)
+    !$first_char = %substr($raw, 0, 1)
+    !if $raw == "true" || $raw == "false" || $raw == "null"
+        !return $raw
+    !elseif $first_char == "{" || $first_char == "[" || $first_char == '"'
+        !return $raw
+    !elseif %strpos("0123456789", $first_char) >= 0 || $first_char == "-" || $first_char == "."
+        !return $raw
+    !else
+        !return $format('"%1"', $raw)
+    !endif
+!endfunction
 
 @enduml
