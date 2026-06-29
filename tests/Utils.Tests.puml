@@ -78,6 +78,31 @@
     !assert $actual[0] == 1
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
+!procedure json_add_append_key_and_value_to_json_object()
+    '' Arrange
+    !$json = {}
+
+    '' Act
+    !$json = $json_add($json, "Y", 20)
+
+    '' Assert
+    !assert $json.Y == 20
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure json_add_append_nested_json_to_json_object()
+    '' Arrange
+    !$json = { "City": "Moscow" }
+    !$value = { "Alt": 10, "Lon": 20 }
+
+    '' Act
+    !$json = $json_add($json, "Pos", $value)
+
+    '' Assert
+    !assert $json.City == "Moscow"
+    !assert $json.Pos.Alt == 10
+    !assert $json.Pos.Lon == 20
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
 '' Tests RUN!
 ''----------------------------------------------------------------------------------------------------------------------
 get_library_version_returns_semantic_version_number()
@@ -87,6 +112,8 @@ contain_in_list_should_not_find_missing_item()
 append_to_list_should_add_item_to_end()
 append_to_list_should_add_string_to_end()
 append_to_list_should_add_to_empty_collection()
+json_add_append_key_and_value_to_json_object()
+json_add_append_nested_json_to_json_object()
 ''----------------------------------------------------------------------------------------------------------------------
 caption OK
 @enduml

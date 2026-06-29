@@ -136,6 +136,39 @@
     !return %str2json($with_item)
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
+'' Adds a key-value pair to a JSON object and returns the modified object.
+'' args: $json - JSON object to add to
+''       $key - key name (string)
+''       $value - JSON-object, string, number, boolean or null
+'' returns: new JSON object with the key-value pair added
+'' example: !$obj = $json_add($obj, "name", "Alice")
+!function $json_add($json, $key, $value)
+    !$str = %string($json)
+    !$len = %size($str)
+
+    !$value_raw = %string($value)
+    !$first_char = %substr($value_raw, 0, 1)
+    !if $value_raw == "true" || $value_raw == "false" || $value_raw == "null"
+        !$json_value = $value_raw
+    !elseif $first_char == "{" || $first_char == "[" || $first_char == '"'
+        !$json_value = $value_raw
+    !elseif %strpos("0123456789", $first_char) >= 0 || $first_char == "-" || $first_char == "."
+        !$json_value = $value_raw
+    !else
+        !$json_value = $format('"%1"', $value_raw)
+    !endif
+
+    !$json_key = $format('"%1"', $key)
+
+    !if $len == 2
+        !return %str2json($format("{%1: %2}", $json_key, $json_value))
+    !endif
+
+    !$without_brace = %substr($str, 0, $len - 1)
+    !return %str2json($format("%1, %2: %3}", $without_brace, $json_key, $json_value))
+
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
 '' Force the script execution abort with error.
 '' args: $message - error message to display
 ''       $source - source file name (defaults to %filename())
