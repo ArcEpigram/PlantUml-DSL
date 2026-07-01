@@ -1,0 +1,71 @@
+@startuml
+!include ../src/Common.puml
+''----------------------------------------------------------------------------------------------------------------------
+'' Tests
+''----------------------------------------------------------------------------------------------------------------------
+!procedure register_descriptor_should_save_and_retrieve()
+    '' Arrange: $alias = "TestUser", $descriptor = {"type":"Test","label":"TestLabel"}
+    '' Act: $register_descriptor($alias, $descriptor); $actual = $get_descriptor($alias)
+    '' Assert: $actual.type == "Test"; $actual.label == "TestLabel"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure get_descriptor_should_return_empty_for_missing_alias()
+    '' Arrange, Act: $actual = $get_descriptor("NonExistent")
+    '' Assert: %size($actual) == 0 (пустой JSON-объект {})
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure has_descriptor_should_return_true_for_registered_alias()
+    '' Arrange: $register_descriptor("Exists", {"type":"X"})
+    '' Act: $actual = $has_descriptor("Exists")
+    '' Assert: $actual == %true()
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure has_descriptor_should_return_false_for_missing_alias()
+    '' Arrange, Act: $actual = $has_descriptor("NoSuch")
+    '' Assert: $actual == %false()
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure register_decorator_should_save_and_retrieve()
+    '' Arrange: $decorator = {"is_extern":%false(),"show_desc":%true(),"styles":["bold"]}
+    '' Act: $register_decorator("DC", $decorator); $actual = $get_decorator("DC")
+    '' Assert: $actual.is_extern == %false(); $actual.show_desc == %true(); $actual.styles[0] == "bold"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure update_decorator_should_modify_specific_field()
+    '' Arrange: $register_decorator("UPD", {"is_extern":%false(),"show_desc":%true()})
+    '' Act: $update_decorator("UPD", "show_desc", %false()); $actual = $get_decorator("UPD")
+    '' Assert: $actual.show_desc == %false(); $actual.is_extern == %false()  (остальные поля не изменились)
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure add_to_queue_should_append_alias()
+    '' Arrange: $reset_rendering_queue()
+    '' Act: $add_to_rendering_queue("Alice"); $queue = $get_rendering_queue()
+    '' Assert: %size($queue) == 1; $queue[0] == "Alice"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure add_to_queue_should_not_duplicate_alias()
+    '' Arrange: $reset_rendering_queue(); $add_to_rendering_queue("Bob")
+    '' Act: $add_to_rendering_queue("Bob"); $queue = $get_rendering_queue()
+    '' Assert: %size($queue) == 1 (дубликат не добавлен)
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure reset_queue_should_clear_all_entries()
+    '' Arrange: $add_to_rendering_queue("X"); $add_to_rendering_queue("Y")
+    '' Act: $reset_rendering_queue(); $queue = $get_rendering_queue()
+    '' Assert: %size($queue) == 0
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Tests RUN!
+''----------------------------------------------------------------------------------------------------------------------
+register_descriptor_should_save_and_retrieve()
+get_descriptor_should_return_empty_for_missing_alias()
+has_descriptor_should_return_true_for_registered_alias()
+has_descriptor_should_return_false_for_missing_alias()
+register_decorator_should_save_and_retrieve()
+update_decorator_should_modify_specific_field()
+add_to_queue_should_append_alias()
+add_to_queue_should_not_duplicate_alias()
+reset_queue_should_clear_all_entries()
+''----------------------------------------------------------------------------------------------------------------------
+caption OK
+@enduml

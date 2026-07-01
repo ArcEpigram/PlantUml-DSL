@@ -1,0 +1,55 @@
+@startuml
+!include Utils.puml
+!include Common.puml
+''----------------------------------------------------------------------------------------------------------------------
+'' Модуль рендеринга диаграмм.
+'' Содержит общие (не привязанные к конкретной нотации) процедуры:
+'' настройка опций отображения элементов и оркестрация рендеринга.
+'' Зависимости: Utils.puml, Common.puml
+''----------------------------------------------------------------------------------------------------------------------
+'' Скрывает описание (desc) элемента при рендеринге.
+'' args: $element - алиас элемента
+'' example: HideDescription("User")
+!procedure HideDescription($element)
+    '' 1. $update_decorator($element, "show_desc", %false())
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Добавляет визуальный стиль к элементу (без дубликатов).
+'' args: $element - алиас элемента
+''       $style - имя стиля (строка)
+'' example: ApplyStyle("User", "bright_and_bold")
+!procedure ApplyStyle($element, $style)
+    '' 1. Получить декоратор: $decorator = $get_decorator($target)
+    '' 2. Получить массив стилей: $styles = $decorator.styles
+    '' 3. Если %not($contain_in_list($styles, $style)) — $styles = $append_to_list($styles, $style)
+    '' 4. Обновить поле styles в декораторе: $decorator = $json_set($decorator, "styles", $styles)
+    '' 5. $register_decorator($element, $decorator)
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Выполняет рендеринг диаграммы: обходит очередь рендеринга и для каждого элемента
+'' вызывает диспетчер, который по типу элемента выбирает процедуру рендеринга.
+'' После рендеринга очищает очередь.
+'' args: $title - заголовок диаграммы (строка)
+'' example: Diagram("System Context diagram")
+!procedure Diagram($title)
+    '' 1. Получить очередь: $queue = $get_rendering_queue()
+    '' 2. Для каждого $alias в $queue:
+    ''    a. $descriptor = $get_descriptor($alias)
+    ''    b. $decorator = $get_decorator($alias)
+    ''    c. $render_dispatch($alias, $descriptor, $decorator)
+    '' 3. $reset_rendering_queue()
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Диспетчер рендеринга: выбирает процедуру рендеринга по типу элемента.
+'' args: $alias - алиас элемента
+''       $descriptor - JSON-объект атрибутов элемента
+''       $decorator - JSON-объект опций отображения элемента
+'' example: $render_dispatch("User", $desc, $decor)
+!procedure $render_dispatch($alias, $descriptor, $decorator)
+    '' 1. $type = $descriptor.type
+    '' 2. Свитч по $type:
+    ''    "Person" → $render_person($alias, $descriptor, $decorator)    (форвард-референс из C4/Context.puml)
+    ''    (другие типы будут добавлены в следующих вертикальных срезах)
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+@enduml
