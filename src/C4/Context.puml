@@ -35,12 +35,17 @@
 ''----------------------------------------------------------------------------------------------------------------------
 '' Включает зарегистрированные элементы Person в текущую диаграмму.
 '' Добавляет алиасы в очередь рендеринга.
-'' args: $p1..$p5 - алиасы элементов Person (до 5 за раз)
-'' example: Persons("User", "Admin")
-!procedure Persons($p1, $p2="", $p3="", $p4="", $p5="")
-    '' 1. Для каждого непустого $p:
-    ''    a. Если %not($has_descriptor($p)) — пропустить (элемент не зарегистрирован)
-    ''    b. $add_to_rendering_queue($p)
+'' args: $source - путь к каталогу к объявлениям элементов.
+''       $aliases - перечисление имен элементов (разделенные пробелом).
+'' example: Persons("Elements", User)
+!procedure Persons($source, $aliases)
+    !if $source != ""
+        !foreach $alias in %splitstr($aliases, " ")
+            !$element_file = $format("%1/%2.person.puml", $source, $alias)
+            !include $element_file
+        !endfor
+    !endif
+    ''$add_to_rendering_queue($p)
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Рендерит элемент типа Person в нотации C4 Context.

@@ -32,6 +32,10 @@
 '' args: $title - заголовок диаграммы (строка)
 '' example: Diagram("System Context diagram")
 !procedure Diagram($title)
+    title
+    $title
+    end title
+
     '' 1. Получить очередь: $queue = $get_rendering_queue()
     '' 2. Для каждого $alias в $queue:
     ''    a. $descriptor = $get_descriptor($alias)
