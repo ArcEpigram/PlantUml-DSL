@@ -1,0 +1,6 @@
+@startuml
+!include ../../../src/C4/Context.puml
+
+'' Регистрация элемента
+$Person(Admin, "Администратор", "Дядя с бородой и в свитере")
+@enduml

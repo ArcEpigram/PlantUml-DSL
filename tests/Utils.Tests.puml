@@ -89,6 +89,17 @@
     !assert $json.Y == 20
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
+!procedure json_add_append_key_and_empty_value_to_json_object()
+    '' Arrange
+    !$json = {}
+
+    '' Act
+    !$json = $json_add($json, "Empty", "")
+
+    '' Assert
+    !assert $json.Empty == "__EMPTY__"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
 !procedure json_add_append_nested_json_to_json_object()
     '' Arrange
     !$json = { "City": "Moscow" }
@@ -145,6 +156,60 @@
     !assert $actual == "42"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
+!procedure json2str_returns_string_representation_ob_json_object()
+    '' Arrange
+    !$object = {
+        "FirstName": "Sergey",
+        "LastName": "Tsvetkov",
+        "Gender": "Male"
+    }
+
+    '' Act
+    !$text = $json2str($object)
+
+    '' Assert
+    !assert '{"FirstName":"Sergey","LastName":"Tsvetkov","Gender":"Male"}' == $text : $text
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure json2str_returns_string_representation_ob_json_object_without_quotes()
+    '' Arrange
+    !$object = {
+        "FirstName": "Sergey",
+        "LastName": "Tsvetkov",
+        "Gender": "Male"
+    }
+
+    '' Act
+    !$text = $json2str($object, $without_quotes = %true())
+
+    '' Assert
+    !assert '{FirstName:Sergey,LastName:Tsvetkov,Gender:Male}' == $text : $text
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure str2json_returns_json_representation_of_string_with_quotes()
+    '' Arrange
+    !$text = '{"Name":"Vassily","Age":"98"}'
+
+    '' Act
+    !$json = $str2json($text, $without_quotes = %false())
+
+    '' Assert
+    !$expected = { "Name": "Vassily", "Age": "98" }
+    !assert $json == $expected : $json
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure str2json_returns_json_representation_of_string_without_quotes()
+    '' Arrange
+    !$text = "{Name:Vassily,Age:98}"
+
+    '' Act
+    !$json = $str2json($text, $without_quotes = %true())
+
+    '' Assert
+    !$expected = { "Name": "Vassily", "Age": "98" }
+    !assert $json == $expected : $json
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
 '' Tests RUN!
 ''----------------------------------------------------------------------------------------------------------------------
 serialize_json_value_should_return_number_as_is()
@@ -156,10 +221,15 @@ append_to_list_should_add_item_to_end()
 append_to_list_should_add_string_to_end()
 append_to_list_should_add_to_empty_collection()
 json_add_append_key_and_value_to_json_object()
+json_add_append_key_and_empty_value_to_json_object()
 json_add_append_nested_json_to_json_object()
 json_set_should_modify_json_attribute_value()
 json_set_should_replace_string_value()
 json_set_should_preserve_other_keys()
+json2str_returns_string_representation_ob_json_object()
+json2str_returns_string_representation_ob_json_object_without_quotes()
+str2json_returns_json_representation_of_string_with_quotes()
+str2json_returns_json_representation_of_string_without_quotes()
 ''----------------------------------------------------------------------------------------------------------------------
 caption OK
 @enduml

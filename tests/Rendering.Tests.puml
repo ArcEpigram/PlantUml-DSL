@@ -1,0 +1,37 @@
+@startuml
+!include ../src/Rendering.puml
+''----------------------------------------------------------------------------------------------------------------------
+'' Tests
+''----------------------------------------------------------------------------------------------------------------------
+!procedure hide_description_should_set_show_desc_to_false()
+    '' Arrange: зарегистрировать дескриптор и декоратор через Common
+    ''   $register_descriptor("HD", {"type":"Test","label":"Test"})
+    ''   $register_decorator("HD", {"is_extern":%false(),"show_desc":%true(),"styles":[]})
+    '' Act: HideDescription("HD"); $decorator = $get_decorator("HD")
+    '' Assert: $decorator.show_desc == %false()
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure apply_style_should_add_to_styles_array()
+    '' Arrange: зарегистрировать дескриптор и декоратор через Common
+    ''   $register_descriptor("AS", {"type":"Test","label":"Test"})
+    ''   $register_decorator("AS", {"is_extern":%false(),"show_desc":%true(),"styles":[]})
+    '' Act: ApplyStyle("AS", "bright_and_bold"); $decorator = $get_decorator("AS")
+    '' Assert: %size($decorator.styles) == 1; $decorator.styles[0] == "bright_and_bold"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure apply_style_should_not_duplicate()
+    '' Arrange: зарегистрировать декоратор со стилем
+    ''   $register_descriptor("DUP", {"type":"Test","label":"Test"})
+    ''   $register_decorator("DUP", {"is_extern":%false(),"show_desc":%true(),"styles":["bold"]})
+    '' Act: ApplyStyle("DUP", "bold"); $decorator = $get_decorator("DUP")
+    '' Assert: %size($decorator.styles) == 1 (стиль "bold" уже был, дубликат не добавлен)
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Tests RUN!
+''----------------------------------------------------------------------------------------------------------------------
+hide_description_should_set_show_desc_to_false()
+apply_style_should_add_to_styles_array()
+apply_style_should_not_duplicate()
+''----------------------------------------------------------------------------------------------------------------------
+caption OK
+@enduml

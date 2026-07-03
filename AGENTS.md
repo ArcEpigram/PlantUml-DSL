@@ -1,9 +1,11 @@
 # AGENTS.md
 
 ## Project Overview
-[Project description](./README.md)
-[Contributing rules](./CONTRIBUTING.md)
-[Pull Request Template](./.github/PULL_REQUEST_TEMPLATE.md)
+- [Project description](./README.md)
+- [Contributing rules](./CONTRIBUTING.md)
+- [Pull Request Template](./.github/PULL_REQUEST_TEMPLATE.md)
+
+To find system requirements, read GitHub Issues: https://github.com/ArcEpigram/PlantUml-DSL/issues
 
 ## Useful links
 [PlantUML Preprocessing](https://plantuml.com/preprocessing)

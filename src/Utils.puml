@@ -100,13 +100,12 @@
 '' returns: %true() if $item is found in $collection, %false() otherwise
 '' example: !$found = $contain_in_list($my_array, "target_value")
 !function $contain_in_list($collection, $item)
-    !$exists = %false()
     !foreach $e in $collection
         !if $e == $item
             !return %true()
         !endif
     !endfor
-    !return $exists
+    !return %false()
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
 '' Appends an item to a JSON array and returns the modified array.
@@ -188,6 +187,73 @@
     !assert %false() : $format('FAIL: "%1" in "%2"', $message, $source)
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
+'' Превращает JSON-объект сложной структуры в строку.
+'' args: $json - JSON-объект
+''       $without_quotes - если %true(), имена ключей и строковые значения выводятся без кавычек (default: %false())
+'' example: $text = $json2str($object)
+'' example: $text = $json2str($object, %true())
+!function $json2str($json, $without_quotes = %false())
+    !$raw = %string($json)
+    !$len = %strlen($raw)
+    !$result = ""
+    !$i = 0
+    !$inside = %false()
+    !while $i < $len
+        !$ch = %substr($raw, $i, 1)
+        !if $ch == '"'
+            !if $inside == %true()
+                !$inside = %false()
+            !else
+                !$inside = %true()
+            !endif
+            !if $without_quotes == %true()
+                !$i = $i + 1
+            !else
+                !$result = $format("%1%2", $result, $ch)
+                !$i = $i + 1
+            !endif
+        !elseif $ch == " " && $inside == %false()
+            !$i = $i + 1
+        !else
+            !$result = $format("%1%2", $result, $ch)
+            !$i = $i + 1
+        !endif
+    !endwhile
+    !return $result
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Превращает строку в JSON-объект.
+'' При этом строка может содержать как валидное JSON-представление (атрибуты и их значения в кавычках),
+'' так и представление без кавычек - это необходимо для обхода бага ядра PlantUml с хранением JSON в переменных.
+'' args: $text - строковое представление JSON-объекта
+''       $without_quotes - если %true(), ключи и значения в строке без кавычек (default: %false())
+'' example: !$json = $str2json('{"Name":"Vassily","Age":"98"}')
+'' example: !$json = $str2json("{Name:Vassily,Age:98}", %true())
+!function $str2json($text, $without_quotes = %false())
+    !if $without_quotes == %true()
+        !$len = %strlen($text)
+        !$inner = %substr($text, 1, $len - 2)
+        !$pairs = %splitstr_regex($inner, ",")
+        !$result_str = "{"
+        !$first = %true()
+        !foreach $pair in $pairs
+            !$colon_pos = %strpos($pair, ":")
+            !$key = %substr($pair, 0, $colon_pos)
+            !$value = %substr($pair, $colon_pos + 1)
+            !if $first == %true()
+                !$first = %false()
+                !$result_str = $format('%1"%2":"%3"', $result_str, $key, $value)
+            !else
+                !$result_str = $format('%1,"%2":"%3"', $result_str, $key, $value)
+            !endif
+        !endfor
+        !$result_str = $format("%1}", $result_str)
+        !return %str2json($result_str)
+    !else
+        !return %str2json($text)
+    !endif
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
 '' Serializes a value into its JSON-compatible string representation.
 '' If the value is already a JSON literal (number, boolean, null, object, array, quoted string),
 '' returns it as-is; otherwise wraps it in double quotes.
@@ -196,10 +262,15 @@
 '' example: !$json_val = $__serialize_json_value("hello")
 !function $__serialize_json_value($value)
     !$raw = %string($value)
+    !if $raw == ""
+        !return '"__EMPTY__"'
+    !endif
     !$first_char = %substr($raw, 0, 1)
     !if $raw == "true" || $raw == "false" || $raw == "null"
         !return $raw
-    !elseif $first_char == "{" || $first_char == "[" || $first_char == '"'
+    !elseif $first_char == "{" || $first_char == "["
+        !return $raw
+    !elseif $first_char == '"'
         !return $raw
     !elseif %strpos("0123456789", $first_char) >= 0 || $first_char == "-" || $first_char == "."
         !return $raw
@@ -207,5 +278,37 @@
         !return $format('"%1"', $raw)
     !endif
 !endfunction
-
+''----------------------------------------------------------------------------------------------------------------------
+'' Превращает маркер пустой строки обратно в пустую строку.
+'' args: $value - строковое значение
+'' returns: "" если $value == "__EMPTY__", иначе $value без изменений
+!function $default($value)
+    !if $value == "__EMPTY__"
+        !return ""
+    !endif
+    !return $value
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+!function $value_or_default($condition, $value, $default="")
+    !if $condition == %true()
+        !return $value
+    !else
+        !return $default
+    !endif
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+!function $array2str($array, $splitter=",")
+    !$result = ""
+    !$first = %true()
+    !foreach $item in $array
+        !if $first == %true()
+            !$result = $format("%1", $item)
+            !$first = %false()
+        !else
+            !$result = $format("%1%2%3", $result, $splitter, $item)
+        !endif
+    !endfor
+    !return $result
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
 @enduml

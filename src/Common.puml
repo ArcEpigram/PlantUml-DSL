@@ -1,0 +1,108 @@
+@startuml
+!include Utils.puml
+''----------------------------------------------------------------------------------------------------------------------
+'' Модуль реестра архитектурных элементов.
+'' Хранит глобальные словари дескрипторов, декораторов и очередь рендеринга.
+'' Каждый дескриптор/декоратор сохраняется как отдельная переменная с префиксом-ключом.
+'' Зависимости: Utils.puml
+''----------------------------------------------------------------------------------------------------------------------
+!procedure $_registry_set($prefix, $alias, $value)
+    !$var_name = $format("%1_%2", $prefix, $alias)
+    %set_variable_value($var_name, $value)
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!function $_registry_get($prefix, $alias)
+    !$var_name = $format("%1_%2", $prefix, $alias)
+    !if %variable_exists($var_name)
+        !return %get_variable_value($var_name)
+    !else
+        !return {}
+    !endif
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Сохраняет дескриптор элемента в глобальный реестр.
+'' Имя переменной: DESCRIPTOR_<alias>
+'' args: $alias - алиас (ключ) элемента
+''       $descriptor - JSON-объект атрибутов элемента {type, label, desc, tags, ...}
+'' example: $register_descriptor("User", {"type":"Person","label":"Пользователь"})
+!procedure $register_descriptor($alias, $descriptor)
+    $_registry_set("DESCRIPTOR", $alias, $descriptor)
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Получает дескриптор элемента по алиасу.
+'' args: $alias - алиас (ключ) элемента
+'' returns: JSON-объект дескриптора или {} если не найден
+'' example: !$desc = $get_descriptor("User")
+!function $get_descriptor($alias)
+    !return $_registry_get("DESCRIPTOR", $alias)
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Проверяет, зарегистрирован ли дескриптор для заданного алиаса.
+'' args: $alias - алиас (ключ) элемента
+'' returns: %true() если дескриптор существует, %false() иначе
+'' example: !if $has_descriptor("User")
+!function $has_descriptor($alias)
+    !$descriptor_name = $format("DESCRIPTOR_%1", $alias)
+    !return %variable_exists($descriptor_name)
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Сохраняет декоратор элемента в глобальный реестр.
+'' Имя переменной: DECORATOR_<alias>
+'' args: $alias - алиас (ключ) элемента
+''       $decorator - JSON-объект опций отображения {is_extern, show_desc, styles, ...}
+'' example: $register_decorator("User", {"is_extern":false,"show_desc":true,"styles":[]})
+!procedure $register_decorator($alias, $decorator)
+    $_registry_set("DECORATOR", $alias, $decorator)
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Получает декоратор элемента по алиасу.
+'' args: $alias - алиас (ключ) элемента
+'' returns: JSON-объект декоратора или {} если не найден
+'' example: !$decor = $get_decorator("User")
+!function $get_decorator($alias)
+    !return $_registry_get("DECORATOR", $alias)
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Обновляет одно поле в декораторе элемента.
+'' args: $alias - алиас элемента
+''       $key - имя поля для обновления (строка)
+''       $value - новое значение поля
+'' example: $update_decorator("User", "show_desc", %false())
+!procedure $update_decorator($alias, $key, $value)
+    !$decorator = $get_decorator($alias)
+    !$decorator = $json_set($decorator, $key, $value)
+    $register_decorator($alias, $decorator)
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Добавляет алиас в очередь рендеринга (без дубликатов).
+'' Глобальная переменная: RENDERING_QUEUE (JSON-массив)
+'' args: $alias - алиас элемента для добавления
+'' example: $add_to_rendering_queue("User")
+!procedure $add_to_rendering_queue($alias)
+    !$rendering_queue = $get_rendering_queue()
+
+    !if %not($contain_in_list($rendering_queue, $alias))
+        !$rendering_queue = $append_to_list($rendering_queue, $alias)
+    !endif
+
+    %set_variable_value("RENDERING_QUEUE", $rendering_queue)
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Возвращает текущую очередь рендеринга.
+'' returns: JSON-массив алиасов, отобранных для текущей диаграммы
+'' example: !$queue = $get_rendering_queue()
+!function $get_rendering_queue()
+    !if %variable_exists("RENDERING_QUEUE")
+        !return %get_variable_value("RENDERING_QUEUE")
+    !else
+        !return []
+    !endif
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Очищает очередь рендеринга для следующей диаграммы.
+'' example: $reset_rendering_queue()
+!procedure $reset_rendering_queue()
+    %set_variable_value("RENDERING_QUEUE", [])
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+@enduml

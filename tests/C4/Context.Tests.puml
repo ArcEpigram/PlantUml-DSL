@@ -1,0 +1,106 @@
+@startuml
+!include ../../src/C4/Context.puml
+''----------------------------------------------------------------------------------------------------------------------
+'' Tests
+''----------------------------------------------------------------------------------------------------------------------
+!procedure person_registration_should_create_descriptor_with_person_type()
+    '' Arrange, Act: $Person("Test", "TestLabel"); $desc = $get_descriptor("Test")
+    '' Assert: $desc.type == "Person"; $desc.label == "TestLabel"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure person_registration_should_create_decorator_with_defaults()
+    '' Arrange, Act: $Person("Def", "Default"); $decor = $get_decorator("Def")
+    '' Assert: $decor.is_extern == %false(); $decor.show_desc == %true(); %size($decor.styles) == 0
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure person_registration_should_save_description()
+    '' Arrange, Act: $Person("Desc", "WithDesc", "Описание"); $desc = $get_descriptor("Desc")
+    '' Assert: $desc.desc == "Описание"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure person_registration_should_save_tags()
+    '' Arrange, Act: $Person("Tagged", "T", "", "critical,external"); $desc = $get_descriptor("Tagged")
+    '' Assert: $desc.tags == "critical,external"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure persons_should_add_registered_alias_to_rendering_queue()
+    '' Arrange: $Person("Alice", "Алиса"); $reset_rendering_queue()
+    '' Act: Persons("Alice"); $queue = $get_rendering_queue()
+    '' Assert: %size($queue) == 1; $queue[0] == "Alice"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure persons_should_skip_unregistered_alias()
+    '' Arrange: $reset_rendering_queue()
+    '' Act: Persons("Ghost"); $queue = $get_rendering_queue()
+    '' Assert: %size($queue) == 0 (незарегистрированный алиас пропущен без ошибки)
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure persons_should_add_multiple_aliases()
+    '' Arrange: $Person("A", "A"); $Person("B", "B"); $reset_rendering_queue()
+    '' Act: Persons("A", "B"); $queue = $get_rendering_queue()
+    '' Assert: %size($queue) == 2
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Tests for $resolve_person_render_params
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_person_render_params_returns_label_from_descriptor()
+    '' Arrange: $desc = {"type":"Person","label":"Alice"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[]}
+    '' Act: $params = $resolve_person_render_params($desc, $decor)
+    '' Assert: $params.label == "Alice"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_person_render_params_includes_desc_when_show_desc_true()
+    '' Arrange: $desc = {"type":"Person","label":"U","desc":"Описание"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[]}
+    '' Act: $params = $resolve_person_render_params($desc, $decor)
+    '' Assert: $params.desc == "Описание"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_person_render_params_empty_desc_when_show_desc_false()
+    '' Arrange: $desc = {"type":"Person","label":"U","desc":"Скрыто"}; $decor = {"is_extern":%false(),"show_desc":%false(),"styles":[]}
+    '' Act: $params = $resolve_person_render_params($desc, $decor)
+    '' Assert: $params.desc == ""
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_person_render_params_sets_is_extern_true()
+    '' Arrange: $desc = {"type":"Person","label":"Ext"}; $decor = {"is_extern":%true(),"show_desc":%true(),"styles":[]}
+    '' Act: $params = $resolve_person_render_params($desc, $decor)
+    '' Assert: $params.is_extern == %true()
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_person_render_params_sets_is_extern_false()
+    '' Arrange: $desc = {"type":"Person","label":"Int"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[]}
+    '' Act: $params = $resolve_person_render_params($desc, $decor)
+    '' Assert: $params.is_extern == %false()
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_person_render_params_passes_tags_through()
+    '' Arrange: $desc = {"type":"Person","label":"T","tags":"critical,external"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[]}
+    '' Act: $params = $resolve_person_render_params($desc, $decor)
+    '' Assert: $params.tags == "critical,external"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_person_render_params_empty_tags_when_not_set()
+    '' Arrange: $desc = {"type":"Person","label":"NoTags"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[]}
+    '' Act: $params = $resolve_person_render_params($desc, $decor)
+    '' Assert: $params.tags == ""
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Tests RUN!
+''----------------------------------------------------------------------------------------------------------------------
+person_registration_should_create_descriptor_with_person_type()
+person_registration_should_create_decorator_with_defaults()
+person_registration_should_save_description()
+person_registration_should_save_tags()
+persons_should_add_registered_alias_to_rendering_queue()
+persons_should_skip_unregistered_alias()
+persons_should_add_multiple_aliases()
+resolve_person_render_params_returns_label_from_descriptor()
+resolve_person_render_params_includes_desc_when_show_desc_true()
+resolve_person_render_params_empty_desc_when_show_desc_false()
+resolve_person_render_params_sets_is_extern_true()
+resolve_person_render_params_sets_is_extern_false()
+resolve_person_render_params_passes_tags_through()
+resolve_person_render_params_empty_tags_when_not_set()
+''----------------------------------------------------------------------------------------------------------------------
+caption OK
+@enduml
