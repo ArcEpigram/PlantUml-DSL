@@ -90,9 +90,10 @@
 '' example: $render_person("User", $desc, $decor)
 !procedure $render_person($alias, $serialized_descriptor, $decorator)
     !$descriptor = $str2json($serialized_descriptor, $without_quotes = %true())
+    !$params = $resolve_person_render_params($descriptor, $decorator)
 
     !if $decorator.show_desc == %true()
-        !$desc = $descriptor.desc
+        !$desc = $params.desc
     !else
         !$desc = ""
     !endif
@@ -109,10 +110,12 @@
 '' args: $descriptor - JSON-объект {type, label, desc, tags}
 ''       $decorator - JSON-объект {is_extern, show_desc, styles}
 '' returns: JSON-объект {label, desc, is_extern, tags} — вычисленные параметры для нативного рендеринга
-'' example: !$params = $resolve_person_render_params($desc, $decor)
-!function $resolve_person_render_params($descriptor, $decorator)
-    '' TODO: Извлечь label, desc, is_extern, tags из дескриптора и декоратора
-    !return {}
+'' example: !$params = $resolve_person_render_params($descriptor, $decorator)
+!function $resolve_person_render_params($serialized_descriptor, $decorator)
+    !$params = {}
+    !$params = $json_add($params, "label", $descriptor.label)
+    !$params = $json_add($params, "desc", $descriptor.desc)
+    !return $params
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
 @enduml
