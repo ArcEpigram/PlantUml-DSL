@@ -57,6 +57,28 @@
     !endif
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
+!unquoted procedure Persons_Ext($source, $aliases)
+    !if $source != ""
+        !foreach $alias in %splitstr($aliases, " ")
+            '' 1. Включение элемента в диаграмму.
+            '' Процедура регистрации $Person(...) будет вызвана автоматически.
+            !$element_file = $format("%1/%2.person.puml", $source, $alias)
+            !include $element_file
+
+            '' 2. Создать декоратор элемента по умолчанию
+            '' TODO: Вынести в отдельную функцию
+            !$decorator = {}
+            !$decorator = $json_add($decorator, "is_extern", %true())
+            !$decorator = $json_add($decorator, "show_desc", %true())
+            !$decorator = $json_add($decorator, "styles", [])
+            $register_decorator($alias, $decorator)
+
+            '' 3. Добавить алиас элемента в очередь рендеринга.
+            $add_to_rendering_queue($alias)
+        !endfor
+    !endif
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
 '' Рендерит элемент типа Person в нотации C4 Context.
 '' Вызывает $resolve_person_render_params для вычисления параметров,
 '' затем стандартную функцию Person() или Person_Ext() в зависимости от флага is_extern.
@@ -78,7 +100,7 @@
         !$desc = ""
     !endif
 
-    !if $unwrapped_descriptor.is_extern
+    !if $decorator.is_extern == %true()
         Person_Ext($alias, $unwrapped_descriptor.label, $desc)
     !else
         Person($alias, $unwrapped_descriptor.label, $desc)
