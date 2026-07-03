@@ -19,11 +19,13 @@
 ''       $style - имя стиля (строка)
 '' example: ApplyStyle("User", "bright_and_bold")
 !procedure ApplyStyle($element, $style)
-    '' 1. Получить декоратор: $decorator = $get_decorator($target)
-    '' 2. Получить массив стилей: $styles = $decorator.styles
-    '' 3. Если %not($contain_in_list($styles, $style)) — $styles = $append_to_list($styles, $style)
-    '' 4. Обновить поле styles в декораторе: $decorator = $json_set($decorator, "styles", $styles)
-    '' 5. $register_decorator($element, $decorator)
+    !$decorator = $get_decorator($element)
+    !$styles = $decorator.styles
+    !if %not($contain_in_list($styles, $style))
+        !$styles = $append_to_list($styles, $style)
+        !$decorator = $json_set($decorator, "styles", $styles)
+        $register_decorator($element, $decorator)
+    !endif
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Выполняет рендеринг диаграммы: обходит очередь рендеринга и для каждого элемента

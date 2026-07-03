@@ -103,8 +103,14 @@
        !$render_proc_name = $params.render_proc
     !endif
 
-    '' TODO: Продолжить атрибуты
-    %invoke_procedure($render_proc_name, $alias, $params.label, $default($params.desc))
+    %invoke_procedure(\
+        $render_proc_name, \
+        $alias, \
+        $params.label, \
+        $default($params.desc), \
+        "", \
+        $default($params.tags) \
+    )
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Вычисляет параметры рендеринга для элемента Person на основе дескриптора и декоратора.
@@ -115,13 +121,16 @@
 '' example: !$params = $resolve_person_render_params($descriptor, $decorator)
 !function $resolve_person_render_params($descriptor, $decorator)
     !$params = {}
-    !$params = $json_add($params,  "render_proc", "Person")
-
-    !$params = $json_add($params, "is_extern", $decorator.is_extern)
 
     !$params = $json_add($params, "label", $descriptor.label)
 
     !$params = $json_add($params, "desc", $value_or_default($decorator.show_desc == %true(), $descriptor.desc))
+
+    !$params = $json_add($params,  "render_proc", "Person")
+
+    !$params = $json_add($params, "is_extern", $decorator.is_extern)
+
+    !$params = $json_add($params, "tags", $array2str($decorator.styles, "+"))
 
     !return $params
 !endfunction

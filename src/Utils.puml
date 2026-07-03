@@ -297,4 +297,18 @@
     !endif
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
+!function $array2str($array, $splitter=",")
+    !$result = ""
+    !$first = %true()
+    !foreach $item in $array
+        !if $first == %true()
+            !$result = $format("%1", $item)
+            !$first = %false()
+        !else
+            !$result = $format("%1%2%3", $result, $splitter, $item)
+        !endif
+    !endfor
+    !return $result
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
 @enduml
