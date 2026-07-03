@@ -282,11 +282,19 @@
 '' Превращает маркер пустой строки обратно в пустую строку.
 '' args: $value - строковое значение
 '' returns: "" если $value == "__EMPTY__", иначе $value без изменений
-!function $__unwrap_empty($value)
+!function $default($value)
     !if $value == "__EMPTY__"
         !return ""
     !endif
     !return $value
 !endfunction
-
+''----------------------------------------------------------------------------------------------------------------------
+!function $value_or_default($condition, $value, $default="")
+    !if $condition == %true()
+        !return $value
+    !else
+        !return $default
+    !endif
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
 @enduml
