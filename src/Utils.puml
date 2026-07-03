@@ -188,6 +188,73 @@
     !assert %false() : $format('FAIL: "%1" in "%2"', $message, $source)
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
+'' Превращает JSON-объект сложной структуры в строку.
+'' args: $json - JSON-объект
+''       $without_quotes - если %true(), имена ключей и строковые значения выводятся без кавычек (default: %false())
+'' example: $text = $json2str($object)
+'' example: $text = $json2str($object, %true())
+!function $json2str($json, $without_quotes = %false())
+    !$raw = %string($json)
+    !$len = %strlen($raw)
+    !$result = ""
+    !$i = 0
+    !$inside = %false()
+    !while $i < $len
+        !$ch = %substr($raw, $i, 1)
+        !if $ch == '"'
+            !if $inside == %true()
+                !$inside = %false()
+            !else
+                !$inside = %true()
+            !endif
+            !if $without_quotes == %true()
+                !$i = $i + 1
+            !else
+                !$result = $format("%1%2", $result, $ch)
+                !$i = $i + 1
+            !endif
+        !elseif $ch == " " && $inside == %false()
+            !$i = $i + 1
+        !else
+            !$result = $format("%1%2", $result, $ch)
+            !$i = $i + 1
+        !endif
+    !endwhile
+    !return $result
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Превращает строку в JSON-объект.
+'' При этом строка может содержать как валидное JSON-представление (атрибуты и их значения в кавычках),
+'' так и представление без кавычек - это необходимо для обхода бага ядра PlantUml с хранением JSON в переменных.
+'' args: $text - строковое представление JSON-объекта
+''       $without_quotes - если %true(), ключи и значения в строке без кавычек (default: %false())
+'' example: !$json = $str2json('{"Name":"Vassily","Age":"98"}')
+'' example: !$json = $str2json("{Name:Vassily,Age:98}", %true())
+!function $str2json($text, $without_quotes = %false())
+    !if $without_quotes == %true()
+        !$len = %strlen($text)
+        !$inner = %substr($text, 1, $len - 2)
+        !$pairs = %splitstr_regex($inner, ",")
+        !$result_str = "{"
+        !$first = %true()
+        !foreach $pair in $pairs
+            !$colon_pos = %strpos($pair, ":")
+            !$key = %substr($pair, 0, $colon_pos)
+            !$value = %substr($pair, $colon_pos + 1)
+            !if $first == %true()
+                !$first = %false()
+                !$result_str = $format('%1"%2":"%3"', $result_str, $key, $value)
+            !else
+                !$result_str = $format('%1,"%2":"%3"', $result_str, $key, $value)
+            !endif
+        !endfor
+        !$result_str = $format("%1}", $result_str)
+        !return %str2json($result_str)
+    !else
+        !return %str2json($text)
+    !endif
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
 '' Serializes a value into its JSON-compatible string representation.
 '' If the value is already a JSON literal (number, boolean, null, object, array, quoted string),
 '' returns it as-is; otherwise wraps it in double quotes.
