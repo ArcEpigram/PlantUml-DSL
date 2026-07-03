@@ -43,17 +43,25 @@
     $include_elements("person", $source, $aliases, %true())
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
+'' Создаёт декоратор элемента Person со значениями по умолчанию.
+'' args: $is_extern — %true() для внешнего элемента, %false() для внутреннего
+'' returns: JSON-объект {is_extern, show_desc, styles}
+!function $default_person_decorator($is_extern)
+    !$decorator = {}
+    !$decorator = $json_add($decorator, "is_extern", $is_extern)
+    !$decorator = $json_add($decorator, "show_desc", %true())
+    !$decorator = $json_add($decorator, "styles", [])
+    !return $decorator
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
 '' Внутренняя реализация включения элементов Person в диаграмму.
-!unquoted procedure $include_elements($element_type, $source, $aliases, $is_extern)
+!unquoted procedure $persons_impl($source, $aliases, $is_extern)
     !if $source != ""
         !foreach $alias in %splitstr($aliases, " ")
-            !$element_file = $format("%1/%2.%3.puml", $source, $alias, $element_type)
+            !$element_file = $format("%1/%2.person.puml", $source, $alias)
             !include $element_file
 
-            !$decorator = {}
-            !$decorator = $json_add($decorator, "is_extern", $is_extern)
-            !$decorator = $json_add($decorator, "show_desc", %true())
-            !$decorator = $json_add($decorator, "styles", [])
+            !$decorator = $default_person_decorator($is_extern)
             $register_decorator($alias, $decorator)
 
             $add_to_rendering_queue($alias)
