@@ -17,12 +17,7 @@
 ''       $tags - теги элемента (опционально)
 '' example: $Person("User", "Пользователь", "Описание пользователя")
 !unquoted procedure $Person($alias, $label, $desc="", $tags="")
-    !$descriptor = {}
-    !$descriptor = $json_add($descriptor, "type", "Person")
-    !$descriptor = $json_add($descriptor, "label", $label)
-    !$descriptor = $json_add($descriptor, "desc", $desc)
-    !$descriptor = $json_add($descriptor, "tags", [])
-
+    !$descriptor = $default_c4_element_descriptor("Person", $label, $desc, $tags)
     $register_descriptor($alias, $json2str($descriptor, %true()))
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
@@ -52,6 +47,22 @@
     !$decorator = $json_add($decorator, "show_desc", %true())
     !$decorator = $json_add($decorator, "styles", [])
     !return $decorator
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Создаёт дескриптор C4-элемента.
+'' args: $element_type - тип элемента ("Person", "System", "Container", "Component")
+''       $label - отображаемое имя
+''       $desc - описание (опционально)
+''       $tags - теги (опционально)
+'' returns: JSON-объект {type, label, desc, tags}
+!function $default_c4_element_descriptor($element_type, $label, $desc="", $tags="")
+    '' TODO: добавить остальные атрибуты C4-элемента
+    !$descriptor = {}
+    !$descriptor = $json_add($descriptor, "type", $element_type)
+    !$descriptor = $json_add($descriptor, "label", $label)
+    !$descriptor = $json_add($descriptor, "desc", $desc)
+    !$descriptor = $json_add($descriptor, "tags", [])
+    !return $descriptor
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
 '' Внутренняя реализация включения элементов Person в диаграмму.
