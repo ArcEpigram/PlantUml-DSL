@@ -43,6 +43,7 @@
         !$decorator = $get_decorator($alias)
         $render_dispatch($alias, $descriptor, $decorator)
     !endfor
+    $reset_rendering_queue()
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Диспетчер рендеринга: выбирает процедуру рендеринга по типу элемента.

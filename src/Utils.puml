@@ -100,13 +100,12 @@
 '' returns: %true() if $item is found in $collection, %false() otherwise
 '' example: !$found = $contain_in_list($my_array, "target_value")
 !function $contain_in_list($collection, $item)
-    !$exists = %false()
     !foreach $e in $collection
         !if $e == $item
             !return %true()
         !endif
     !endfor
-    !return $exists
+    !return %false()
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
 '' Appends an item to a JSON array and returns the modified array.

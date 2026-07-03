@@ -6,14 +6,27 @@
 '' Каждый дескриптор/декоратор сохраняется как отдельная переменная с префиксом-ключом.
 '' Зависимости: Utils.puml
 ''----------------------------------------------------------------------------------------------------------------------
+!procedure $_registry_set($prefix, $alias, $value)
+    !$var_name = $format("%1_%2", $prefix, $alias)
+    %set_variable_value($var_name, $value)
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!function $_registry_get($prefix, $alias)
+    !$var_name = $format("%1_%2", $prefix, $alias)
+    !if %variable_exists($var_name)
+        !return %get_variable_value($var_name)
+    !else
+        !return {}
+    !endif
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
 '' Сохраняет дескриптор элемента в глобальный реестр.
 '' Имя переменной: DESCRIPTOR_<alias>
 '' args: $alias - алиас (ключ) элемента
 ''       $descriptor - JSON-объект атрибутов элемента {type, label, desc, tags, ...}
 '' example: $register_descriptor("User", {"type":"Person","label":"Пользователь"})
 !procedure $register_descriptor($alias, $descriptor)
-    !$desc_name = $format("DESCRIPTOR_%1", $alias)
-    %set_variable_value($desc_name, $descriptor)
+    $_registry_set("DESCRIPTOR", $alias, $descriptor)
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Получает дескриптор элемента по алиасу.
@@ -21,12 +34,7 @@
 '' returns: JSON-объект дескриптора или {} если не найден
 '' example: !$desc = $get_descriptor("User")
 !function $get_descriptor($alias)
-    !$descriptor_name = $format("DESCRIPTOR_%1", $alias)
-    !if %variable_exists($descriptor_name)
-        !return %get_variable_value($descriptor_name)
-    !else
-        !return {}
-    !endif
+    !return $_registry_get("DESCRIPTOR", $alias)
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
 '' Проверяет, зарегистрирован ли дескриптор для заданного алиаса.
@@ -44,8 +52,7 @@
 ''       $decorator - JSON-объект опций отображения {is_extern, show_desc, styles, ...}
 '' example: $register_decorator("User", {"is_extern":false,"show_desc":true,"styles":[]})
 !procedure $register_decorator($alias, $decorator)
-    !$decorator_name = $format("DECORATOR_%1", $alias)
-    %set_variable_value($decorator_name, $decorator)
+    $_registry_set("DECORATOR", $alias, $decorator)
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Получает декоратор элемента по алиасу.
@@ -53,12 +60,7 @@
 '' returns: JSON-объект декоратора или {} если не найден
 '' example: !$decor = $get_decorator("User")
 !function $get_decorator($alias)
-    !$decorator_name = $format("DECORATOR_%1", $alias)
-    !if %variable_exists($decorator_name)
-        !return %get_variable_value($decorator_name)
-    !else
-        !return {}
-    !endif
+    !return $_registry_get("DECORATOR", $alias)
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
 '' Обновляет одно поле в декораторе элемента.

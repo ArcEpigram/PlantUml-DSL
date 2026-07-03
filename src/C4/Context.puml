@@ -46,7 +46,7 @@
 '' Создаёт декоратор элемента со значениями по умолчанию.
 '' args: $is_extern — %true() для внешнего элемента, %false() для внутреннего
 '' returns: JSON-объект {is_extern, show_desc, styles}
-!function $default_decorator($is_extern)
+!function $default_c4_element_decorator($is_extern)
     !$decorator = {}
     !$decorator = $json_add($decorator, "is_extern", $is_extern)
     !$decorator = $json_add($decorator, "show_desc", %true())
@@ -61,7 +61,7 @@
             !$element_file = $format("%1/%2.%3.puml", $source, $alias, $element_type)
             !include $element_file
 
-            !$decorator = $default_decorator($is_extern)
+            !$decorator = $default_c4_element_decorator($is_extern)
             $register_decorator($alias, $decorator)
 
             $add_to_rendering_queue($alias)
@@ -70,8 +70,8 @@
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Рендерит элемент типа Person в нотации C4 Context.
-'' Вызывает $resolve_person_render_params для вычисления параметров,
-'' затем стандартную функцию Person() или Person_Ext() в зависимости от флага is_extern.
+'' Десериализует дескриптор, проверяет флаги show_desc и is_extern,
+'' затем вызывает стандартную функцию Person() или Person_Ext().
 '' args: $alias - алиас элемента
 ''       $descriptor - дескриптор элемента {type, label, desc, tags}
 ''       $decorator - декоратор элемента {is_extern, show_desc, styles}
