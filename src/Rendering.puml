@@ -12,6 +12,7 @@
 '' example: HideDescription("User")
 !procedure HideDescription($element)
     '' 1. $update_decorator($element, "show_desc", %false())
+    $update_decorator($element, "show_desc", %false())
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Добавляет визуальный стиль к элементу (без дубликатов).
@@ -32,15 +33,25 @@
 '' args: $title - заголовок диаграммы (строка)
 '' example: Diagram("System Context diagram")
 !procedure Diagram($title)
-    title
+    caption
     $title
-    end title
+    end caption
 
     '' 1. Получить очередь: $queue = $get_rendering_queue()
+    !$rendering_queue = $get_rendering_queue()
+    'rectangle "$rendering_queue"
+
     '' 2. Для каждого $alias в $queue:
-    ''    a. $descriptor = $get_descriptor($alias)
-    ''    b. $decorator = $get_decorator($alias)
-    ''    c. $render_dispatch($alias, $descriptor, $decorator)
+    !foreach $alias in $rendering_queue
+        '' a. $descriptor = $get_descriptor($alias)
+        !$descriptor = $get_descriptor($alias)
+
+        '' b. $decorator = $get_decorator($alias)
+        !$decorator = $get_decorator($alias)
+
+        '' c. $render_dispatch($alias, $descriptor, $decorator)
+        $render_dispatch($alias, $descriptor, $decorator)
+    !endfor
     '' 3. $reset_rendering_queue()
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
@@ -50,8 +61,18 @@
 ''       $decorator - JSON-объект опций отображения элемента
 '' example: $render_dispatch("User", $desc, $decor)
 !procedure $render_dispatch($alias, $descriptor, $decorator)
+    '' TODO: обернуть в $unwrap(...)
+    !$unwrapped_descriptor = $str2json($descriptor, $without_quotes = %true())
     '' 1. $type = $descriptor.type
+    !$element_type = $unwrapped_descriptor.type
+
     '' 2. Свитч по $type:
+    !if $element_type == "Person"
+        $render_person($alias, $descriptor, $decorator)
+    !else
+        '' TODO: Продолжить
+    !endif
+
     ''    "Person" → $render_person($alias, $descriptor, $decorator)    (форвард-референс из C4/Context.puml)
     ''    (другие типы будут добавлены в следующих вертикальных срезах)
 !endprocedure

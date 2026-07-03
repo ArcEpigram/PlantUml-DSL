@@ -16,21 +16,18 @@
 ''       $desc - описание элемента (опционально)
 ''       $tags - теги элемента (опционально)
 '' example: $Person("User", "Пользователь", "Описание пользователя")
-!procedure $Person($alias, $label, $desc="", $tags="")
+!unquoted procedure $Person($alias, $label, $desc="", $tags="")
     '' 1. Guard: !assert $alias != ""; !assert $label != ""
+
     '' 2. Создать дескриптор:
-    ''    $descriptor = {}
-    ''    $descriptor = $json_add($descriptor, "type", "Person")
-    ''    $descriptor = $json_add($descriptor, "label", $label)
-    ''    $descriptor = $json_add($descriptor, "desc", $desc)
-    ''    $descriptor = $json_add($descriptor, "tags", $tags)
-    '' 3. $register_descriptor($alias, $descriptor)
-    '' 4. Создать декоратор по умолчанию:
-    ''    $decorator = {}
-    ''    $decorator = $json_add($decorator, "is_extern", %false())
-    ''    $decorator = $json_add($decorator, "show_desc", %true())
-    ''    $decorator = $json_add($decorator, "styles", [])
-    '' 5. $register_decorator($alias, $decorator)
+    !$descriptor = {}
+    !$descriptor = $json_add($descriptor, "type", "Person")
+    !$descriptor = $json_add($descriptor, "label", $label)
+    !$descriptor = $json_add($descriptor, "desc", $desc)
+    !$descriptor = $json_add($descriptor, "tags", [])
+
+    '' 3. Зарегистрировать дескриптор в очереди рендеринга.
+    $register_descriptor($alias, $json2str($descriptor, %true()))
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Включает зарегистрированные элементы Person в текущую диаграмму.
@@ -38,14 +35,26 @@
 '' args: $source - путь к каталогу к объявлениям элементов.
 ''       $aliases - перечисление имен элементов (разделенные пробелом).
 '' example: Persons("Elements", User)
-!procedure Persons($source, $aliases)
+!unquoted procedure Persons($source, $aliases)
     !if $source != ""
         !foreach $alias in %splitstr($aliases, " ")
+            '' 1. Включение элемента в диаграмму.
+            '' Процедура регистрации $Person(...) будет вызвана автоматически.
             !$element_file = $format("%1/%2.person.puml", $source, $alias)
             !include $element_file
+
+            '' 2. Создать декоратор элемента по умолчанию
+            '' TODO: Вынести в отдельную функцию
+            !$decorator = {}
+            !$decorator = $json_add($decorator, "is_extern", %false())
+            !$decorator = $json_add($decorator, "show_desc", %true())
+            !$decorator = $json_add($decorator, "styles", [])
+            $register_decorator($alias, $decorator)
+
+            '' 3. Добавить алиас элемента в очередь рендеринга.
+            $add_to_rendering_queue($alias)
         !endfor
     !endif
-    ''$add_to_rendering_queue($p)
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Рендерит элемент типа Person в нотации C4 Context.
@@ -60,6 +69,20 @@
     '' 2. Извлечь поля: $label = $params.label; $desc = $params.desc; $tags = $params.tags
     '' 3. Если $params.is_extern — Person_Ext($alias, $label, $desc, "", $tags)
     ''    Иначе — Person($alias, $label, $desc, "", $tags)
+    !$unwrapped_descriptor = $str2json($descriptor, $without_quotes = %true())
+    '!$unwrapped_decorator = $str2json($decorator, $without_quotes = %true())
+
+    !if $decorator.show_desc == %true()
+        !$desc = $unwrapped_descriptor.desc
+    !else
+        !$desc = ""
+    !endif
+
+    !if $unwrapped_descriptor.is_extern
+        Person_Ext($alias, $unwrapped_descriptor.label, $desc)
+    !else
+        Person($alias, $unwrapped_descriptor.label, $desc)
+    !endif
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Вычисляет параметры рендеринга для элемента Person на основе дескриптора и декоратора.
