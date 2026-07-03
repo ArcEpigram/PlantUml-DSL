@@ -1,7 +1,7 @@
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.6.0"
-version_files = ["pyproject.toml", "version.json:version"]
+version = "0.7.0"
+version_files = ["pyproject.toml", "version.json"]
 tag_format = "v$version"
 version_scheme = "semver2"
 changelog_incremental = true
