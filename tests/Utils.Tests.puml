@@ -89,6 +89,17 @@
     !assert $json.Y == 20
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
+!procedure json_add_append_key_and_empty_value_to_json_object()
+    '' Arrange
+    !$json = {}
+
+    '' Act
+    !$json = $json_add($json, "Empty", "")
+
+    '' Assert
+    !assert $json.Empty == "__EMPTY__"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
 !procedure json_add_append_nested_json_to_json_object()
     '' Arrange
     !$json = { "City": "Moscow" }
@@ -210,6 +221,7 @@ append_to_list_should_add_item_to_end()
 append_to_list_should_add_string_to_end()
 append_to_list_should_add_to_empty_collection()
 json_add_append_key_and_value_to_json_object()
+json_add_append_key_and_empty_value_to_json_object()
 json_add_append_nested_json_to_json_object()
 json_set_should_modify_json_attribute_value()
 json_set_should_replace_string_value()

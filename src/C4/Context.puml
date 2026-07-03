@@ -91,18 +91,20 @@
 !procedure $render_person($alias, $serialized_descriptor, $decorator)
     !$descriptor = $str2json($serialized_descriptor, $without_quotes = %true())
     !$params = $resolve_person_render_params($descriptor, $decorator)
+    $render_c4_element($alias, $params)
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure $render_c4_element($alias, $params)
 
-    !if $decorator.show_desc == %true()
-        !$desc = $params.desc
-    !else
-        !$desc = ""
-    !endif
-
-    !if $decorator.is_extern == %true()
-        Person_Ext($alias, $descriptor.label, $desc)
-    !else
-        Person($alias, $descriptor.label, $desc)
-    !endif
+    rectangle "$params"
+'    !if $params.is_extern == %true()
+'        !$render_proc_name = $format("%1_Ext", $params.render_proc)
+'    !else
+'       !$render_proc_name = $params.render_proc
+'    !endif
+'
+'    '' TODO: Продолжить атрибуты
+'    %invoke_procedure($render_proc_name, $alias, $params.label, $__unwrap_empty($params.desc))
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Вычисляет параметры рендеринга для элемента Person на основе дескриптора и декоратора.
@@ -111,10 +113,27 @@
 ''       $decorator - JSON-объект {is_extern, show_desc, styles}
 '' returns: JSON-объект {label, desc, is_extern, tags} — вычисленные параметры для нативного рендеринга
 '' example: !$params = $resolve_person_render_params($descriptor, $decorator)
-!function $resolve_person_render_params($serialized_descriptor, $decorator)
+!function $resolve_person_render_params($descriptor, $decorator)
     !$params = {}
+
+    !$params = $json_add($params,  "render_proc", "Person")
+
     !$params = $json_add($params, "label", $descriptor.label)
-    !$params = $json_add($params, "desc", $descriptor.desc)
+
+    !if $decorator.show_desc == %true()
+        !desc = $descriptor.desc
+    !else
+        !$desc = ""
+    !endif
+
+    !$params = $json_add($params, "desc", $desc)
+
+'    !if $decorator.show_desc == %true()
+'        !$params = $json_add($params, "desc", $descriptor.desc)
+'    !else
+'        !$params = $json_add($params, "desc", "")
+'    !endif
+
     !return $params
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------

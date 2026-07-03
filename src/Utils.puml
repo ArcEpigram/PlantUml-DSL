@@ -262,16 +262,31 @@
 '' example: !$json_val = $__serialize_json_value("hello")
 !function $__serialize_json_value($value)
     !$raw = %string($value)
+    !if $raw == ""
+        !return '"__EMPTY__"'
+    !endif
     !$first_char = %substr($raw, 0, 1)
     !if $raw == "true" || $raw == "false" || $raw == "null"
         !return $raw
-    !elseif $first_char == "{" || $first_char == "[" || $first_char == '"'
+    !elseif $first_char == "{" || $first_char == "["
+        !return $raw
+    !elseif $first_char == '"'
         !return $raw
     !elseif %strpos("0123456789", $first_char) >= 0 || $first_char == "-" || $first_char == "."
         !return $raw
     !else
         !return $format('"%1"', $raw)
     !endif
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Превращает маркер пустой строки обратно в пустую строку.
+'' args: $value - строковое значение
+'' returns: "" если $value == "__EMPTY__", иначе $value без изменений
+!function $__unwrap_empty($value)
+    !if $value == "__EMPTY__"
+        !return ""
+    !endif
+    !return $value
 !endfunction
 
 @enduml
