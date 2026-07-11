@@ -7,11 +7,29 @@
 '' настройка опций отображения элементов и оркестрация рендеринга.
 '' Зависимости: Utils.puml, Common.puml
 ''----------------------------------------------------------------------------------------------------------------------
-'' Скрывает описание (desc) элемента при рендеринге.
+'' Скрывает описание (desc/descr) элемента при рендеринге.
+'' Работает как для элементов (show_desc), так и для связей (show_descr).
 '' args: $element - алиас элемента
 '' example: HideDescription("User")
 !procedure HideDescription($element)
     $update_decorator($element, "show_desc", %false())
+    $update_decorator($element, "show_descr", %false())
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Скрывает метку (label) элемента при рендеринге.
+'' Применяется в основном к связям (Relation).
+'' args: $element - алиас элемента
+'' example: HideLabel("User-ERP")
+!procedure HideLabel($element)
+    $update_decorator($element, "show_label", %false())
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Скрывает технологию (techn) элемента при рендеринге.
+'' Применяется в основном к связям (Relation).
+'' args: $element - алиас элемента
+'' example: HideTechnology("User-ERP")
+!procedure HideTechnology($element)
+    $update_decorator($element, "show_techn", %false())
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Добавляет визуальный стиль к элементу (без дубликатов).
@@ -59,6 +77,9 @@
 
     !if $element_type == "Person"
         $render_person($alias, $descriptor, $decorator)
+    !endif
+    !if $element_type == "Relation"
+        $render_relation($alias, $descriptor, $decorator)
     !endif
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------

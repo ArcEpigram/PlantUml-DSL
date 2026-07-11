@@ -1,0 +1,5 @@
+@startuml
+!include ../../../src/C4/Context.puml
+
+$Relation("User-ERP", "User", "ERP", "Использует", "HTTPS", "Основной канал работы", "critical")
+@enduml
