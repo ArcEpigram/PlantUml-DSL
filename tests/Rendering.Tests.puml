@@ -7,7 +7,7 @@
     '' Arrange: зарегистрировать дескриптор и декоратор через Common
     ''   $register_descriptor("HD", {"type":"Test","label":"Test"})
     ''   $register_decorator("HD", {"is_extern":%false(),"show_desc":%true(),"styles":[]})
-    '' Act: HideDescription("HD"); $decorator = $get_decorator("HD")
+    '' Act: HideDescription(HD); $decorator = $get_decorator("HD")
     '' Assert: $decorator.show_desc == %false()
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
@@ -15,7 +15,7 @@
     '' Arrange: зарегистрировать дескриптор и декоратор через Common
     ''   $register_descriptor("AS", {"type":"Test","label":"Test"})
     ''   $register_decorator("AS", {"is_extern":%false(),"show_desc":%true(),"styles":[]})
-    '' Act: ApplyStyle("AS", "bright_and_bold"); $decorator = $get_decorator("AS")
+    '' Act: ApplyStyle(AS, "bright_and_bold"); $decorator = $get_decorator("AS")
     '' Assert: %size($decorator.styles) == 1; $decorator.styles[0] == "bright_and_bold"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
@@ -23,7 +23,7 @@
     '' Arrange: зарегистрировать декоратор со стилем
     ''   $register_descriptor("DUP", {"type":"Test","label":"Test"})
     ''   $register_decorator("DUP", {"is_extern":%false(),"show_desc":%true(),"styles":["bold"]})
-    '' Act: ApplyStyle("DUP", "bold"); $decorator = $get_decorator("DUP")
+    '' Act: ApplyStyle(DUP, "bold"); $decorator = $get_decorator("DUP")
     '' Assert: %size($decorator.styles) == 1 (стиль "bold" уже был, дубликат не добавлен)
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
@@ -31,7 +31,7 @@
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure hidelabel_should_set_show_label_false()
     '' Arrange: $register_decorator("RL", {"show_label":%true(),"show_techn":%true(),"show_descr":%true(),"link":"","sprite":"","styles":[]})
-    '' Act: HideLabel("RL"); $decorator = $get_decorator("RL")
+    '' Act: HideLabel(RL); $decorator = $get_decorator("RL")
     '' Assert: $decorator.show_label == %false()
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
@@ -39,7 +39,7 @@
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure hidetechnology_should_set_show_techn_false()
     '' Arrange: $register_decorator("RT", {"show_label":%true(),"show_techn":%true(),"show_descr":%true(),"link":"","sprite":"","styles":[]})
-    '' Act: HideTechnology("RT"); $decorator = $get_decorator("RT")
+    '' Act: HideTechnology(RT); $decorator = $get_decorator("RT")
     '' Assert: $decorator.show_techn == %false()
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
@@ -47,7 +47,7 @@
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure hidedescription_should_hide_descr_for_relation()
     '' Arrange: $register_decorator("RD", {"show_label":%true(),"show_techn":%true(),"show_descr":%true(),"link":"","sprite":"","styles":[]})
-    '' Act: HideDescription("RD"); $decorator = $get_decorator("RD")
+    '' Act: HideDescription(RD); $decorator = $get_decorator("RD")
     '' Assert: $decorator.show_descr == %false()
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
