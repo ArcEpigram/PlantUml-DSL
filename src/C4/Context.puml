@@ -135,4 +135,123 @@
     !return $params
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
+'' Создаёт дескриптор связи C4 Relation.
+'' args: $from - алиас исходного элемента
+''       $to - алиас целевого элемента
+''       $label - отображаемая метка связи
+''       $techn - технология (опционально)
+''       $descr - описание (опционально)
+''       $tags - теги (опционально)
+'' returns: JSON-объект {type, from, to, label, techn, descr, tags}
+!function $default_relation_descriptor($from, $to, $label, $techn="", $descr="", $tags="")
+    !$descriptor = {}
+    !$descriptor = $json_add($descriptor, "type", "Relation")
+    !$descriptor = $json_add($descriptor, "from", $from)
+    !$descriptor = $json_add($descriptor, "to", $to)
+    !$descriptor = $json_add($descriptor, "label", $label)
+    !$descriptor = $json_add($descriptor, "techn", $techn)
+    !$descriptor = $json_add($descriptor, "descr", $descr)
+    !$descriptor = $json_add($descriptor, "tags", [])
+    !return $descriptor
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Создаёт декоратор связи со значениями по умолчанию.
+'' returns: JSON-объект {show_label, show_techn, show_descr, link, sprite, styles}
+!function $default_relation_decorator()
+    !$decorator = {}
+    !$decorator = $json_add($decorator, "show_label", %true())
+    !$decorator = $json_add($decorator, "show_techn", %true())
+    !$decorator = $json_add($decorator, "show_descr", %true())
+    !$decorator = $json_add($decorator, "link", "")
+    !$decorator = $json_add($decorator, "sprite", "")
+    !$decorator = $json_add($decorator, "styles", [])
+    !return $decorator
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Регистрирует связь между элементами.
+'' Создаёт дескриптор (атрибуты) и сохраняет его в глобальный реестр.
+'' Декоратор создаётся при включении в диаграмму командой Relations().
+'' args: $alias - уникальный алиас связи
+''       $from - алиас исходного элемента
+''       $to - алиас целевого элемента
+''       $label - отображаемая метка связи
+''       $techn - технология (опционально)
+''       $descr - описание (опционально)
+''       $tags - теги (опционально)
+'' example: $Relation("User-ERP", "User", "ERP", "Использует", "HTTPS", "Основной канал работы", "critical")
+!unquoted procedure $Relation($alias, $from, $to, $label, $techn="", $descr="", $tags="")
+    !$descriptor = $default_relation_descriptor($from, $to, $label, $techn, $descr, $tags)
+    $register_descriptor($alias, $json2str($descriptor, %true()))
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Внутренняя реализация включения связей в диаграмму.
+!unquoted procedure $include_relations($source, $aliases)
+    !if $source != ""
+        !foreach $alias in %splitstr($aliases, " ")
+            !$relation_file = $format("%1/%2.relation.puml", $source, $alias)
+            !include $relation_file
+
+            !$decorator = $default_relation_decorator()
+            $register_decorator($alias, $decorator)
+
+            $add_to_rendering_queue($alias)
+        !endfor
+    !endif
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Включает зарегистрированные связи в текущую диаграмму.
+'' Добавляет алиасы в очередь рендеринга.
+'' args: $source - путь к каталогу с объявлениями связей.
+''       $aliases - перечисление алиасов связей (разделенные пробелом).
+'' example: Relations("Relations", User-ERP ERP-1C)
+!unquoted procedure Relations($source, $aliases)
+    $include_relations($source, $aliases)
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Вычисляет параметры рендеринга для связи Relation на основе дескриптора и декоратора.
+'' Чистая функция: не имеет побочных эффектов.
+'' args: $descriptor - JSON-объект {type, from, to, label, techn, descr, tags}
+''       $decorator - JSON-объект {show_label, show_techn, show_descr, link, sprite, styles}
+'' returns: JSON-объект {from, to, label, techn, descr, sprite, link, tags}
+!function $resolve_relation_render_params($descriptor, $decorator)
+    !$params = {}
+
+    !$params = $json_add($params, "from", $descriptor.from)
+    !$params = $json_add($params, "to", $descriptor.to)
+
+    !$params = $json_add($params, "label", $value_or_default($decorator.show_label == %true(), $descriptor.label))
+    !$params = $json_add($params, "techn", $value_or_default($decorator.show_techn == %true(), $descriptor.techn))
+    !$params = $json_add($params, "descr", $value_or_default($decorator.show_descr == %true(), $descriptor.descr))
+
+    !$params = $json_add($params, "sprite", $decorator.sprite)
+    !$params = $json_add($params, "link", $decorator.link)
+
+    !$params = $json_add($params, "tags", $array2str($decorator.styles, "+"))
+
+    !return $params
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Рендерит связь в нотации C4 Context.
+'' Десериализует дескриптор, вычисляет параметры с учётом декоратора,
+'' затем вызывает стандартную функцию Rel().
+'' args: $alias - алиас связи
+''       $serialized_descriptor - дескриптор связи {type, from, to, label, techn, descr, tags}
+''       $decorator - декоратор связи {show_label, show_techn, show_descr, link, sprite, styles}
+!procedure $render_relation($alias, $serialized_descriptor, $decorator)
+    !$descriptor = $str2json($serialized_descriptor, $without_quotes = %true())
+    !$params = $resolve_relation_render_params($descriptor, $decorator)
+
+    %invoke_procedure(\
+        "Rel", \
+        $params.from, \
+        $params.to, \
+        $default($params.label), \
+        $default($params.techn), \
+        $default($params.descr), \
+        $default($params.sprite), \
+        $default($params.tags), \
+        $default($params.link) \
+    )
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
 @enduml

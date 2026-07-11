@@ -85,6 +85,70 @@
     '' Assert: $params.tags == ""
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
+'' Tests for $Relation registration
+''----------------------------------------------------------------------------------------------------------------------
+!procedure relation_registration_should_create_descriptor_with_relation_type()
+    '' Arrange, Act: $Relation("Test", "A", "B", "TestLabel"); $desc = $get_descriptor("Test")
+    '' Assert: $desc.type == "Relation"; $desc.from == "A"; $desc.to == "B"; $desc.label == "TestLabel"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure relation_registration_should_save_techn_and_descr()
+    '' Arrange, Act: $Relation("R", "X", "Y", "Link", "HTTP", "Описание связи"); $desc = $get_descriptor("R")
+    '' Assert: $desc.techn == "HTTP"; $desc.descr == "Описание связи"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Tests for Relations inclusion
+''----------------------------------------------------------------------------------------------------------------------
+!procedure relations_should_add_registered_alias_to_rendering_queue()
+    '' Arrange: $reset_rendering_queue()
+    '' Act: Relations("tests/C4/TestRelations", "R1"); $queue = $get_rendering_queue()
+    '' Assert: %size($queue) == 1; $queue[0] == "R1"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure relations_should_skip_unregistered_alias()
+    '' Arrange: $reset_rendering_queue()
+    '' Act: Relations("Ghost"); $queue = $get_rendering_queue()
+    '' Assert: %size($queue) == 0 (незарегистрированный алиас пропущен без ошибки)
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure relations_should_add_multiple_aliases()
+    '' Arrange: $reset_rendering_queue()
+    '' Act: Relations("tests/C4/TestRelations", "R1 R2"); $queue = $get_rendering_queue()
+    '' Assert: %size($queue) == 2
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Tests for $resolve_relation_render_params
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_relation_render_params_returns_all_fields_when_shown()
+    '' Arrange: $desc = {"type":"Relation","from":"A","to":"B","label":"L","techn":"HTTP","descr":"Описание"}; $decor = {"show_label":%true(),"show_techn":%true(),"show_descr":%true(),"link":"","sprite":"","styles":[]}
+    '' Act: $params = $resolve_relation_render_params($desc, $decor)
+    '' Assert: $params.from == "A"; $params.to == "B"; $params.label == "L"; $params.techn == "HTTP"; $params.descr == "Описание"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_relation_render_params_hides_label_when_show_label_false()
+    '' Arrange: $desc = {"type":"Relation","from":"A","to":"B","label":"Скрыто"}; $decor = {"show_label":%false(),"show_techn":%true(),"show_descr":%true(),"link":"","sprite":"","styles":[]}
+    '' Act: $params = $resolve_relation_render_params($desc, $decor)
+    '' Assert: $params.label == ""
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_relation_render_params_hides_techn_when_show_techn_false()
+    '' Arrange: $desc = {"type":"Relation","from":"A","to":"B","label":"L","techn":"Скрыто"}; $decor = {"show_label":%true(),"show_techn":%false(),"show_descr":%true(),"link":"","sprite":"","styles":[]}
+    '' Act: $params = $resolve_relation_render_params($desc, $decor)
+    '' Assert: $params.techn == ""
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_relation_render_params_hides_descr_when_show_descr_false()
+    '' Arrange: $desc = {"type":"Relation","from":"A","to":"B","label":"L","descr":"Скрыто"}; $decor = {"show_label":%true(),"show_techn":%true(),"show_descr":%false(),"link":"","sprite":"","styles":[]}
+    '' Act: $params = $resolve_relation_render_params($desc, $decor)
+    '' Assert: $params.descr == ""
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_relation_render_params_joins_styles_as_tags()
+    '' Arrange: $desc = {"type":"Relation","from":"A","to":"B","label":"L"}; $decor = {"show_label":%true(),"show_techn":%true(),"show_descr":%true(),"link":"","sprite":"","styles":["a","b"]}
+    '' Act: $params = $resolve_relation_render_params($desc, $decor)
+    '' Assert: $params.tags == "a+b"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
 '' Tests RUN!
 ''----------------------------------------------------------------------------------------------------------------------
 person_registration_should_create_descriptor_with_person_type()
@@ -101,6 +165,16 @@ resolve_person_render_params_sets_is_extern_true()
 resolve_person_render_params_sets_is_extern_false()
 resolve_person_render_params_passes_tags_through()
 resolve_person_render_params_empty_tags_when_not_set()
+relation_registration_should_create_descriptor_with_relation_type()
+relation_registration_should_save_techn_and_descr()
+relations_should_add_registered_alias_to_rendering_queue()
+relations_should_skip_unregistered_alias()
+relations_should_add_multiple_aliases()
+resolve_relation_render_params_returns_all_fields_when_shown()
+resolve_relation_render_params_hides_label_when_show_label_false()
+resolve_relation_render_params_hides_techn_when_show_techn_false()
+resolve_relation_render_params_hides_descr_when_show_descr_false()
+resolve_relation_render_params_joins_styles_as_tags()
 ''----------------------------------------------------------------------------------------------------------------------
 caption OK
 @enduml

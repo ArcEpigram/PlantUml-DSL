@@ -1,0 +1,4 @@
+@startuml
+
+$Relation("User-ERP", "User", "ERP", "Использует", "HTTPS", "Основной канал работы", "critical")
+@enduml

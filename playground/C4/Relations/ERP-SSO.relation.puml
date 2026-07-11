@@ -1,0 +1,4 @@
+@startuml
+
+$Relation("ERP-SSO", "ERP", "SSO", "Аутентификация", "SAML", "")
+@enduml

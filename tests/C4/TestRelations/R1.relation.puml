@@ -1,0 +1,4 @@
+@startuml
+
+$Relation("R1", "A", "B", "TestRel", "HTTP", "Описание")
+@enduml
