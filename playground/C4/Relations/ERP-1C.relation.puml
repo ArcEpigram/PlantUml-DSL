@@ -1,5 +1,4 @@
 @startuml
-!include ../../../src/C4/Context.puml
 
 $Relation("ERP-1C", "ERP", "1C", "Обменивается данными", "REST API", "Синхронизация справочников")
 @enduml

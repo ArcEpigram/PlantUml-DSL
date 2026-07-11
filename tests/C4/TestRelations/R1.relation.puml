@@ -1,5 +1,4 @@
 @startuml
-!include ../../../src/C4/Context.puml
 
 $Relation("R1", "A", "B", "TestRel", "HTTP", "Описание")
 @enduml

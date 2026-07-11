@@ -160,7 +160,7 @@
     !$key_pos = %strpos($str, $json_key)
 
     !if $key_pos < 0
-        !return $json_add($json, $key, $value)
+        !return $json
     !endif
 
     !$json_value = $__serialize_json_value($value)
