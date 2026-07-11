@@ -1,4 +1,4 @@
 @startuml
 
-$Relation("UserAdmin", "User", "Admin", "Получает разрешения")
+$Relation("User-Admin", "User", "Admin", "Получает разрешения")
 @enduml
