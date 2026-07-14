@@ -75,12 +75,25 @@
     !$unwrapped_descriptor = $str2json($descriptor, $without_quotes = %true())
     !$element_type = $unwrapped_descriptor.type
 
-    !if $element_type == "Person"
-        $render_person($alias, $descriptor, $decorator)
+    !$render_proc_key = $format("RENDER_PROC_%1", $element_type)
+    !if %variable_exists($render_proc_key) == %true()
+        !$render_proc = %get_variable_value($render_proc_key)
+        %invoke_procedure($render_proc, $alias, $descriptor, $decorator)
     !endif
-    !if $element_type == "Relation"
-        $render_relation($alias, $descriptor, $decorator)
-    !endif
+
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
+'' Регистрирует процедуру рендеринга для заданного типа элемента.
+'' Вызывается модулями (C4, Data, ...) при загрузке на верхнем уровне файла.
+'' При повторной регистрации того же типа молча сохраняет первый вариант (first wins).
+'' args: $element_type - тип элемента (строка, напр. "Person", "Relation")
+''       $proc - имя процедуры рендеринга (строка, с префиксом $)
+'' example: $register_rendering_proc("Person", $proc="$render_person")
+!procedure $register_rendering_proc($element_type, $proc)
+    !$key = $format("RENDER_PROC_%1", $element_type)
+    !if %variable_exists($key) == %false()
+        %set_variable_value($key, $proc)
+    !endif
+!endprocedure
+'----------------------------------------------------------------------------------------------------------------------
 @enduml
