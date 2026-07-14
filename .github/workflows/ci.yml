@@ -51,6 +51,13 @@ jobs:
 
           if cz bump --dry-run --yes 2>/dev/null; then
             cz bump --yes --changelog --bump-message 'chore(release): v$new_version [skip ci]'
+
+            task sync-readme-version
+            if ! git diff --quiet README.md; then
+              git add README.md
+              git commit -m "chore: синхронизирована версия в README.md [skip ci]"
+            fi
+
             git push origin main --tags
 
             VERSION=$(git describe --tags --abbrev=0)

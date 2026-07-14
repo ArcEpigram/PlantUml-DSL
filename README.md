@@ -1,7 +1,7 @@
 # PlantUML DSL
 ![logo](./logo.png)
 
-![Version](https://img.shields.io/badge/version-0.1.0-blue) ![Tests](https://img.shields.io/badge/tests-passing-brightgreen) ![License](https://img.shields.io/badge/license-MIT-green)
+![Version](https://img.shields.io/badge/version-0.6.0-blue) ![Tests](https://img.shields.io/badge/tests-passing-brightgreen) ![License](https://img.shields.io/badge/license-MIT-green)
 
 ---
 
@@ -52,7 +52,7 @@ PlantUML DSL - это декларативная надстройка повер
 ✅ Переиспользование через регистрацию элементов  
 ✅ Модульность и расширяемость  
 ✅ Встроена трассировка и валидация  
-⚠️ Ранняя стадия (v0.1.0)
+⚠️ Ранняя стадия разработки
 
 ---
 

@@ -87,6 +87,30 @@ tasks:
     cmds:
       - task: test
 
+  sync-readme-version:
+    desc: Sync version from version.json into README.md badge
+    cmds:
+      - |
+        python -c "
+        import json, re, pathlib
+        ver = json.loads(pathlib.Path('version.json').read_text())['version']
+        readme = pathlib.Path('README.md')
+        content = readme.read_text(encoding='utf-8')
+        new_content, count = re.subn(
+            r'version-\d+\.\d+\.\d+',
+            f'version-{ver}',
+            content
+        )
+        if count == 0:
+            print(f'No version badge found in README.md')
+        elif new_content == content:
+            print(f'README.md already up to date (v{ver})')
+        else:
+            readme.write_text(new_content, encoding='utf-8')
+            print(f'README.md synced to v{ver}')
+        "
+    silent: true
+
   ci:
     desc: Emulate CI pipeline locally (test + build)
     cmds:
