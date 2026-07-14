@@ -223,4 +223,5 @@ bin/
 out/
 CHANGELOG.md
 
-.continue/
+.zcode/
+.veai/
