@@ -23,6 +23,16 @@
     '' Assert: $desc.tags == "critical,external"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
+!procedure person_registration_should_save_reason()
+    '' Arrange, Act: $Person("R", "Label", "", "", "", "", "", "Системное требование"); $desc = $get_descriptor("R")
+    '' Assert: $desc.reason == "Системное требование"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure person_registration_should_save_reason_source()
+    '' Arrange, Act: $Person("RS", "Label", "", "", "", "", "", "", "REQ-001"); $desc = $get_descriptor("RS")
+    '' Assert: $desc.reason_source == "REQ-001"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
 !procedure persons_should_add_registered_alias_to_rendering_queue()
     '' Arrange: $Person("Alice", "Алиса"); $reset_rendering_queue()
     '' Act: Persons("Alice"); $queue = $get_rendering_queue()
@@ -196,8 +206,10 @@
 person_registration_should_create_descriptor_with_person_type()
 person_registration_should_create_decorator_with_defaults()
 person_registration_should_save_description()
-person_registration_should_save_tags()
-persons_should_add_registered_alias_to_rendering_queue()
+	person_registration_should_save_tags()
+	person_registration_should_save_reason()
+	person_registration_should_save_reason_source()
+	persons_should_add_registered_alias_to_rendering_queue()
 persons_should_skip_unregistered_alias()
 persons_should_add_multiple_aliases()
 resolve_person_render_params_returns_label_from_descriptor()

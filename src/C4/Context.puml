@@ -20,9 +20,11 @@ $register_rendering_proc("Relation", $proc="$render_relation")
 ''       $tags - теги элемента (опционально)
 ''       $link - ссылка элемента (опционально)
 ''       $type - стереотип элемента (опционально)
+''       $reason - обоснование присутствия элемента в архитектуре (опционально)
+''       $reason_source - источник обоснования: требование, документ, глоссарий (опционально)
 '' example: $Person("User", "Пользователь", "Описание пользователя")
-!unquoted procedure $Person($alias, $label, $descr="", $sprite="", $tags="", $link="", $type="")
-    !$descriptor = $default_c4_element_descriptor("Person", $label, $descr, $sprite, $tags, $link, $type)
+!unquoted procedure $Person($alias, $label, $descr="", $sprite="", $tags="", $link="", $type="", $reason="", $reason_source="")
+    !$descriptor = $default_c4_element_descriptor("Person", $label, $descr, $sprite, $tags, $link, $type, $reason, $reason_source)
     $register_descriptor($alias, $json2str($descriptor, %true()))
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
@@ -64,8 +66,10 @@ $register_rendering_proc("Relation", $proc="$render_relation")
 ''       $tags - теги (опционально)
 ''       $link - ссылка (опционально)
 ''       $type - стереотип (опционально)
-'' returns: JSON-объект {type, label, desc, sprite, tags, link, element_type}
-!function $default_c4_element_descriptor($element_type, $label, $desc="", $sprite="", $tags="", $link="", $type="")
+''       $reason - обоснование присутствия элемента в архитектуре (опционально)
+''       $reason_source - источник обоснования: требование, документ, глоссарий (опционально)
+'' returns: JSON-объект {type, label, desc, sprite, tags, link, element_type, reason, reason_source}
+!function $default_c4_element_descriptor($element_type, $label, $desc="", $sprite="", $tags="", $link="", $type="", $reason="", $reason_source="")
     '' TODO: добавить остальные атрибуты C4-элемента
     !$descriptor = {}
     !$descriptor = $json_add($descriptor, "type", $element_type)
@@ -75,6 +79,8 @@ $register_rendering_proc("Relation", $proc="$render_relation")
     !$descriptor = $json_add($descriptor, "tags", $tags)
     !$descriptor = $json_add($descriptor, "link", $link)
     !$descriptor = $json_add($descriptor, "element_type", $type)
+    !$descriptor = $json_add($descriptor, "reason", $reason)
+    !$descriptor = $json_add($descriptor, "reason_source", $reason_source)
     !return $descriptor
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
@@ -129,7 +135,7 @@ $register_rendering_proc("Relation", $proc="$render_relation")
 ''----------------------------------------------------------------------------------------------------------------------
 '' Вычисляет параметры рендеринга для элемента Person на основе дескриптора и декоратора.
 '' Чистая функция: не имеет побочных эффектов, всегда возвращает одинаковый результат при одинаковых аргументах.
-'' args: $descriptor - JSON-объект {type, label, desc, sprite, tags, link, element_type}
+'' args: $descriptor - JSON-объект {type, label, desc, sprite, tags, link, element_type, reason, reason_source}
 ''       $decorator - JSON-объект {is_extern, show_desc, sprite, styles}
 '' returns: JSON-объект {label, desc, sprite, render_proc, tags, type, link, is_extern} — вычисленные параметры для нативного рендеринга
 '' example: !$params = $resolve_person_render_params($descriptor, $decorator)
@@ -167,8 +173,10 @@ $register_rendering_proc("Relation", $proc="$render_relation")
 ''       $techn - технология (опционально)
 ''       $descr - описание (опционально)
 ''       $tags - теги (опционально)
-'' returns: JSON-объект {type, from, to, label, techn, descr, tags}
-!function $default_relation_descriptor($from, $to, $label, $techn="", $descr="", $tags="")
+''       $reason - обоснование присутствия связи в архитектуре (опционально)
+''       $reason_source - источник обоснования: требование, документ, глоссарий (опционально)
+'' returns: JSON-объект {type, from, to, label, techn, descr, tags, reason, reason_source}
+!function $default_relation_descriptor($from, $to, $label, $techn="", $descr="", $tags="", $reason="", $reason_source="")
     !$descriptor = {}
     !$descriptor = $json_add($descriptor, "type", "Relation")
     !$descriptor = $json_add($descriptor, "from", $from)
@@ -177,6 +185,8 @@ $register_rendering_proc("Relation", $proc="$render_relation")
     !$descriptor = $json_add($descriptor, "techn", $techn)
     !$descriptor = $json_add($descriptor, "descr", $descr)
     !$descriptor = $json_add($descriptor, "tags", [])
+    !$descriptor = $json_add($descriptor, "reason", $reason)
+    !$descriptor = $json_add($descriptor, "reason_source", $reason_source)
     !return $descriptor
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
@@ -203,9 +213,11 @@ $register_rendering_proc("Relation", $proc="$render_relation")
 ''       $techn - технология (опционально)
 ''       $descr - описание (опционально)
 ''       $tags - теги (опционально)
+''       $reason - обоснование присутствия связи в архитектуре (опционально)
+''       $reason_source - источник обоснования: требование, документ, глоссарий (опционально)
 '' example: $Relation("User-ERP", "User", "ERP", "Использует", "HTTPS", "Основной канал работы", "critical")
-!unquoted procedure $Relation($alias, $from, $to, $label, $techn="", $descr="", $tags="")
-    !$descriptor = $default_relation_descriptor($from, $to, $label, $techn, $descr, $tags)
+!unquoted procedure $Relation($alias, $from, $to, $label, $techn="", $descr="", $tags="", $reason="", $reason_source="")
+    !$descriptor = $default_relation_descriptor($from, $to, $label, $techn, $descr, $tags, $reason, $reason_source)
     $register_descriptor($alias, $json2str($descriptor, %true()))
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
