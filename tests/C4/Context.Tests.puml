@@ -19,7 +19,7 @@
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure person_registration_should_save_tags()
-    '' Arrange, Act: $Person("Tagged", "T", "", "critical,external"); $desc = $get_descriptor("Tagged")
+    '' Arrange, Act: $Person("Tagged", "T", "", "", "critical,external"); $desc = $get_descriptor("Tagged")
     '' Assert: $desc.tags == "critical,external"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
@@ -83,6 +83,30 @@
     '' Arrange: $desc = {"type":"Person","label":"NoTags"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[]}
     '' Act: $params = $resolve_person_render_params($desc, $decor)
     '' Assert: $params.tags == ""
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_person_render_params_combines_descriptor_tags_with_decorator_styles()
+    '' Arrange: $desc = {"type":"Person","label":"T","tags":"old"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":["new"]}
+    '' Act: $params = $resolve_person_render_params($desc, $decor)
+    '' Assert: $params.tags == "old+new"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_person_render_params_includes_sprite_from_descriptor()
+    '' Arrange: $desc = {"type":"Person","label":"S","sprite":"icon"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[]}
+    '' Act: $params = $resolve_person_render_params($desc, $decor)
+    '' Assert: $params.sprite == "icon"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_person_render_params_includes_type_from_descriptor()
+    '' Arrange: $desc = {"type":"Person","label":"T","element_type":"Admin"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[]}
+    '' Act: $params = $resolve_person_render_params($desc, $decor)
+    '' Assert: $params.type == "Admin"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_person_render_params_includes_link_from_descriptor()
+    '' Arrange: $desc = {"type":"Person","label":"L","link":"https://example.com"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[]}
+    '' Act: $params = $resolve_person_render_params($desc, $decor)
+    '' Assert: $params.link == "https://example.com"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Tests for $Relation registration
@@ -164,8 +188,12 @@ resolve_person_render_params_empty_desc_when_show_desc_false()
 resolve_person_render_params_sets_is_extern_true()
 resolve_person_render_params_sets_is_extern_false()
 resolve_person_render_params_passes_tags_through()
-resolve_person_render_params_empty_tags_when_not_set()
-relation_registration_should_create_descriptor_with_relation_type()
+	resolve_person_render_params_empty_tags_when_not_set()
+	resolve_person_render_params_combines_descriptor_tags_with_decorator_styles()
+	resolve_person_render_params_includes_sprite_from_descriptor()
+	resolve_person_render_params_includes_type_from_descriptor()
+	resolve_person_render_params_includes_link_from_descriptor()
+	relation_registration_should_create_descriptor_with_relation_type()
 relation_registration_should_save_techn_and_descr()
 relations_should_add_registered_alias_to_rendering_queue()
 relations_should_skip_unregistered_alias()

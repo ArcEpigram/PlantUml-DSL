@@ -12,13 +12,17 @@ $register_rendering_proc("Relation", $proc="$render_relation")
 '' Регистрирует архитектурный элемент типа Person.
 '' Создаёт дескриптор (атрибуты) и декоратор (опции отображения по умолчанию),
 '' сохраняет оба в глобальный реестр.
+'' Совместима со стандартной библиотекой C4-PlantUML: Person(alias, label, ?descr, ?sprite, ?tags, ?link, ?type)
 '' args: $alias - уникальный алиас элемента
 ''       $label - отображаемое имя элемента
-''       $desc - описание элемента (опционально)
+''       $descr - описание элемента (опционально)
+''       $sprite - спрайт элемента (опционально)
 ''       $tags - теги элемента (опционально)
+''       $link - ссылка элемента (опционально)
+''       $type - стереотип элемента (опционально)
 '' example: $Person("User", "Пользователь", "Описание пользователя")
-!unquoted procedure $Person($alias, $label, $desc="", $tags="")
-    !$descriptor = $default_c4_element_descriptor("Person", $label, $desc, $tags)
+!unquoted procedure $Person($alias, $label, $descr="", $sprite="", $tags="", $link="", $type="")
+    !$descriptor = $default_c4_element_descriptor("Person", $label, $descr, $sprite, $tags, $link, $type)
     $register_descriptor($alias, $json2str($descriptor, %true()))
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
@@ -55,15 +59,21 @@ $register_rendering_proc("Relation", $proc="$render_relation")
 '' args: $element_type - тип элемента ("Person", "System", "Container", "Component")
 ''       $label - отображаемое имя
 ''       $desc - описание (опционально)
+''       $sprite - спрайт (опционально)
 ''       $tags - теги (опционально)
-'' returns: JSON-объект {type, label, desc, tags}
-!function $default_c4_element_descriptor($element_type, $label, $desc="", $tags="")
+''       $link - ссылка (опционально)
+''       $type - стереотип (опционально)
+'' returns: JSON-объект {type, label, desc, sprite, tags, link, element_type}
+!function $default_c4_element_descriptor($element_type, $label, $desc="", $sprite="", $tags="", $link="", $type="")
     '' TODO: добавить остальные атрибуты C4-элемента
     !$descriptor = {}
     !$descriptor = $json_add($descriptor, "type", $element_type)
     !$descriptor = $json_add($descriptor, "label", $label)
     !$descriptor = $json_add($descriptor, "desc", $desc)
-    !$descriptor = $json_add($descriptor, "tags", [])
+    !$descriptor = $json_add($descriptor, "sprite", $sprite)
+    !$descriptor = $json_add($descriptor, "tags", $tags)
+    !$descriptor = $json_add($descriptor, "link", $link)
+    !$descriptor = $json_add($descriptor, "element_type", $type)
     !return $descriptor
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
@@ -109,16 +119,18 @@ $register_rendering_proc("Relation", $proc="$render_relation")
         $alias, \
         $params.label, \
         $default($params.desc), \
-        "", \
-        $default($params.tags) \
+        $default($params.sprite), \
+        $default($params.tags), \
+        $default($params.link), \
+        $default($params.type) \
     )
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Вычисляет параметры рендеринга для элемента Person на основе дескриптора и декоратора.
 '' Чистая функция: не имеет побочных эффектов, всегда возвращает одинаковый результат при одинаковых аргументах.
-'' args: $descriptor - JSON-объект {type, label, desc, tags}
+'' args: $descriptor - JSON-объект {type, label, desc, sprite, tags, link, element_type}
 ''       $decorator - JSON-объект {is_extern, show_desc, styles}
-'' returns: JSON-объект {label, desc, is_extern, tags} — вычисленные параметры для нативного рендеринга
+'' returns: JSON-объект {label, desc, sprite, render_proc, tags, type, link, is_extern} — вычисленные параметры для нативного рендеринга
 '' example: !$params = $resolve_person_render_params($descriptor, $decorator)
 !function $resolve_person_render_params($descriptor, $decorator)
     !$params = {}
@@ -127,11 +139,17 @@ $register_rendering_proc("Relation", $proc="$render_relation")
 
     !$params = $json_add($params, "desc", $value_or_default($decorator.show_desc == %true(), $descriptor.desc))
 
+    !$params = $json_add($params, "sprite", $default($descriptor.sprite))
+
     !$params = $json_add($params,  "render_proc", "Person")
 
-    !$params = $json_add($params, "is_extern", $decorator.is_extern)
+    !$params = $json_add($params, "tags", $combine_tags($default($descriptor.tags), $array2str($decorator.styles, "+")))
 
-    !$params = $json_add($params, "tags", $array2str($decorator.styles, "+"))
+    !$params = $json_add($params, "type", $default($descriptor.element_type))
+
+    !$params = $json_add($params, "link", $default($descriptor.link))
+
+    !$params = $json_add($params, "is_extern", $decorator.is_extern)
 
     !return $params
 !endfunction
