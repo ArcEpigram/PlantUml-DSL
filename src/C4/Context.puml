@@ -45,12 +45,13 @@ $register_rendering_proc("Relation", $proc="$render_relation")
 ''----------------------------------------------------------------------------------------------------------------------
 '' Создаёт декоратор элемента со значениями по умолчанию.
 '' args: $is_extern — %true() для внешнего элемента, %false() для внутреннего
-'' returns: JSON-объект {is_extern, show_desc, styles}
+'' returns: JSON-объект {is_extern, show_desc, sprite, styles}
 !function $default_c4_element_decorator($is_extern)
     '' TODO: добавить остальные атрибуты опций рендеринга
     !$decorator = {}
     !$decorator = $json_add($decorator, "is_extern", $is_extern)
     !$decorator = $json_add($decorator, "show_desc", %true())
+    !$decorator = $json_add($decorator, "sprite", "")
     !$decorator = $json_add($decorator, "styles", [])
     !return $decorator
 !endfunction
@@ -129,7 +130,7 @@ $register_rendering_proc("Relation", $proc="$render_relation")
 '' Вычисляет параметры рендеринга для элемента Person на основе дескриптора и декоратора.
 '' Чистая функция: не имеет побочных эффектов, всегда возвращает одинаковый результат при одинаковых аргументах.
 '' args: $descriptor - JSON-объект {type, label, desc, sprite, tags, link, element_type}
-''       $decorator - JSON-объект {is_extern, show_desc, styles}
+''       $decorator - JSON-объект {is_extern, show_desc, sprite, styles}
 '' returns: JSON-объект {label, desc, sprite, render_proc, tags, type, link, is_extern} — вычисленные параметры для нативного рендеринга
 '' example: !$params = $resolve_person_render_params($descriptor, $decorator)
 !function $resolve_person_render_params($descriptor, $decorator)
@@ -139,7 +140,12 @@ $register_rendering_proc("Relation", $proc="$render_relation")
 
     !$params = $json_add($params, "desc", $value_or_default($decorator.show_desc == %true(), $descriptor.desc))
 
-    !$params = $json_add($params, "sprite", $default($descriptor.sprite))
+    !$decor_sprite = $default($decorator.sprite)
+    !if $decor_sprite != ""
+        !$params = $json_add($params, "sprite", $decor_sprite)
+    !else
+        !$params = $json_add($params, "sprite", $default($descriptor.sprite))
+    !endif
 
     !$params = $json_add($params,  "render_proc", "Person")
 

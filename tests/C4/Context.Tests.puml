@@ -10,7 +10,7 @@
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure person_registration_should_create_decorator_with_defaults()
     '' Arrange, Act: $Person("Def", "Default"); $decor = $get_decorator("Def")
-    '' Assert: $decor.is_extern == %false(); $decor.show_desc == %true(); %size($decor.styles) == 0
+    '' Assert: $decor.is_extern == %false(); $decor.show_desc == %true(); $decor.sprite == ""; %size($decor.styles) == 0
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure person_registration_should_save_description()
@@ -44,43 +44,43 @@
 '' Tests for $resolve_person_render_params
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_person_render_params_returns_label_from_descriptor()
-    '' Arrange: $desc = {"type":"Person","label":"Alice"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[]}
+    '' Arrange: $desc = {"type":"Person","label":"Alice"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[],"sprite":""}
     '' Act: $params = $resolve_person_render_params($desc, $decor)
     '' Assert: $params.label == "Alice"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_person_render_params_includes_desc_when_show_desc_true()
-    '' Arrange: $desc = {"type":"Person","label":"U","desc":"Описание"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[]}
+    '' Arrange: $desc = {"type":"Person","label":"U","desc":"Описание"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[],"sprite":""}
     '' Act: $params = $resolve_person_render_params($desc, $decor)
     '' Assert: $params.desc == "Описание"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_person_render_params_empty_desc_when_show_desc_false()
-    '' Arrange: $desc = {"type":"Person","label":"U","desc":"Скрыто"}; $decor = {"is_extern":%false(),"show_desc":%false(),"styles":[]}
+    '' Arrange: $desc = {"type":"Person","label":"U","desc":"Скрыто"}; $decor = {"is_extern":%false(),"show_desc":%false(),"styles":[],"sprite":""}
     '' Act: $params = $resolve_person_render_params($desc, $decor)
     '' Assert: $params.desc == ""
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_person_render_params_sets_is_extern_true()
-    '' Arrange: $desc = {"type":"Person","label":"Ext"}; $decor = {"is_extern":%true(),"show_desc":%true(),"styles":[]}
+    '' Arrange: $desc = {"type":"Person","label":"Ext"}; $decor = {"is_extern":%true(),"show_desc":%true(),"styles":[],"sprite":""}
     '' Act: $params = $resolve_person_render_params($desc, $decor)
     '' Assert: $params.is_extern == %true()
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_person_render_params_sets_is_extern_false()
-    '' Arrange: $desc = {"type":"Person","label":"Int"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[]}
+    '' Arrange: $desc = {"type":"Person","label":"Int"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[],"sprite":""}
     '' Act: $params = $resolve_person_render_params($desc, $decor)
     '' Assert: $params.is_extern == %false()
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_person_render_params_passes_tags_through()
-    '' Arrange: $desc = {"type":"Person","label":"T","tags":"critical,external"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[]}
+    '' Arrange: $desc = {"type":"Person","label":"T","tags":"critical,external"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[],"sprite":""}
     '' Act: $params = $resolve_person_render_params($desc, $decor)
     '' Assert: $params.tags == "critical,external"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_person_render_params_empty_tags_when_not_set()
-    '' Arrange: $desc = {"type":"Person","label":"NoTags"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[]}
+    '' Arrange: $desc = {"type":"Person","label":"NoTags"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[],"sprite":""}
     '' Act: $params = $resolve_person_render_params($desc, $decor)
     '' Assert: $params.tags == ""
 !endprocedure
@@ -92,21 +92,39 @@
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_person_render_params_includes_sprite_from_descriptor()
-    '' Arrange: $desc = {"type":"Person","label":"S","sprite":"icon"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[]}
+    '' Arrange: $desc = {"type":"Person","label":"S","sprite":"icon"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[],"sprite":""}
     '' Act: $params = $resolve_person_render_params($desc, $decor)
     '' Assert: $params.sprite == "icon"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_person_render_params_includes_type_from_descriptor()
-    '' Arrange: $desc = {"type":"Person","label":"T","element_type":"Admin"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[]}
+    '' Arrange: $desc = {"type":"Person","label":"T","element_type":"Admin"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[],"sprite":""}
     '' Act: $params = $resolve_person_render_params($desc, $decor)
     '' Assert: $params.type == "Admin"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_person_render_params_includes_link_from_descriptor()
-    '' Arrange: $desc = {"type":"Person","label":"L","link":"https://example.com"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[]}
+    '' Arrange: $desc = {"type":"Person","label":"L","link":"https://example.com"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[],"sprite":""}
     '' Act: $params = $resolve_person_render_params($desc, $decor)
     '' Assert: $params.link == "https://example.com"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure apply_sprite_should_set_decorator_sprite()
+    '' Arrange: $Person("Sp", "Sprite"); $reset_rendering_queue()
+    '' Act: Persons("Sp"); ApplySprite("Sp", "robot")
+    '' Assert: $get_decorator("Sp").sprite == "robot"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_person_render_params_should_use_decorator_sprite_when_set()
+    '' Arrange: $desc = {"type":"Person","label":"S","sprite":"descriptor_icon"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[],"sprite":"robot"}
+    '' Act: $params = $resolve_person_render_params($desc, $decor)
+    '' Assert: $params.sprite == "robot" (приоритет декоратора)
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_person_render_params_should_fallback_to_descriptor_sprite()
+    '' Arrange: $desc = {"type":"Person","label":"S","sprite":"descriptor_icon"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[],"sprite":""}
+    '' Act: $params = $resolve_person_render_params($desc, $decor)
+    '' Assert: $params.sprite == "descriptor_icon" (fallback к дескриптору)
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Tests for $Relation registration
@@ -192,8 +210,11 @@ resolve_person_render_params_passes_tags_through()
 	resolve_person_render_params_combines_descriptor_tags_with_decorator_styles()
 	resolve_person_render_params_includes_sprite_from_descriptor()
 	resolve_person_render_params_includes_type_from_descriptor()
-	resolve_person_render_params_includes_link_from_descriptor()
-	relation_registration_should_create_descriptor_with_relation_type()
+		resolve_person_render_params_includes_link_from_descriptor()
+		apply_sprite_should_set_decorator_sprite()
+		resolve_person_render_params_should_use_decorator_sprite_when_set()
+		resolve_person_render_params_should_fallback_to_descriptor_sprite()
+		relation_registration_should_create_descriptor_with_relation_type()
 relation_registration_should_save_techn_and_descr()
 relations_should_add_registered_alias_to_rendering_queue()
 relations_should_skip_unregistered_alias()
