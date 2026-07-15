@@ -1,0 +1,6 @@
+@startuml
+!include ../../../src/C4/Context.puml
+
+'' Регистрация элемента
+$System(Queue, "Очередь сообщений", "RabbitMQ — асинхронный обмен событиями", $type="Queue")
+@enduml

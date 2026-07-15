@@ -1,4 +1,0 @@
-@startuml
-!include ../../../src/C4/Context.puml
-$Relation("ERP-SSO", "ERP", "SSO", "Аутентификация", "SAML", "")
-@enduml

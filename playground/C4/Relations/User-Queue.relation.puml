@@ -1,0 +1,4 @@
+@startuml
+!include ../../../src/C4/Context.puml
+$Relation(User-Queue, User, Queue, "Публикует события")
+@enduml

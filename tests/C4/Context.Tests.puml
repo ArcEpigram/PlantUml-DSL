@@ -501,8 +501,347 @@
     '' Assert
     !assert $params.tags == "a+b"
 !endprocedure
+''======================================================================================================================
+''  System Tests
+''======================================================================================================================
+!procedure system_registration_should_create_descriptor_with_system_type()
+    '' Arrange, Act
+    $System("TestSys", "TestSystemLabel")
+
+    '' Assert
+    !$desc_str = $get_descriptor("TestSys")
+    !$desc = $str2json($desc_str, $without_quotes = %true())
+    !assert $desc.type == "System"
+    !assert $desc.label == "TestSystemLabel"
+!endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
-'' Tests RUN!
+!procedure system_registration_should_create_decorator_with_defaults()
+    '' Arrange
+    $System("Def", "DefaultSystem")
+    $reset_rendering_queue()
+
+    '' Act
+    $include_elements("system", "TestSystems", "Def", %false())
+    !$decor = $get_decorator("Def")
+
+    '' Assert
+    !assert $decor.is_extern == %false()
+    !assert $decor.show_desc == %true()
+    !assert $default($decor.sprite) == ""
+    !assert %size($decor.styles) == 0
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure system_registration_should_save_description()
+    '' Arrange, Act
+    $System("SysDesc", "Label", "Описание")
+
+    '' Assert
+    !$desc_str = $get_descriptor("SysDesc")
+    !$desc = $str2json($desc_str, $without_quotes = %true())
+    !assert $desc.desc == "Описание"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure system_registration_should_save_tags()
+    '' Arrange, Act
+    $System("SysTags", "Label", "", "", "critical+external")
+
+    '' Assert
+    !$desc_str = $get_descriptor("SysTags")
+    !$desc = $str2json($desc_str, $without_quotes = %true())
+    !assert $desc.tags == "critical+external"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure system_registration_should_save_reason()
+    '' Arrange, Act
+    $System("SysReason", "Label", "", "", "", "", "", "Важная система")
+
+    '' Assert
+    !$desc_str = $get_descriptor("SysReason")
+    !$desc = $str2json($desc_str, $without_quotes = %true())
+    !assert $desc.reason == "Важная система"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure system_registration_should_save_reason_source()
+    '' Arrange, Act
+    $System("SysReasonSrc", "Label", "", "", "", "", "", "", "Требование REQ-001")
+
+    '' Assert
+    !$desc_str = $get_descriptor("SysReasonSrc")
+    !$desc = $str2json($desc_str, $without_quotes = %true())
+    !assert $desc.reason_source == "Требование REQ-001"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure systems_should_add_registered_alias_to_rendering_queue()
+    '' Arrange
+    $reset_rendering_queue()
+
+    '' Act
+    Systems("TestSystems", "Main")
+    !$queue = $get_rendering_queue()
+
+    '' Assert
+    !assert %size($queue) == 1
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure systems_should_skip_unregistered_alias()
+    '' Arrange
+    $reset_rendering_queue()
+
+    '' Act
+    Systems("", "Ghost")
+    !$queue = $get_rendering_queue()
+
+    '' Assert
+    !assert %size($queue) == 0
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure systems_should_add_multiple_aliases()
+    '' Arrange
+    $reset_rendering_queue()
+
+    '' Act
+    Systems("TestSystems", "Main Backup")
+    !$queue = $get_rendering_queue()
+
+    '' Assert
+    !assert %size($queue) == 2
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_system_render_params_returns_label_from_descriptor()
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "System")
+    !$desc = $json_add($desc, "label", "MySystem")
+    !$decor = {}
+    !$decor = $json_add($decor, "is_extern", %false())
+    !$decor = $json_add($decor, "show_desc", %true())
+    !$decor = $json_add($decor, "sprite", "")
+    !$decor = $json_add($decor, "styles", [])
+
+    '' Act
+    !$params = $resolve_system_render_params($desc, $decor)
+
+    '' Assert
+    !assert $params.label == "MySystem"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_system_render_params_sets_render_proc_to_System()
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "System")
+    !$desc = $json_add($desc, "label", "S")
+    !$decor = {}
+    !$decor = $json_add($decor, "is_extern", %false())
+    !$decor = $json_add($decor, "show_desc", %true())
+    !$decor = $json_add($decor, "sprite", "")
+    !$decor = $json_add($decor, "styles", [])
+
+    '' Act
+    !$params = $resolve_system_render_params($desc, $decor)
+
+    '' Assert
+    !assert $params.render_proc == "System"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_system_render_params_maps_queue_type_to_SystemQueue()
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "System")
+    !$desc = $json_add($desc, "label", "Q")
+    !$desc = $json_add($desc, "element_type", "Queue")
+    !$decor = {}
+    !$decor = $json_add($decor, "is_extern", %false())
+    !$decor = $json_add($decor, "show_desc", %true())
+    !$decor = $json_add($decor, "sprite", "")
+    !$decor = $json_add($decor, "styles", [])
+
+    '' Act
+    !$params = $resolve_system_render_params($desc, $decor)
+
+    '' Assert
+    !assert $params.render_proc == "SystemQueue"
+    !assert $default($params.type) == ""
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_system_render_params_maps_db_type_to_SystemDb()
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "System")
+    !$desc = $json_add($desc, "label", "D")
+    !$desc = $json_add($desc, "element_type", "Db")
+    !$decor = {}
+    !$decor = $json_add($decor, "is_extern", %false())
+    !$decor = $json_add($decor, "show_desc", %true())
+    !$decor = $json_add($decor, "sprite", "")
+    !$decor = $json_add($decor, "styles", [])
+
+    '' Act
+    !$params = $resolve_system_render_params($desc, $decor)
+
+    '' Assert
+    !assert $params.render_proc == "SystemDb"
+    !assert $default($params.type) == ""
+!endprocedure
+''======================================================================================================================
+''  Boundary Tests
+''======================================================================================================================
+!procedure boundary_registration_should_create_descriptor_with_boundary_type()
+    '' Arrange, Act
+    $Boundary("TestB", "TestBoundaryLabel")
+
+    '' Assert
+    !$desc_str = $get_descriptor("TestB")
+    !$desc = $str2json($desc_str, $without_quotes = %true())
+    !assert $desc.type == "Boundary"
+    !assert $desc.label == "TestBoundaryLabel"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure boundary_registration_should_create_decorator_with_defaults()
+    '' Arrange
+    $Boundary("Def", "DefaultBoundary")
+    $reset_rendering_queue()
+
+    '' Act
+    $include_elements("boundary", "TestBoundaries", "Def", %false())
+    !$decor = $get_decorator("Def")
+
+    '' Assert
+    !assert $decor.is_extern == %false()
+    !assert $decor.show_desc == %true()
+    !assert $default($decor.sprite) == ""
+    !assert %size($decor.styles) == 0
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure boundary_registration_should_save_description()
+    '' Arrange, Act
+    $Boundary("BDesc", "Label", "Описание границы")
+
+    '' Assert
+    !$desc_str = $get_descriptor("BDesc")
+    !$desc = $str2json($desc_str, $without_quotes = %true())
+    !assert $desc.desc == "Описание границы"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure boundary_registration_should_save_tags()
+    '' Arrange, Act
+    $Boundary("BTags", "Label", "", "boundary+core")
+
+    '' Assert
+    !$desc_str = $get_descriptor("BTags")
+    !$desc = $str2json($desc_str, $without_quotes = %true())
+    !assert $desc.tags == "boundary+core"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure boundary_registration_should_save_reason()
+    '' Arrange, Act
+    $Boundary("BReason", "Label", "", "", "", "", "Группировка связанных систем")
+
+    '' Assert
+    !$desc_str = $get_descriptor("BReason")
+    !$desc = $str2json($desc_str, $without_quotes = %true())
+    !assert $desc.reason == "Группировка связанных систем"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure boundary_registration_should_save_reason_source()
+    '' Arrange, Act
+    $Boundary("BReasonSrc", "Label", "", "", "", "", "", "ARCH-DEC-01")
+
+    '' Assert
+    !$desc_str = $get_descriptor("BReasonSrc")
+    !$desc = $str2json($desc_str, $without_quotes = %true())
+    !assert $desc.reason_source == "ARCH-DEC-01"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure boundaries_should_add_registered_alias_to_rendering_queue()
+    '' Arrange
+    $reset_rendering_queue()
+
+    '' Act
+    Boundaries("TestBoundaries", "B1")
+    !$queue = $get_rendering_queue()
+
+    '' Assert
+    !assert %size($queue) == 1
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure boundaries_should_skip_unregistered_alias()
+    '' Arrange
+    $reset_rendering_queue()
+
+    '' Act
+    Boundaries("", "Ghost")
+    !$queue = $get_rendering_queue()
+
+    '' Assert
+    !assert %size($queue) == 0
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure boundaries_should_add_multiple_aliases()
+    '' Arrange
+    $reset_rendering_queue()
+
+    '' Act
+    Boundaries("TestBoundaries", "B1 B2")
+    !$queue = $get_rendering_queue()
+
+    '' Assert
+    !assert %size($queue) == 2
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_boundary_render_params_returns_label_from_descriptor()
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "Boundary")
+    !$desc = $json_add($desc, "label", "MyBoundary")
+    !$decor = {}
+    !$decor = $json_add($decor, "is_extern", %false())
+    !$decor = $json_add($decor, "show_desc", %true())
+    !$decor = $json_add($decor, "sprite", "")
+    !$decor = $json_add($decor, "styles", [])
+
+    '' Act
+    !$params = $resolve_boundary_render_params($desc, $decor)
+
+    '' Assert
+    !assert $params.label == "MyBoundary"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_boundary_render_params_defaults_to_system_boundary()
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "Boundary")
+    !$desc = $json_add($desc, "label", "B")
+    !$decor = {}
+    !$decor = $json_add($decor, "is_extern", %false())
+    !$decor = $json_add($decor, "show_desc", %true())
+    !$decor = $json_add($decor, "sprite", "")
+    !$decor = $json_add($decor, "styles", [])
+
+    '' Act
+    !$params = $resolve_boundary_render_params($desc, $decor)
+
+    '' Assert
+    !assert $params.boundary_type == "System_Boundary"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_boundary_render_params_uses_enterprise_boundary_when_type_is_enterprise()
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "Boundary")
+    !$desc = $json_add($desc, "label", "E")
+    !$desc = $json_add($desc, "element_type", "Enterprise")
+    !$decor = {}
+    !$decor = $json_add($decor, "is_extern", %false())
+    !$decor = $json_add($decor, "show_desc", %true())
+    !$decor = $json_add($decor, "sprite", "")
+    !$decor = $json_add($decor, "styles", [])
+
+    '' Act
+    !$params = $resolve_boundary_render_params($desc, $decor)
+
+    '' Assert
+    !assert $params.boundary_type == "Enterprise_Boundary"
+!endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 person_registration_should_create_descriptor_with_person_type()
 person_registration_should_create_decorator_with_defaults()
@@ -534,6 +873,37 @@ resolve_relation_render_params_hides_label_when_show_label_false()
 resolve_relation_render_params_hides_techn_when_show_techn_false()
 resolve_relation_render_params_hides_descr_when_show_descr_false()
 resolve_relation_render_params_joins_styles_as_tags()
+''----------------------------------------------------------------------------------------------------------------------
+''  System
+''----------------------------------------------------------------------------------------------------------------------
+system_registration_should_create_descriptor_with_system_type()
+system_registration_should_create_decorator_with_defaults()
+system_registration_should_save_description()
+system_registration_should_save_tags()
+system_registration_should_save_reason()
+system_registration_should_save_reason_source()
+systems_should_add_registered_alias_to_rendering_queue()
+systems_should_skip_unregistered_alias()
+systems_should_add_multiple_aliases()
+resolve_system_render_params_returns_label_from_descriptor()
+resolve_system_render_params_sets_render_proc_to_System()
+resolve_system_render_params_maps_queue_type_to_SystemQueue()
+resolve_system_render_params_maps_db_type_to_SystemDb()
+''----------------------------------------------------------------------------------------------------------------------
+''  Boundary
+''----------------------------------------------------------------------------------------------------------------------
+boundary_registration_should_create_descriptor_with_boundary_type()
+boundary_registration_should_create_decorator_with_defaults()
+boundary_registration_should_save_description()
+boundary_registration_should_save_tags()
+boundary_registration_should_save_reason()
+boundary_registration_should_save_reason_source()
+boundaries_should_add_registered_alias_to_rendering_queue()
+boundaries_should_skip_unregistered_alias()
+boundaries_should_add_multiple_aliases()
+resolve_boundary_render_params_returns_label_from_descriptor()
+resolve_boundary_render_params_defaults_to_system_boundary()
+resolve_boundary_render_params_uses_enterprise_boundary_when_type_is_enterprise()
 ''----------------------------------------------------------------------------------------------------------------------
 caption OK
 @enduml

@@ -8,6 +8,8 @@
 ''----------------------------------------------------------------------------------------------------------------------
 $register_rendering_proc("Person", $proc="$render_person")
 $register_rendering_proc("Relation", $proc="$render_relation")
+$register_rendering_proc("System", $proc="$render_system")
+$register_rendering_proc("Boundary", $proc="$render_boundary")
 ''----------------------------------------------------------------------------------------------------------------------
 '' Регистрирует архитектурный элемент типа Person.
 '' Создаёт дескриптор (атрибуты) и декоратор (опции отображения по умолчанию),
@@ -43,6 +45,38 @@ $register_rendering_proc("Relation", $proc="$render_relation")
 '' example: Persons_Ext("Elements", Admin)
 !unquoted procedure Persons_Ext($source, $aliases)
     $include_elements("person", $source, $aliases, %true())
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Регистрирует архитектурный элемент типа System.
+'' Совместима со стандартной библиотекой C4-PlantUML: System(alias, label, ?descr, ?sprite, ?tags, ?link, ?type)
+'' args: $alias - уникальный алиас элемента
+''       $label - отображаемое имя элемента
+''       $descr - описание элемента (опционально)
+''       $sprite - спрайт элемента (опционально)
+''       $tags - теги элемента (опционально)
+''       $link - ссылка элемента (опционально)
+''       $type - стереотип элемента (опционально)
+''       $reason - обоснование присутствия элемента в архитектуре (опционально)
+''       $reason_source - источник обоснования: требование, документ, глоссарий (опционально)
+'' example: $System("ERP", "ERP-система", "Основная учётная система")
+!unquoted procedure $System($alias, $label, $descr="", $sprite="", $tags="", $link="", $type="", $reason="", $reason_source="")
+    !$descriptor = $default_c4_element_descriptor("System", $label, $descr, $sprite, $tags, $link, $type, $reason, $reason_source)
+    $register_descriptor($alias, $json2str($descriptor, %true()))
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Регистрирует архитектурный элемент типа Boundary (граница системы).
+'' args: $alias - уникальный алиас границы
+''       $label - отображаемое имя границы
+''       $descr - описание (опционально)
+''       $tags - теги (опционально)
+''       $link - ссылка (опционально)
+''       $type - тип границы: "" для System_Boundary, "Enterprise" для Enterprise_Boundary (опционально)
+''       $reason - обоснование присутствия элемента в архитектуре (опционально)
+''       $reason_source - источник обоснования: требование, документ, глоссарий (опционально)
+'' example: $Boundary("Core", "Core Systems", "Основные системы")
+!unquoted procedure $Boundary($alias, $label, $descr="", $tags="", $link="", $type="", $reason="", $reason_source="")
+    !$descriptor = $default_c4_element_descriptor("Boundary", $label, $descr, "", $tags, $link, $type, $reason, $reason_source)
+    $register_descriptor($alias, $json2str($descriptor, %true()))
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Создаёт декоратор элемента со значениями по умолчанию.
@@ -99,6 +133,30 @@ $register_rendering_proc("Relation", $proc="$render_relation")
     !endif
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
+'' Включает зарегистрированные элементы System в текущую диаграмму.
+'' args: $source - путь к каталогу к объявлениям элементов.
+''       $aliases - перечисление имен элементов (разделенные пробелом).
+'' example: Systems("Elements", ERP CMS)
+!unquoted procedure Systems($source, $aliases)
+    $include_elements("system", $source, $aliases, %false())
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Включает зарегистрированные элементы System как внешние (с серым фоном) в текущую диаграмму.
+'' args: $source - путь к каталогу к объявлениям элементов.
+''       $aliases - перечисление имен элементов (разделенные пробелом).
+'' example: Systems_Ext("Elements", ExternalService)
+!unquoted procedure Systems_Ext($source, $aliases)
+    $include_elements("system", $source, $aliases, %true())
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Включает зарегистрированные границы Boundary в текущую диаграмму.
+'' args: $source - путь к каталогу с объявлениями границ.
+''       $aliases - перечисление имен границ (разделенные пробелом).
+'' example: Boundaries("Boundaries", Core)
+!unquoted procedure Boundaries($source, $aliases)
+    $include_elements("boundary", $source, $aliases, %false())
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
 '' Рендерит элемент типа Person в нотации C4 Context.
 '' Десериализует дескриптор, проверяет флаги show_desc и is_extern,
 '' затем вызывает стандартную функцию Person() или Person_Ext().
@@ -112,6 +170,29 @@ $register_rendering_proc("Relation", $proc="$render_relation")
     !$descriptor = $str2json($serialized_descriptor, $without_quotes = %true())
     !$params = $resolve_person_render_params($descriptor, $decorator)
     $render_c4_element($alias, $params)
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Рендерит элемент типа System в нотации C4 Context.
+!procedure $render_system($alias, $serialized_descriptor, $decorator)
+    !$descriptor = $str2json($serialized_descriptor, $without_quotes = %true())
+    !$params = $resolve_system_render_params($descriptor, $decorator)
+    $render_c4_element($alias, $params)
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Рендерит границу Boundary в нотации C4 Context.
+'' Вызывает Enterprise_Boundary или System_Boundary в зависимости от element_type.
+!procedure $render_boundary($alias, $serialized_descriptor, $decorator)
+    !$descriptor = $str2json($serialized_descriptor, $without_quotes = %true())
+    !$params = $resolve_boundary_render_params($descriptor, $decorator)
+
+    %invoke_procedure(\
+        $params.boundary_type, \
+        $alias, \
+        $params.label, \
+        $default($params.tags), \
+        $default($params.link), \
+        $default($params.desc) \
+    )
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure $render_c4_element($alias, $params)
@@ -133,13 +214,13 @@ $register_rendering_proc("Relation", $proc="$render_relation")
     )
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
-'' Вычисляет параметры рендеринга для элемента Person на основе дескриптора и декоратора.
+'' Вычисляет параметры рендеринга для C4-элемента на основе дескриптора и декоратора.
 '' Чистая функция: не имеет побочных эффектов, всегда возвращает одинаковый результат при одинаковых аргументах.
 '' args: $descriptor - JSON-объект {type, label, desc, sprite, tags, link, element_type, reason, reason_source}
 ''       $decorator - JSON-объект {is_extern, show_desc, sprite, styles}
+''       $render_proc - имя нативной функции рендеринга ("Person", "System", "SystemQueue", "SystemDb")
 '' returns: JSON-объект {label, desc, sprite, render_proc, tags, type, link, is_extern} — вычисленные параметры для нативного рендеринга
-'' example: !$params = $resolve_person_render_params($descriptor, $decorator)
-!function $resolve_person_render_params($descriptor, $decorator)
+!function $resolve_c4_element_render_params($descriptor, $decorator, $render_proc)
     !$params = {}
 
     !$params = $json_add($params, "label", $descriptor.label)
@@ -153,7 +234,7 @@ $register_rendering_proc("Relation", $proc="$render_relation")
         !$params = $json_add($params, "sprite", $default($descriptor.sprite))
     !endif
 
-    !$params = $json_add($params,  "render_proc", "Person")
+    !$params = $json_add($params, "render_proc", $render_proc)
 
     !$params = $json_add($params, "tags", $combine_tags($default($descriptor.tags), $array2str($decorator.styles, "+")))
 
@@ -162,6 +243,76 @@ $register_rendering_proc("Relation", $proc="$render_relation")
     !$params = $json_add($params, "link", $default($descriptor.link))
 
     !$params = $json_add($params, "is_extern", $decorator.is_extern)
+
+    !return $params
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Вычисляет параметры рендеринга для элемента Person.
+'' Обёртка над $resolve_c4_element_render_params.
+!function $resolve_person_render_params($descriptor, $decorator)
+    !return $resolve_c4_element_render_params($descriptor, $decorator, "Person")
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Вычисляет параметры рендеринга для элемента System.
+'' Маппинг element_type → нативная функция:
+''   "Queue" → SystemQueue, "Db" → SystemDb, иначе → System
+!function $resolve_system_render_params($descriptor, $decorator)
+    !$etype = $default($descriptor.element_type)
+    '' NOTE: Не используем $resolve_c4_element_render_params напрямую, т.к. нужен маппинг $etype
+    !$params = {}
+
+    !$params = $json_add($params, "label", $descriptor.label)
+
+    !$params = $json_add($params, "desc", $value_or_default($decorator.show_desc == %true(), $descriptor.desc))
+
+    !$decor_sprite = $default($decorator.sprite)
+    !if $decor_sprite != ""
+        !$params = $json_add($params, "sprite", $decor_sprite)
+    !else
+        !$params = $json_add($params, "sprite", $default($descriptor.sprite))
+    !endif
+
+    '' Маппинг element_type → render_proc
+    !if $etype == "Queue"
+        !$params = $json_add($params, "render_proc", "SystemQueue")
+        !$params = $json_add($params, "type", "")
+    !elseif $etype == "Db"
+        !$params = $json_add($params, "render_proc", "SystemDb")
+        !$params = $json_add($params, "type", "")
+    !else
+        !$params = $json_add($params, "render_proc", "System")
+        !$params = $json_add($params, "type", $etype)
+    !endif
+
+    !$params = $json_add($params, "tags", $combine_tags($default($descriptor.tags), $array2str($decorator.styles, "+")))
+
+    !$params = $json_add($params, "link", $default($descriptor.link))
+
+    !$params = $json_add($params, "is_extern", $decorator.is_extern)
+
+    !return $params
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Вычисляет параметры рендеринга для границы Boundary.
+'' args: $descriptor - JSON-объект {type, label, desc, tags, link, element_type, reason, reason_source}
+''       $decorator - JSON-объект {is_extern, show_desc, sprite, styles}
+'' returns: JSON-объект {boundary_type, label, desc, tags, link}
+!function $resolve_boundary_render_params($descriptor, $decorator)
+    !$params = {}
+
+    !$params = $json_add($params, "label", $descriptor.label)
+
+    !$params = $json_add($params, "desc", $value_or_default($decorator.show_desc == %true(), $descriptor.desc))
+
+    !if $default($descriptor.element_type) == "Enterprise"
+        !$params = $json_add($params, "boundary_type", "Enterprise_Boundary")
+    !else
+        !$params = $json_add($params, "boundary_type", "System_Boundary")
+    !endif
+
+    !$params = $json_add($params, "tags", $combine_tags($default($descriptor.tags), $array2str($decorator.styles, "+")))
+
+    !$params = $json_add($params, "link", $default($descriptor.link))
 
     !return $params
 !endfunction
