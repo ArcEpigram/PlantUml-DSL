@@ -4,51 +4,127 @@
 '' Tests
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure hide_description_should_set_show_desc_to_false()
-    '' Arrange: зарегистрировать дескриптор и декоратор через Common
-    ''   $register_descriptor("HD", {"type":"Test","label":"Test"})
-    ''   $register_decorator("HD", {"is_extern":%false(),"show_desc":%true(),"styles":[]})
-    '' Act: HideDescription(HD); $decorator = $get_decorator("HD")
-    '' Assert: $decorator.show_desc == %false()
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "Test")
+    !$desc = $json_add($desc, "label", "Test")
+    $register_descriptor("HD", $desc)
+    !$decor = {}
+    !$decor = $json_add($decor, "is_extern", %false())
+    !$decor = $json_add($decor, "show_desc", %true())
+    !$decor = $json_add($decor, "styles", [])
+    $register_decorator("HD", $decor)
+
+    '' Act
+    HideDescription(HD)
+    !$decorator = $get_decorator("HD")
+
+    '' Assert
+    !assert $decorator.show_desc == %false()
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure apply_style_should_add_to_styles_array()
-    '' Arrange: зарегистрировать дескриптор и декоратор через Common
-    ''   $register_descriptor("AS", {"type":"Test","label":"Test"})
-    ''   $register_decorator("AS", {"is_extern":%false(),"show_desc":%true(),"styles":[]})
-    '' Act: ApplyStyle(AS, "bright_and_bold"); $decorator = $get_decorator("AS")
-    '' Assert: %size($decorator.styles) == 1; $decorator.styles[0] == "bright_and_bold"
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "Test")
+    !$desc = $json_add($desc, "label", "Test")
+    $register_descriptor("AS", $desc)
+    !$decor = {}
+    !$decor = $json_add($decor, "is_extern", %false())
+    !$decor = $json_add($decor, "show_desc", %true())
+    !$decor = $json_add($decor, "styles", [])
+    $register_decorator("AS", $decor)
+
+    '' Act
+    ApplyStyle(AS, "bright_and_bold")
+    !$decorator = $get_decorator("AS")
+
+    '' Assert
+    !assert %size($decorator.styles) == 1
+    !assert $decorator.styles[0] == "bright_and_bold"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure apply_style_should_not_duplicate()
-    '' Arrange: зарегистрировать декоратор со стилем
-    ''   $register_descriptor("DUP", {"type":"Test","label":"Test"})
-    ''   $register_decorator("DUP", {"is_extern":%false(),"show_desc":%true(),"styles":["bold"]})
-    '' Act: ApplyStyle(DUP, "bold"); $decorator = $get_decorator("DUP")
-    '' Assert: %size($decorator.styles) == 1 (стиль "bold" уже был, дубликат не добавлен)
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "Test")
+    !$desc = $json_add($desc, "label", "Test")
+    $register_descriptor("DUP", $desc)
+    !$decor = {}
+    !$decor = $json_add($decor, "is_extern", %false())
+    !$decor = $json_add($decor, "show_desc", %true())
+    !$decor = $json_add($decor, "styles", ["bold"])
+    $register_decorator("DUP", $decor)
+
+    '' Act
+    ApplyStyle(DUP, "bold")
+    !$decorator = $get_decorator("DUP")
+
+    '' Assert
+    !assert %size($decorator.styles) == 1
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Tests for HideLabel
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure hidelabel_should_set_show_label_false()
-    '' Arrange: $register_decorator("RL", {"show_label":%true(),"show_techn":%true(),"show_descr":%true(),"link":"","sprite":"","styles":[]})
-    '' Act: HideLabel(RL); $decorator = $get_decorator("RL")
-    '' Assert: $decorator.show_label == %false()
+    '' Arrange
+    !$decor = {}
+    !$decor = $json_add($decor, "show_label", %true())
+    !$decor = $json_add($decor, "show_techn", %true())
+    !$decor = $json_add($decor, "show_descr", %true())
+    !$decor = $json_add($decor, "link", "")
+    !$decor = $json_add($decor, "sprite", "")
+    !$decor = $json_add($decor, "styles", [])
+    $register_decorator("RL", $decor)
+
+    '' Act
+    HideLabel(RL)
+    !$decorator = $get_decorator("RL")
+
+    '' Assert
+    !assert $decorator.show_label == %false()
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Tests for HideTechnology
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure hidetechnology_should_set_show_techn_false()
-    '' Arrange: $register_decorator("RT", {"show_label":%true(),"show_techn":%true(),"show_descr":%true(),"link":"","sprite":"","styles":[]})
-    '' Act: HideTechnology(RT); $decorator = $get_decorator("RT")
-    '' Assert: $decorator.show_techn == %false()
+    '' Arrange
+    !$decor = {}
+    !$decor = $json_add($decor, "show_label", %true())
+    !$decor = $json_add($decor, "show_techn", %true())
+    !$decor = $json_add($decor, "show_descr", %true())
+    !$decor = $json_add($decor, "link", "")
+    !$decor = $json_add($decor, "sprite", "")
+    !$decor = $json_add($decor, "styles", [])
+    $register_decorator("RT", $decor)
+
+    '' Act
+    HideTechnology(RT)
+    !$decorator = $get_decorator("RT")
+
+    '' Assert
+    !assert $decorator.show_techn == %false()
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Tests for HideDescription on relations
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure hidedescription_should_hide_descr_for_relation()
-    '' Arrange: $register_decorator("RD", {"show_label":%true(),"show_techn":%true(),"show_descr":%true(),"link":"","sprite":"","styles":[]})
-    '' Act: HideDescription(RD); $decorator = $get_decorator("RD")
-    '' Assert: $decorator.show_descr == %false()
+    '' Arrange
+    !$decor = {}
+    !$decor = $json_add($decor, "show_label", %true())
+    !$decor = $json_add($decor, "show_techn", %true())
+    !$decor = $json_add($decor, "show_descr", %true())
+    !$decor = $json_add($decor, "link", "")
+    !$decor = $json_add($decor, "sprite", "")
+    !$decor = $json_add($decor, "styles", [])
+    $register_decorator("RD", $decor)
+
+    '' Act
+    HideDescription(RD)
+    !$decorator = $get_decorator("RD")
+
+    '' Assert
+    !assert $decorator.show_descr == %false()
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Tests RUN!

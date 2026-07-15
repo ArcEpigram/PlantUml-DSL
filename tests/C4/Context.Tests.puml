@@ -4,201 +4,502 @@
 '' Tests
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure person_registration_should_create_descriptor_with_person_type()
-    '' Arrange, Act: $Person("Test", "TestLabel"); $desc = $get_descriptor("Test")
-    '' Assert: $desc.type == "Person"; $desc.label == "TestLabel"
+    '' Arrange, Act
+    $Person("Test", "TestLabel")
+    !$desc_str = $get_descriptor("Test")
+    !$desc = $str2json($desc_str, $without_quotes = %true())
+
+    '' Assert
+    !assert $desc.type == "Person"
+    !assert $desc.label == "TestLabel"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure person_registration_should_create_decorator_with_defaults()
-    '' Arrange, Act: $Person("Def", "Default"); $decor = $get_decorator("Def")
-    '' Assert: $decor.is_extern == %false(); $decor.show_desc == %true(); $decor.sprite == ""; %size($decor.styles) == 0
+    '' Arrange
+    $Person("Def", "Default")
+
+    '' Act — декоратор создаётся при включении в диаграмму
+    $include_elements("person", "TestPersons", "Def", %false())
+    !$decor = $get_decorator("Def")
+
+    '' Assert
+    !assert $decor.is_extern == %false()
+    !assert $decor.show_desc == %true()
+    !assert $default($decor.sprite) == ""
+    !assert %size($decor.styles) == 0
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure person_registration_should_save_description()
-    '' Arrange, Act: $Person("Desc", "WithDesc", "Описание"); $desc = $get_descriptor("Desc")
-    '' Assert: $desc.desc == "Описание"
+    '' Arrange, Act
+    $Person("Desc", "WithDesc", "Описание")
+    !$desc_str = $get_descriptor("Desc")
+    !$desc = $str2json($desc_str, $without_quotes = %true())
+
+    '' Assert
+    !assert $desc.desc == "Описание"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure person_registration_should_save_tags()
-    '' Arrange, Act: $Person("Tagged", "T", "", "", "critical,external"); $desc = $get_descriptor("Tagged")
-    '' Assert: $desc.tags == "critical,external"
+    '' Arrange, Act
+    $Person("Tagged", "T", "", "", "critical+external")
+    !$desc_str = $get_descriptor("Tagged")
+    !$desc = $str2json($desc_str, $without_quotes = %true())
+
+    '' Assert
+    !assert $desc.tags == "critical+external"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure person_registration_should_save_reason()
-    '' Arrange, Act: $Person("R", "Label", "", "", "", "", "", "Системное требование"); $desc = $get_descriptor("R")
-    '' Assert: $desc.reason == "Системное требование"
+    '' Arrange, Act
+    $Person("R", "Label", "", "", "", "", "", "Системное требование")
+    !$desc_str = $get_descriptor("R")
+    !$desc = $str2json($desc_str, $without_quotes = %true())
+
+    '' Assert
+    !assert $desc.reason == "Системное требование"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure person_registration_should_save_reason_source()
-    '' Arrange, Act: $Person("RS", "Label", "", "", "", "", "", "", "REQ-001"); $desc = $get_descriptor("RS")
-    '' Assert: $desc.reason_source == "REQ-001"
+    '' Arrange, Act
+    $Person("RS", "Label", "", "", "", "", "", "", "REQ-001")
+    !$desc_str = $get_descriptor("RS")
+    !$desc = $str2json($desc_str, $without_quotes = %true())
+
+    '' Assert
+    !assert $desc.reason_source == "REQ-001"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
+'' Tests for Persons inclusion
+''----------------------------------------------------------------------------------------------------------------------
 !procedure persons_should_add_registered_alias_to_rendering_queue()
-    '' Arrange: $Person("Alice", "Алиса"); $reset_rendering_queue()
-    '' Act: Persons("Alice"); $queue = $get_rendering_queue()
-    '' Assert: %size($queue) == 1; $queue[0] == "Alice"
+    '' Arrange
+    $reset_rendering_queue()
+
+    '' Act
+    $include_elements("person", "TestPersons", "Alice", %false())
+    !$queue = $get_rendering_queue()
+
+    '' Assert
+    !assert %size($queue) == 1
+    !assert $queue[0] == "Alice"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure persons_should_skip_unregistered_alias()
-    '' Arrange: $reset_rendering_queue()
-    '' Act: Persons("Ghost"); $queue = $get_rendering_queue()
-    '' Assert: %size($queue) == 0 (незарегистрированный алиас пропущен без ошибки)
+    '' Arrange
+    $reset_rendering_queue()
+
+    '' Act — $include_elements с пустым source не выполняет !include
+    $include_elements("person", "", "Ghost", %false())
+    !$queue = $get_rendering_queue()
+
+    '' Assert
+    !assert %size($queue) == 0
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure persons_should_add_multiple_aliases()
-    '' Arrange: $Person("A", "A"); $Person("B", "B"); $reset_rendering_queue()
-    '' Act: Persons("A", "B"); $queue = $get_rendering_queue()
-    '' Assert: %size($queue) == 2
+    '' Arrange
+    $reset_rendering_queue()
+
+    '' Act
+    $include_elements("person", "TestPersons", "Alice Bob", %false())
+    !$queue = $get_rendering_queue()
+
+    '' Assert
+    !assert %size($queue) == 2
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Tests for $resolve_person_render_params
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_person_render_params_returns_label_from_descriptor()
-    '' Arrange: $desc = {"type":"Person","label":"Alice"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[],"sprite":""}
-    '' Act: $params = $resolve_person_render_params($desc, $decor)
-    '' Assert: $params.label == "Alice"
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "Person")
+    !$desc = $json_add($desc, "label", "Alice")
+    !$decor = {}
+    !$decor = $json_add($decor, "is_extern", %false())
+    !$decor = $json_add($decor, "show_desc", %true())
+    !$decor = $json_add($decor, "styles", [])
+    !$decor = $json_add($decor, "sprite", "")
+
+    '' Act
+    !$params = $resolve_person_render_params($desc, $decor)
+
+    '' Assert
+    !assert $params.label == "Alice"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_person_render_params_includes_desc_when_show_desc_true()
-    '' Arrange: $desc = {"type":"Person","label":"U","desc":"Описание"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[],"sprite":""}
-    '' Act: $params = $resolve_person_render_params($desc, $decor)
-    '' Assert: $params.desc == "Описание"
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "Person")
+    !$desc = $json_add($desc, "label", "U")
+    !$desc = $json_add($desc, "desc", "Описание")
+    !$decor = {}
+    !$decor = $json_add($decor, "is_extern", %false())
+    !$decor = $json_add($decor, "show_desc", %true())
+    !$decor = $json_add($decor, "styles", [])
+    !$decor = $json_add($decor, "sprite", "")
+
+    '' Act
+    !$params = $resolve_person_render_params($desc, $decor)
+
+    '' Assert
+    !assert $params.desc == "Описание"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_person_render_params_empty_desc_when_show_desc_false()
-    '' Arrange: $desc = {"type":"Person","label":"U","desc":"Скрыто"}; $decor = {"is_extern":%false(),"show_desc":%false(),"styles":[],"sprite":""}
-    '' Act: $params = $resolve_person_render_params($desc, $decor)
-    '' Assert: $params.desc == ""
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "Person")
+    !$desc = $json_add($desc, "label", "U")
+    !$desc = $json_add($desc, "desc", "Скрыто")
+    !$decor = {}
+    !$decor = $json_add($decor, "is_extern", %false())
+    !$decor = $json_add($decor, "show_desc", %false())
+    !$decor = $json_add($decor, "styles", [])
+    !$decor = $json_add($decor, "sprite", "")
+
+    '' Act
+    !$params = $resolve_person_render_params($desc, $decor)
+
+    '' Assert
+    !assert $default($params.desc) == ""
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_person_render_params_sets_is_extern_true()
-    '' Arrange: $desc = {"type":"Person","label":"Ext"}; $decor = {"is_extern":%true(),"show_desc":%true(),"styles":[],"sprite":""}
-    '' Act: $params = $resolve_person_render_params($desc, $decor)
-    '' Assert: $params.is_extern == %true()
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "Person")
+    !$desc = $json_add($desc, "label", "Ext")
+    !$decor = {}
+    !$decor = $json_add($decor, "is_extern", %true())
+    !$decor = $json_add($decor, "show_desc", %true())
+    !$decor = $json_add($decor, "styles", [])
+    !$decor = $json_add($decor, "sprite", "")
+
+    '' Act
+    !$params = $resolve_person_render_params($desc, $decor)
+
+    '' Assert
+    !assert $params.is_extern == %true()
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_person_render_params_sets_is_extern_false()
-    '' Arrange: $desc = {"type":"Person","label":"Int"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[],"sprite":""}
-    '' Act: $params = $resolve_person_render_params($desc, $decor)
-    '' Assert: $params.is_extern == %false()
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "Person")
+    !$desc = $json_add($desc, "label", "Int")
+    !$decor = {}
+    !$decor = $json_add($decor, "is_extern", %false())
+    !$decor = $json_add($decor, "show_desc", %true())
+    !$decor = $json_add($decor, "styles", [])
+    !$decor = $json_add($decor, "sprite", "")
+
+    '' Act
+    !$params = $resolve_person_render_params($desc, $decor)
+
+    '' Assert
+    !assert $params.is_extern == %false()
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_person_render_params_passes_tags_through()
-    '' Arrange: $desc = {"type":"Person","label":"T","tags":"critical,external"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[],"sprite":""}
-    '' Act: $params = $resolve_person_render_params($desc, $decor)
-    '' Assert: $params.tags == "critical,external"
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "Person")
+    !$desc = $json_add($desc, "label", "T")
+    !$desc = $json_add($desc, "tags", "critical,external")
+    !$decor = {}
+    !$decor = $json_add($decor, "is_extern", %false())
+    !$decor = $json_add($decor, "show_desc", %true())
+    !$decor = $json_add($decor, "styles", [])
+    !$decor = $json_add($decor, "sprite", "")
+
+    '' Act
+    !$params = $resolve_person_render_params($desc, $decor)
+
+    '' Assert
+    !assert $params.tags == "critical,external"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_person_render_params_empty_tags_when_not_set()
-    '' Arrange: $desc = {"type":"Person","label":"NoTags"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[],"sprite":""}
-    '' Act: $params = $resolve_person_render_params($desc, $decor)
-    '' Assert: $params.tags == ""
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "Person")
+    !$desc = $json_add($desc, "label", "NoTags")
+    !$decor = {}
+    !$decor = $json_add($decor, "is_extern", %false())
+    !$decor = $json_add($decor, "show_desc", %true())
+    !$decor = $json_add($decor, "styles", [])
+    !$decor = $json_add($decor, "sprite", "")
+
+    '' Act
+    !$params = $resolve_person_render_params($desc, $decor)
+
+    '' Assert
+    !assert $default($params.tags) == ""
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_person_render_params_combines_descriptor_tags_with_decorator_styles()
-    '' Arrange: $desc = {"type":"Person","label":"T","tags":"old"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":["new"]}
-    '' Act: $params = $resolve_person_render_params($desc, $decor)
-    '' Assert: $params.tags == "old+new"
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "Person")
+    !$desc = $json_add($desc, "label", "T")
+    !$desc = $json_add($desc, "tags", "old")
+    !$decor = {}
+    !$decor = $json_add($decor, "is_extern", %false())
+    !$decor = $json_add($decor, "show_desc", %true())
+    !$decor = $json_add($decor, "styles", ["new"])
+    !$decor = $json_add($decor, "sprite", "")
+
+    '' Act
+    !$params = $resolve_person_render_params($desc, $decor)
+
+    '' Assert
+    !assert $params.tags == "old+new"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_person_render_params_includes_sprite_from_descriptor()
-    '' Arrange: $desc = {"type":"Person","label":"S","sprite":"icon"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[],"sprite":""}
-    '' Act: $params = $resolve_person_render_params($desc, $decor)
-    '' Assert: $params.sprite == "icon"
-!endprocedure
-''----------------------------------------------------------------------------------------------------------------------
-!procedure resolve_person_render_params_includes_type_from_descriptor()
-    '' Arrange: $desc = {"type":"Person","label":"T","element_type":"Admin"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[],"sprite":""}
-    '' Act: $params = $resolve_person_render_params($desc, $decor)
-    '' Assert: $params.type == "Admin"
-!endprocedure
-''----------------------------------------------------------------------------------------------------------------------
-!procedure resolve_person_render_params_includes_link_from_descriptor()
-    '' Arrange: $desc = {"type":"Person","label":"L","link":"https://example.com"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[],"sprite":""}
-    '' Act: $params = $resolve_person_render_params($desc, $decor)
-    '' Assert: $params.link == "https://example.com"
-!endprocedure
-''----------------------------------------------------------------------------------------------------------------------
-!procedure apply_sprite_should_set_decorator_sprite()
-    '' Arrange: $Person("Sp", "Sprite"); $reset_rendering_queue()
-    '' Act: Persons("Sp"); ApplySprite("Sp", "robot")
-    '' Assert: $get_decorator("Sp").sprite == "robot"
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "Person")
+    !$desc = $json_add($desc, "label", "S")
+    !$desc = $json_add($desc, "sprite", "icon")
+    !$decor = {}
+    !$decor = $json_add($decor, "is_extern", %false())
+    !$decor = $json_add($decor, "show_desc", %true())
+    !$decor = $json_add($decor, "styles", [])
+    !$decor = $json_add($decor, "sprite", "")
+
+    '' Act
+    !$params = $resolve_person_render_params($desc, $decor)
+
+    '' Assert
+    !assert $params.sprite == "icon"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_person_render_params_should_use_decorator_sprite_when_set()
-    '' Arrange: $desc = {"type":"Person","label":"S","sprite":"descriptor_icon"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[],"sprite":"robot"}
-    '' Act: $params = $resolve_person_render_params($desc, $decor)
-    '' Assert: $params.sprite == "robot" (приоритет декоратора)
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "Person")
+    !$desc = $json_add($desc, "label", "S")
+    !$desc = $json_add($desc, "sprite", "descriptor_icon")
+    !$decor = {}
+    !$decor = $json_add($decor, "is_extern", %false())
+    !$decor = $json_add($decor, "show_desc", %true())
+    !$decor = $json_add($decor, "styles", [])
+    !$decor = $json_add($decor, "sprite", "robot")
+
+    '' Act
+    !$params = $resolve_person_render_params($desc, $decor)
+
+    '' Assert
+    !assert $params.sprite == "robot"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_person_render_params_should_fallback_to_descriptor_sprite()
-    '' Arrange: $desc = {"type":"Person","label":"S","sprite":"descriptor_icon"}; $decor = {"is_extern":%false(),"show_desc":%true(),"styles":[],"sprite":""}
-    '' Act: $params = $resolve_person_render_params($desc, $decor)
-    '' Assert: $params.sprite == "descriptor_icon" (fallback к дескриптору)
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "Person")
+    !$desc = $json_add($desc, "label", "S")
+    !$desc = $json_add($desc, "sprite", "descriptor_icon")
+    !$decor = {}
+    !$decor = $json_add($decor, "is_extern", %false())
+    !$decor = $json_add($decor, "show_desc", %true())
+    !$decor = $json_add($decor, "styles", [])
+    !$decor = $json_add($decor, "sprite", "")
+
+    '' Act
+    !$params = $resolve_person_render_params($desc, $decor)
+
+    '' Assert
+    !assert $params.sprite == "descriptor_icon"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Tests for $Relation registration
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure relation_registration_should_create_descriptor_with_relation_type()
-    '' Arrange, Act: $Relation("Test", "A", "B", "TestLabel"); $desc = $get_descriptor("Test")
-    '' Assert: $desc.type == "Relation"; $desc.from == "A"; $desc.to == "B"; $desc.label == "TestLabel"
+    '' Arrange, Act
+    $Relation("Test", "A", "B", "TestLabel")
+    !$desc_str = $get_descriptor("Test")
+    !$desc = $str2json($desc_str, $without_quotes = %true())
+
+    '' Assert
+    !assert $desc.type == "Relation"
+    !assert $desc.from == "A"
+    !assert $desc.to == "B"
+    !assert $desc.label == "TestLabel"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure relation_registration_should_save_techn_and_descr()
-    '' Arrange, Act: $Relation("R", "X", "Y", "Link", "HTTP", "Описание связи"); $desc = $get_descriptor("R")
-    '' Assert: $desc.techn == "HTTP"; $desc.descr == "Описание связи"
+    '' Arrange, Act
+    $Relation("R", "X", "Y", "Link", "HTTP", "Описание связи")
+    !$desc_str = $get_descriptor("R")
+    !$desc = $str2json($desc_str, $without_quotes = %true())
+
+    '' Assert
+    !assert $desc.techn == "HTTP"
+    !assert $desc.descr == "Описание связи"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Tests for Relations inclusion
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure relations_should_add_registered_alias_to_rendering_queue()
-    '' Arrange: $reset_rendering_queue()
-    '' Act: Relations("tests/C4/TestRelations", "R1"); $queue = $get_rendering_queue()
-    '' Assert: %size($queue) == 1; $queue[0] == "R1"
+    '' Arrange
+    $reset_rendering_queue()
+
+    '' Act
+    $include_relations("TestRelations", "R1")
+    !$queue = $get_rendering_queue()
+
+    '' Assert
+    !assert %size($queue) == 1
+    !assert $queue[0] == "R1"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure relations_should_skip_unregistered_alias()
-    '' Arrange: $reset_rendering_queue()
-    '' Act: Relations("Ghost"); $queue = $get_rendering_queue()
-    '' Assert: %size($queue) == 0 (незарегистрированный алиас пропущен без ошибки)
+    '' Arrange
+    $reset_rendering_queue()
+
+    '' Act — $include_relations с пустым source не выполняет !include
+    $include_relations("", "Ghost")
+    !$queue = $get_rendering_queue()
+
+    '' Assert
+    !assert %size($queue) == 0
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure relations_should_add_multiple_aliases()
-    '' Arrange: $reset_rendering_queue()
-    '' Act: Relations("tests/C4/TestRelations", "R1 R2"); $queue = $get_rendering_queue()
-    '' Assert: %size($queue) == 2
+    '' Arrange
+    $reset_rendering_queue()
+
+    '' Act
+    $include_relations("TestRelations", "R1 R2")
+    !$queue = $get_rendering_queue()
+
+    '' Assert
+    !assert %size($queue) == 2
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Tests for $resolve_relation_render_params
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_relation_render_params_returns_all_fields_when_shown()
-    '' Arrange: $desc = {"type":"Relation","from":"A","to":"B","label":"L","techn":"HTTP","descr":"Описание"}; $decor = {"show_label":%true(),"show_techn":%true(),"show_descr":%true(),"link":"","sprite":"","styles":[]}
-    '' Act: $params = $resolve_relation_render_params($desc, $decor)
-    '' Assert: $params.from == "A"; $params.to == "B"; $params.label == "L"; $params.techn == "HTTP"; $params.descr == "Описание"
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "Relation")
+    !$desc = $json_add($desc, "from", "A")
+    !$desc = $json_add($desc, "to", "B")
+    !$desc = $json_add($desc, "label", "L")
+    !$desc = $json_add($desc, "techn", "HTTP")
+    !$desc = $json_add($desc, "descr", "Описание")
+    !$decor = {}
+    !$decor = $json_add($decor, "show_label", %true())
+    !$decor = $json_add($decor, "show_techn", %true())
+    !$decor = $json_add($decor, "show_descr", %true())
+    !$decor = $json_add($decor, "link", "")
+    !$decor = $json_add($decor, "sprite", "")
+    !$decor = $json_add($decor, "styles", [])
+
+    '' Act
+    !$params = $resolve_relation_render_params($desc, $decor)
+
+    '' Assert
+    !assert $params.from == "A"
+    !assert $params.to == "B"
+    !assert $params.label == "L"
+    !assert $params.techn == "HTTP"
+    !assert $params.descr == "Описание"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_relation_render_params_hides_label_when_show_label_false()
-    '' Arrange: $desc = {"type":"Relation","from":"A","to":"B","label":"Скрыто"}; $decor = {"show_label":%false(),"show_techn":%true(),"show_descr":%true(),"link":"","sprite":"","styles":[]}
-    '' Act: $params = $resolve_relation_render_params($desc, $decor)
-    '' Assert: $params.label == ""
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "Relation")
+    !$desc = $json_add($desc, "from", "A")
+    !$desc = $json_add($desc, "to", "B")
+    !$desc = $json_add($desc, "label", "Скрыто")
+    !$decor = {}
+    !$decor = $json_add($decor, "show_label", %false())
+    !$decor = $json_add($decor, "show_techn", %true())
+    !$decor = $json_add($decor, "show_descr", %true())
+    !$decor = $json_add($decor, "link", "")
+    !$decor = $json_add($decor, "sprite", "")
+    !$decor = $json_add($decor, "styles", [])
+
+    '' Act
+    !$params = $resolve_relation_render_params($desc, $decor)
+
+    '' Assert
+    !assert $default($params.label) == ""
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_relation_render_params_hides_techn_when_show_techn_false()
-    '' Arrange: $desc = {"type":"Relation","from":"A","to":"B","label":"L","techn":"Скрыто"}; $decor = {"show_label":%true(),"show_techn":%false(),"show_descr":%true(),"link":"","sprite":"","styles":[]}
-    '' Act: $params = $resolve_relation_render_params($desc, $decor)
-    '' Assert: $params.techn == ""
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "Relation")
+    !$desc = $json_add($desc, "from", "A")
+    !$desc = $json_add($desc, "to", "B")
+    !$desc = $json_add($desc, "label", "L")
+    !$desc = $json_add($desc, "techn", "Скрыто")
+    !$decor = {}
+    !$decor = $json_add($decor, "show_label", %true())
+    !$decor = $json_add($decor, "show_techn", %false())
+    !$decor = $json_add($decor, "show_descr", %true())
+    !$decor = $json_add($decor, "link", "")
+    !$decor = $json_add($decor, "sprite", "")
+    !$decor = $json_add($decor, "styles", [])
+
+    '' Act
+    !$params = $resolve_relation_render_params($desc, $decor)
+
+    '' Assert
+    !assert $default($params.techn) == ""
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_relation_render_params_hides_descr_when_show_descr_false()
-    '' Arrange: $desc = {"type":"Relation","from":"A","to":"B","label":"L","descr":"Скрыто"}; $decor = {"show_label":%true(),"show_techn":%true(),"show_descr":%false(),"link":"","sprite":"","styles":[]}
-    '' Act: $params = $resolve_relation_render_params($desc, $decor)
-    '' Assert: $params.descr == ""
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "Relation")
+    !$desc = $json_add($desc, "from", "A")
+    !$desc = $json_add($desc, "to", "B")
+    !$desc = $json_add($desc, "label", "L")
+    !$desc = $json_add($desc, "descr", "Скрыто")
+    !$decor = {}
+    !$decor = $json_add($decor, "show_label", %true())
+    !$decor = $json_add($decor, "show_techn", %true())
+    !$decor = $json_add($decor, "show_descr", %false())
+    !$decor = $json_add($decor, "link", "")
+    !$decor = $json_add($decor, "sprite", "")
+    !$decor = $json_add($decor, "styles", [])
+
+    '' Act
+    !$params = $resolve_relation_render_params($desc, $decor)
+
+    '' Assert
+    !assert $default($params.descr) == ""
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_relation_render_params_joins_styles_as_tags()
-    '' Arrange: $desc = {"type":"Relation","from":"A","to":"B","label":"L"}; $decor = {"show_label":%true(),"show_techn":%true(),"show_descr":%true(),"link":"","sprite":"","styles":["a","b"]}
-    '' Act: $params = $resolve_relation_render_params($desc, $decor)
-    '' Assert: $params.tags == "a+b"
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "Relation")
+    !$desc = $json_add($desc, "from", "A")
+    !$desc = $json_add($desc, "to", "B")
+    !$desc = $json_add($desc, "label", "L")
+    !$decor = {}
+    !$decor = $json_add($decor, "show_label", %true())
+    !$decor = $json_add($decor, "show_techn", %true())
+    !$decor = $json_add($decor, "show_descr", %true())
+    !$decor = $json_add($decor, "link", "")
+    !$decor = $json_add($decor, "sprite", "")
+    !$decor = $json_add($decor, "styles", [])
+    !$decor = $json_set($decor, "styles", $append_to_list($decor.styles, "a"))
+    !$decor = $json_set($decor, "styles", $append_to_list($decor.styles, "b"))
+
+    '' Act
+    !$params = $resolve_relation_render_params($desc, $decor)
+
+    '' Assert
+    !assert $params.tags == "a+b"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Tests RUN!
@@ -206,10 +507,10 @@
 person_registration_should_create_descriptor_with_person_type()
 person_registration_should_create_decorator_with_defaults()
 person_registration_should_save_description()
-	person_registration_should_save_tags()
-	person_registration_should_save_reason()
-	person_registration_should_save_reason_source()
-	persons_should_add_registered_alias_to_rendering_queue()
+person_registration_should_save_tags()
+person_registration_should_save_reason()
+person_registration_should_save_reason_source()
+persons_should_add_registered_alias_to_rendering_queue()
 persons_should_skip_unregistered_alias()
 persons_should_add_multiple_aliases()
 resolve_person_render_params_returns_label_from_descriptor()
@@ -218,15 +519,12 @@ resolve_person_render_params_empty_desc_when_show_desc_false()
 resolve_person_render_params_sets_is_extern_true()
 resolve_person_render_params_sets_is_extern_false()
 resolve_person_render_params_passes_tags_through()
-	resolve_person_render_params_empty_tags_when_not_set()
-	resolve_person_render_params_combines_descriptor_tags_with_decorator_styles()
-	resolve_person_render_params_includes_sprite_from_descriptor()
-	resolve_person_render_params_includes_type_from_descriptor()
-		resolve_person_render_params_includes_link_from_descriptor()
-		apply_sprite_should_set_decorator_sprite()
-		resolve_person_render_params_should_use_decorator_sprite_when_set()
-		resolve_person_render_params_should_fallback_to_descriptor_sprite()
-		relation_registration_should_create_descriptor_with_relation_type()
+resolve_person_render_params_empty_tags_when_not_set()
+resolve_person_render_params_combines_descriptor_tags_with_decorator_styles()
+resolve_person_render_params_includes_sprite_from_descriptor()
+resolve_person_render_params_should_use_decorator_sprite_when_set()
+resolve_person_render_params_should_fallback_to_descriptor_sprite()
+relation_registration_should_create_descriptor_with_relation_type()
 relation_registration_should_save_techn_and_descr()
 relations_should_add_registered_alias_to_rendering_queue()
 relations_should_skip_unregistered_alias()

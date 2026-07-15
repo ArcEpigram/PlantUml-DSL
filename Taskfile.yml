@@ -54,7 +54,7 @@ tasks:
   test:
     desc: Run all unit tests with PlantUML
     cmds:
-      - java -jar bin/plantuml.jar -checkonly tests/*.Tests.puml
+      - java -jar bin/plantuml.jar -checkonly tests/*.Tests.puml tests/C4/*.Tests.puml
       - echo "All tests passed"
 
   build:
