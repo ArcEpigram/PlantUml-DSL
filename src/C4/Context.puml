@@ -9,6 +9,7 @@
 $register_rendering_proc("Person", $proc="$render_person")
 $register_rendering_proc("Relation", $proc="$render_relation")
 $register_rendering_proc("System", $proc="$render_system")
+$register_rendering_proc("Boundary", $proc="$render_boundary")
 ''----------------------------------------------------------------------------------------------------------------------
 '' Регистрирует архитектурный элемент типа Person.
 '' Создаёт дескриптор (атрибуты) и декоратор (опции отображения по умолчанию),
@@ -24,8 +25,8 @@ $register_rendering_proc("System", $proc="$render_system")
 ''       $reason - обоснование присутствия элемента в архитектуре (опционально)
 ''       $reason_source - источник обоснования: требование, документ, глоссарий (опционально)
 '' example: $Person("User", "Пользователь", "Описание пользователя")
-!unquoted procedure $Person($alias, $label, $descr="", $sprite="", $tags="", $link="", $type="", $reason="", $reason_source="")
-    !$descriptor = $default_c4_element_descriptor("Person", $label, $descr, $sprite, $tags, $link, $type, $reason, $reason_source)
+!unquoted procedure $Person($alias, $label, $descr="", $sprite="", $tags="", $link="", $type="", $reason="", $reason_source="", $boundary="")
+    !$descriptor = $default_c4_element_descriptor("Person", $label, $descr, $sprite, $tags, $link, $type, $reason, $reason_source, $boundary)
     $register_descriptor($alias, $json2str($descriptor, %true()))
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
@@ -58,9 +59,62 @@ $register_rendering_proc("System", $proc="$render_system")
 ''       $reason - обоснование присутствия элемента в архитектуре (опционально)
 ''       $reason_source - источник обоснования: требование, документ, глоссарий (опционально)
 '' example: $System("ERP", "ERP-система", "Основная учётная система")
-!unquoted procedure $System($alias, $label, $descr="", $sprite="", $tags="", $link="", $type="", $reason="", $reason_source="")
-    !$descriptor = $default_c4_element_descriptor("System", $label, $descr, $sprite, $tags, $link, $type, $reason, $reason_source)
+!unquoted procedure $System($alias, $label, $descr="", $sprite="", $tags="", $link="", $type="", $reason="", $reason_source="", $boundary="")
+    !$descriptor = $default_c4_element_descriptor("System", $label, $descr, $sprite, $tags, $link, $type, $reason, $reason_source, $boundary)
     $register_descriptor($alias, $json2str($descriptor, %true()))
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Включает зарегистрированные Boundary в текущую диаграмму.
+'' Создаёт/обновляет группу в BOUNDARY_GROUPS с label и типом из дескриптора.
+'' args: $source - путь к каталогу с объявлениями границ
+''       $aliases - алиасы границ (разделённые пробелом)
+'' example: Boundaries("TestBoundaries", "Enterprise CoreSystem")
+!unquoted procedure Boundaries($source, $aliases)
+    !if $source != ""
+        !foreach $alias in %splitstr($aliases, " ")
+            !$boundary_file = $format("%1/%2.boundary.puml", $source, $alias)
+            !include $boundary_file
+
+            '' Обновляем группу: label и тип из дескриптора, aliases пока пустые
+            !$serialized_desc = $get_descriptor($alias)
+            !$desc = $str2json($serialized_desc, $without_quotes = %true())
+            !$b_type = $default($desc.boundary_type)
+            !$b_label = $desc.label
+            $add_boundary_group($alias, $b_label, $b_type, "", "", "", "")
+        !endfor
+    !endif
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Создаёт ad-hoc группировку элементов в границу на диаграмме.
+'' Две формы:
+'' - Group("Label", "aliases") — generic Boundary с label и алиасами
+'' - Group("b_alias", "Label", "aliases") — ссылка на зарегистрированный Boundary
+'' args: $arg1 - label (2-arg форма) или алиас зарегистрированного Boundary (3-arg форма)
+''       $arg2 - алиасы элементов (2-arg) или label (3-arg)
+''       $arg3 - алиасы элементов для 3-arg формы (опционально)
+'' example: Group("Группа важных систем", "ERP SSO")
+'' example: Group("Enterprise", "Корп. окружение", "ERP SSO")
+!unquoted procedure Group($arg1, $arg2, $arg3="")
+    !if $arg3 != ""
+        '' 3-arg: ссылка на зарегистрированный Boundary
+        !$b_alias = $arg1
+        !$label = $arg2
+        !$aliases = $arg3
+        !if $has_descriptor($b_alias)
+            !$serialized_desc = $get_descriptor($b_alias)
+            !$desc = $str2json($serialized_desc, $without_quotes = %true())
+            !$b_type = $default($desc.boundary_type)
+        !else
+            !$b_type = ""
+        !endif
+        $add_boundary_group($b_alias, $label, $b_type, $aliases, "", "", "")
+    !else
+        '' 2-arg: generic Boundary. Генерируем безопасный b_alias с префиксом grp_,
+        '' чтобы избежать пробелов и конфликтов с алиасами элементов.
+        !$parts = %splitstr($arg2, " ")
+        !$b_alias = $format("grp_%1", $parts[0])
+        $add_boundary_group($b_alias, $arg1, "", $arg2, "", "", "")
+    !endif
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Создаёт декоратор элемента со значениями по умолчанию.
@@ -87,7 +141,7 @@ $register_rendering_proc("System", $proc="$render_system")
 ''       $reason - обоснование присутствия элемента в архитектуре (опционально)
 ''       $reason_source - источник обоснования: требование, документ, глоссарий (опционально)
 '' returns: JSON-объект {type, label, desc, sprite, tags, link, element_type, reason, reason_source}
-!function $default_c4_element_descriptor($element_type, $label, $desc="", $sprite="", $tags="", $link="", $type="", $reason="", $reason_source="")
+!function $default_c4_element_descriptor($element_type, $label, $desc="", $sprite="", $tags="", $link="", $type="", $reason="", $reason_source="", $boundary="")
     '' TODO: добавить остальные атрибуты C4-элемента
     !$descriptor = {}
     !$descriptor = $json_add($descriptor, "type", $element_type)
@@ -99,22 +153,49 @@ $register_rendering_proc("System", $proc="$render_system")
     !$descriptor = $json_add($descriptor, "element_type", $type)
     !$descriptor = $json_add($descriptor, "reason", $reason)
     !$descriptor = $json_add($descriptor, "reason_source", $reason_source)
+    !$descriptor = $json_add($descriptor, "boundary", $boundary)
     !return $descriptor
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
+'' Привязывает элемент к его Boundary группе на основе поля $boundary в дескрипторе.
+'' Если дескриптор Boundary существует — использует его label и boundary_type.
+'' Если нет — создаёт группу с алиасом в качестве label и пустым типом.
+'' args: $alias - алиас элемента
+!procedure $__link_element_to_boundary($alias)
+    !if $has_descriptor($alias)
+        !$serialized_desc = $get_descriptor($alias)
+        !$desc = $str2json($serialized_desc, $without_quotes = %true())
+        !$boundary_alias = $default($desc.boundary)
+        !if $boundary_alias != ""
+            !if $has_descriptor($boundary_alias)
+                !$b_serialized = $get_descriptor($boundary_alias)
+                !$b_desc = $str2json($b_serialized, $without_quotes = %true())
+                !$b_type = $default($b_desc.boundary_type)
+                !$b_label = $b_desc.label
+                $add_boundary_group($boundary_alias, $b_label, $b_type, $alias, "", "", "")
+            !else
+                '' Boundary not registered yet, use alias as label
+                $add_boundary_group($boundary_alias, $boundary_alias, "", $alias, "", "", "")
+            !endif
+        !endif
+    !endif
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
 '' Внутренняя реализация включения элементов в диаграмму.
 !unquoted procedure $include_elements($element_type, $source, $aliases, $is_extern)
-    !if $source != ""
-        !foreach $alias in %splitstr($aliases, " ")
+    !foreach $alias in %splitstr($aliases, " ")
+        !if $source != ""
             !$element_file = $format("%1/%2.%3.puml", $source, $alias, $element_type)
             !include $element_file
+        !endif
 
-            !$decorator = $default_c4_element_decorator($is_extern)
-            $register_decorator($alias, $decorator)
+        !$decorator = $default_c4_element_decorator($is_extern)
+        $register_decorator($alias, $decorator)
 
-            $add_to_rendering_queue($alias)
-        !endfor
-    !endif
+        $add_to_rendering_queue($alias)
+
+        $__link_element_to_boundary($alias)
+    !endfor
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Включает зарегистрированные элементы System в текущую диаграмму.
@@ -308,17 +389,17 @@ $register_rendering_proc("System", $proc="$render_system")
 ''----------------------------------------------------------------------------------------------------------------------
 '' Внутренняя реализация включения связей в диаграмму.
 !unquoted procedure $include_relations($source, $aliases)
-    !if $source != ""
-        !foreach $alias in %splitstr($aliases, " ")
+    !foreach $alias in %splitstr($aliases, " ")
+        !if $source != ""
             !$relation_file = $format("%1/%2.relation.puml", $source, $alias)
             !include $relation_file
+        !endif
 
-            !$decorator = $default_relation_decorator()
-            $register_decorator($alias, $decorator)
+        !$decorator = $default_relation_decorator()
+        $register_decorator($alias, $decorator)
 
-            $add_to_rendering_queue($alias)
-        !endfor
-    !endif
+        $add_to_rendering_queue($alias)
+    !endfor
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Включает зарегистрированные связи в текущую диаграмму.
@@ -374,6 +455,105 @@ $register_rendering_proc("System", $proc="$render_system")
         $default($params.tags), \
         $default($params.link) \
     )
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Преобразует тип Boundary в имя нативной процедуры C4-PlantUML.
+'' Чистая функция: не имеет побочных эффектов.
+'' args: $boundary_type - тип границы: "Enterprise", "System", "Container" или "" (generic)
+'' returns: имя нативной процедуры: "Enterprise_Boundary", "System_Boundary", "Container_Boundary" или "Boundary"
+'' example: !$proc = $resolve_boundary_native_proc("Enterprise")
+!function $resolve_boundary_native_proc($boundary_type)
+    !if $boundary_type == "Enterprise"
+        !return "Enterprise_Boundary"
+    !elseif $boundary_type == "System"
+        !return "System_Boundary"
+    !elseif $boundary_type == "Container"
+        !return "Container_Boundary"
+    !else
+        !return "Boundary"
+    !endif
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Создаёт дескриптор для элемента типа Boundary.
+'' Чистая функция: не имеет побочных эффектов.
+'' args: $label - отображаемое имя границы
+''       $descr - описание (опционально)
+''       $tags - теги (опционально)
+''       $link - ссылка (опционально)
+''       $boundary_type - тип границы: "Enterprise", "System", "Container" или "" (опционально)
+'' returns: JSON-объект {type, label, desc, tags, link, boundary_type}
+!function $default_boundary_descriptor($label, $descr="", $tags="", $link="", $boundary_type="")
+    !$descriptor = {}
+    !$descriptor = $json_add($descriptor, "type", "Boundary")
+    !$descriptor = $json_add($descriptor, "label", $label)
+    !$descriptor = $json_add($descriptor, "desc", $descr)
+    !$descriptor = $json_add($descriptor, "tags", $tags)
+    !$descriptor = $json_add($descriptor, "link", $link)
+    !$descriptor = $json_add($descriptor, "boundary_type", $boundary_type)
+    !return $descriptor
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Регистрирует архитектурную границу Boundary.
+'' args: $alias - уникальный алиас границы
+''       $label - отображаемое имя
+''       $descr - описание (опционально)
+''       $tags - теги (опционально)
+''       $link - ссылка (опционально)
+''       $type - тип границы: "Enterprise", "System", "Container" или "" (опционально)
+'' example: $Boundary("Enterprise", "Корп. окружение", "Корпоративная сеть", "", "", "Enterprise")
+!unquoted procedure $Boundary($alias, $label, $descr="", $tags="", $link="", $type="")
+    !$descriptor = $default_boundary_descriptor($label, $descr, $tags, $link, $type)
+    $register_descriptor($alias, $json2str($descriptor, %true()))
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Рендерит элемент Boundary (заглушка).
+'' Boundary рендерится как контейнер в Diagram(), а не как отдельный элемент.
+!procedure $render_boundary($alias, $serialized_descriptor, $decorator)
+    '' NOOP: Boundary rendering is handled by Diagram() via BOUNDARY_GROUPS
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Открывает блок Enterprise_Boundary.
+!procedure $emit_enterprise_boundary_open($alias, $label, $sprite, $tags, $link)
+    Enterprise_Boundary($default($alias), $default($label), $default($sprite), $default($tags), $default($link)) {
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Открывает блок System_Boundary.
+!procedure $emit_system_boundary_open($alias, $label, $sprite, $tags, $link)
+    System_Boundary($default($alias), $default($label), $default($sprite), $default($tags), $default($link)) {
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Открывает блок Container_Boundary.
+!procedure $emit_container_boundary_open($alias, $label, $sprite, $tags, $link)
+    Container_Boundary($default($alias), $default($label), $default($sprite), $default($tags), $default($link)) {
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Открывает блок generic Boundary.
+!procedure $emit_generic_boundary_open($alias, $label, $sprite, $tags, $link)
+    Boundary($default($alias), $default($label), $default($sprite), $default($tags), $default($link)) {
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Закрывает блок границы.
+!procedure $emit_boundary_close()
+    }
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Диспетчер: выбирает нужный эмиттер границы по native_proc.
+'' args: $native_proc - имя нативной процедуры
+''       $alias - алиас границы
+''       $label - отображаемое имя
+''       $sprite - спрайт (опционально)
+''       $tags - теги (опционально)
+''       $link - ссылка (опционально)
+!procedure $emit_boundary_open($native_proc, $alias, $label, $sprite, $tags, $link)
+    !if $native_proc == "Enterprise_Boundary"
+        $emit_enterprise_boundary_open($alias, $label, $sprite, $tags, $link)
+    !elseif $native_proc == "System_Boundary"
+        $emit_system_boundary_open($alias, $label, $sprite, $tags, $link)
+    !elseif $native_proc == "Container_Boundary"
+        $emit_container_boundary_open($alias, $label, $sprite, $tags, $link)
+    !else
+        $emit_generic_boundary_open($alias, $label, $sprite, $tags, $link)
+    !endif
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 @enduml

@@ -1,0 +1,43 @@
+@startuml
+!include ../../src/C4/Context.puml
+
+'' ======================================================================
+'' C4 Boundary — группировка элементов на диаграмме
+'' ======================================================================
+
+'' 1. Регистрация границ
+''    $Boundary(alias, label, descr, tags, link, type)
+''    Типы: "Enterprise", "System", "Container", "" (generic)
+$Boundary("Enterprise", "Корп. окружение", "Защищённый контур компании", "", "", "Enterprise")
+$Boundary("CoreSystem", "Программное ядро", "", "", "", "System")
+
+'' 2. Регистрация элементов
+$Person("User", "Пользователь", "Конечный пользователь системы")
+$Person("Admin", "Администратор", "Управляет доступом и конфигурацией")
+$System("ERP", "ERP", "Корпоративная система планирования")
+$System("Queue", "Очередь сообщений", "RabbitMQ", "", "", "Queue")
+$System("DB", "База данных", "PostgreSQL 15", "db+relational", "", "Db")
+
+'' 3. Регистрация связей
+$Relation("U-A", "User", "Admin", "Получает разрешения")
+$Relation("U-E", "User", "ERP", "Выполняет обязанности")
+$Relation("U-Q", "User", "Queue", "Публикует события")
+$Relation("E-D", "ERP", "DB", "Читает и пишет", "JDBC", "Основной канал данных")
+
+'' 4. Включение в диаграмму (source="" — элементы уже зарегистрированы)
+Persons("", User Admin)
+Systems("", ERP Queue DB)
+Relations("", U-A U-E U-Q E-D)
+
+'' 5. Group() — ad-hoc группировка:
+''    Форма 1 (3 аргумента): Group("BoundaryAlias", "Label", "aliases")
+''    Форма 2 (2 аргумента):  Group("Label", "aliases") — generic Boundary
+Group("Enterprise", "Enterprise Boundary", "ERP DB")
+Group("CoreSystem", "System Boundary", "Queue")
+Group("Пользователи системы", "User Admin")
+
+'' 6. Рендеринг
+Diagram("C4 Context — демонстрация Boundary")
+
+@enduml
+@enduml

@@ -88,12 +88,14 @@
     '' Arrange
     $reset_rendering_queue()
 
-    '' Act — $include_elements с пустым source не выполняет !include
+    '' Act — при $source="" элемент всё равно добавляется в очередь,
+    '' но дескриптор Ghost не зарегистрирован — тест на то, что это не ломает систему
     $include_elements("person", "", "Ghost", %false())
     !$queue = $get_rendering_queue()
 
-    '' Assert
-    !assert %size($queue) == 0
+    '' Assert — элемент добавлен в очередь даже без файла
+    !assert %size($queue) == 1
+    !assert $queue[0] == "Ghost"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure persons_should_add_multiple_aliases()
@@ -360,12 +362,13 @@
     '' Arrange
     $reset_rendering_queue()
 
-    '' Act — $include_relations с пустым source не выполняет !include
+    '' Act — при $source="" связь всё равно добавляется в очередь
     $include_relations("", "Ghost")
     !$queue = $get_rendering_queue()
 
     '' Assert
-    !assert %size($queue) == 0
+    !assert %size($queue) == 1
+    !assert $queue[0] == "Ghost"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure relations_should_add_multiple_aliases()
@@ -587,12 +590,13 @@
     '' Arrange
     $reset_rendering_queue()
 
-    '' Act
+    '' Act — при $source="" элемент всё равно добавляется в очередь
     Systems("", "Ghost")
     !$queue = $get_rendering_queue()
 
     '' Assert
-    !assert %size($queue) == 0
+    !assert %size($queue) == 1
+    !assert $queue[0] == "Ghost"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure systems_should_add_multiple_aliases()
@@ -683,6 +687,210 @@
     !assert $default($params.type) == ""
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
+'' Boundary native proc mapping
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_boundary_native_proc_should_map_enterprise()
+    '' Arrange, Act
+    !$actual = $resolve_boundary_native_proc("Enterprise")
+
+    '' Assert
+    !assert $actual == "Enterprise_Boundary"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_boundary_native_proc_should_map_system()
+    '' Arrange, Act
+    !$actual = $resolve_boundary_native_proc("System")
+
+    '' Assert
+    !assert $actual == "System_Boundary"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_boundary_native_proc_should_map_container()
+    '' Arrange, Act
+    !$actual = $resolve_boundary_native_proc("Container")
+
+    '' Assert
+    !assert $actual == "Container_Boundary"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_boundary_native_proc_should_default_to_boundary()
+    '' Arrange, Act
+    !$actual = $resolve_boundary_native_proc("")
+
+    '' Assert
+    !assert $actual == "Boundary"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Boundary attribute on elements
+''----------------------------------------------------------------------------------------------------------------------
+!procedure person_registration_should_save_boundary_attribute()
+    '' Arrange, Act
+    $Person("P_Bound", "PersonWithBoundary", "", "", "", "", "", "", "", "Enterprise")
+    !$desc_str = $get_descriptor("P_Bound")
+    !$desc = $str2json($desc_str, $without_quotes = %true())
+
+    '' Assert
+    !assert $desc.boundary == "Enterprise"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure system_registration_should_save_boundary_attribute()
+    '' Arrange, Act
+    $System("S_Bound", "SystemWithBoundary", "", "", "", "", "", "", "", "Enterprise")
+    !$desc_str = $get_descriptor("S_Bound")
+    !$desc = $str2json($desc_str, $without_quotes = %true())
+
+    '' Assert
+    !assert $desc.boundary == "Enterprise"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure person_registration_should_default_boundary_to_empty()
+    '' Arrange, Act
+    $Person("P_NoBound", "PersonNoBoundary")
+    !$desc_str = $get_descriptor("P_NoBound")
+    !$desc = $str2json($desc_str, $without_quotes = %true())
+
+    '' Assert
+    !assert $default($desc.boundary) == ""
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Boundary registration
+''----------------------------------------------------------------------------------------------------------------------
+!procedure boundary_registration_should_create_descriptor_with_boundary_type()
+    '' Arrange, Act
+    $Boundary("B_Type", "TestBoundary")
+    !$desc_str = $get_descriptor("B_Type")
+    !$desc = $str2json($desc_str, $without_quotes = %true())
+
+    '' Assert
+    !assert $desc.type == "Boundary"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure boundary_registration_should_save_boundary_type_field()
+    '' Arrange, Act
+    $Boundary("B_Ent", "Enterprise Boundary", "", "", "", "Enterprise")
+    !$desc_str = $get_descriptor("B_Ent")
+    !$desc = $str2json($desc_str, $without_quotes = %true())
+
+    '' Assert
+    !assert $desc.boundary_type == "Enterprise"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure boundary_registration_should_save_label_and_descr()
+    '' Arrange, Act
+    $Boundary("B_LD", "Test Label", "Test Description")
+    !$desc_str = $get_descriptor("B_LD")
+    !$desc = $str2json($desc_str, $without_quotes = %true())
+
+    '' Assert
+    !assert $desc.label == "Test Label"
+    !assert $desc.desc == "Test Description"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure boundary_registration_should_default_to_empty_boundary_type()
+    '' Arrange, Act
+    $Boundary("B_Def", "Default Boundary")
+    !$desc_str = $get_descriptor("B_Def")
+    !$desc = $str2json($desc_str, $without_quotes = %true())
+
+    '' Assert
+    !assert $default($desc.boundary_type) == ""
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Auto-grouping via $boundary attribute
+''----------------------------------------------------------------------------------------------------------------------
+!procedure include_elements_should_auto_group_by_boundary()
+    '' Arrange
+    $reset_boundary_groups()
+    $Boundary("EntAuto", "Enterprise", "", "", "", "Enterprise")
+    $System("SAuto", "AutoSys", "", "", "", "", "", "", "", "EntAuto")
+
+    '' Act
+    $__link_element_to_boundary("SAuto")
+    !$groups = $get_boundary_groups()
+
+    '' Assert
+    !assert %size($groups) == 1
+    !assert $groups[0].b_alias == "EntAuto"
+    !assert $groups[0].b_type == "Enterprise"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure include_elements_without_boundary_should_not_create_group()
+    '' Arrange
+    $reset_boundary_groups()
+    $System("SNoBound", "NoBoundSys")
+
+    '' Act
+    $__link_element_to_boundary("SNoBound")
+    !$groups = $get_boundary_groups()
+
+    '' Assert
+    !assert %size($groups) == 0
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Boundaries inclusion
+''----------------------------------------------------------------------------------------------------------------------
+!procedure boundaries_should_update_boundary_group_with_label_and_type()
+    '' Arrange
+    $reset_boundary_groups()
+
+    '' Act
+    Boundaries("TestBoundaries", "Enterprise")
+    !$groups = $get_boundary_groups()
+
+    '' Assert
+    !assert %size($groups) == 1
+    !assert $groups[0].b_alias == "Enterprise"
+    !assert $groups[0].label == "Корп. окружение"
+    !assert $groups[0].b_type == "Enterprise"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Boundaries inclusion
+''----------------------------------------------------------------------------------------------------------------------
+!procedure boundaries_should_add_registered_alias_to_rendering_queue()
+    '' Arrange
+    $reset_rendering_queue()
+
+    '' Act
+    Boundaries("TestBoundaries", "Enterprise")
+    !$queue = $get_rendering_queue()
+
+    '' Assert
+    !assert %size($queue) == 0
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Group (ad-hoc boundary grouping)
+''----------------------------------------------------------------------------------------------------------------------
+!procedure group_should_create_group_with_aliases()
+    '' Arrange
+    $reset_boundary_groups()
+
+    '' Act
+    Group("Группа важных систем", "A1 A2")
+    !$groups = $get_boundary_groups()
+
+    '' Assert
+    !assert %size($groups) == 1
+    !assert $groups[0].label == "Группа важных систем"
+    !assert $default($groups[0].b_type) == ""
+    !assert %size($groups[0].aliases) == 2
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure group_with_registered_boundary_should_use_boundary_type()
+    '' Arrange
+    $reset_boundary_groups()
+    $Boundary("EntGrp", "Enterprise Group", "", "", "", "Enterprise")
+
+    '' Act
+    Group("EntGrp", "Корп. окружение", "P1 P2")
+    !$groups = $get_boundary_groups()
+
+    '' Assert
+    !assert %size($groups) == 1
+    !assert $groups[0].b_type == "Enterprise"
+    !assert $groups[0].label == "Корп. окружение"
+    !assert %size($groups[0].aliases) == 2
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
 person_registration_should_create_descriptor_with_person_type()
 person_registration_should_create_decorator_with_defaults()
 person_registration_should_save_description()
@@ -692,6 +900,18 @@ person_registration_should_save_reason_source()
 persons_should_add_registered_alias_to_rendering_queue()
 persons_should_skip_unregistered_alias()
 persons_should_add_multiple_aliases()
+person_registration_should_save_boundary_attribute()
+person_registration_should_default_boundary_to_empty()
+boundary_registration_should_create_descriptor_with_boundary_type()
+boundary_registration_should_save_boundary_type_field()
+boundary_registration_should_save_label_and_descr()
+boundary_registration_should_default_to_empty_boundary_type()
+include_elements_should_auto_group_by_boundary()
+include_elements_without_boundary_should_not_create_group()
+boundaries_should_add_registered_alias_to_rendering_queue()
+boundaries_should_update_boundary_group_with_label_and_type()
+group_should_create_group_with_aliases()
+group_with_registered_boundary_should_use_boundary_type()
 resolve_person_render_params_returns_label_from_descriptor()
 resolve_person_render_params_includes_desc_when_show_desc_true()
 resolve_person_render_params_empty_desc_when_show_desc_false()
@@ -713,6 +933,10 @@ resolve_relation_render_params_hides_label_when_show_label_false()
 resolve_relation_render_params_hides_techn_when_show_techn_false()
 resolve_relation_render_params_hides_descr_when_show_descr_false()
 resolve_relation_render_params_joins_styles_as_tags()
+resolve_boundary_native_proc_should_map_enterprise()
+resolve_boundary_native_proc_should_map_system()
+resolve_boundary_native_proc_should_map_container()
+resolve_boundary_native_proc_should_default_to_boundary()
 ''----------------------------------------------------------------------------------------------------------------------
 ''  System
 ''----------------------------------------------------------------------------------------------------------------------
@@ -725,6 +949,7 @@ system_registration_should_save_reason_source()
 systems_should_add_registered_alias_to_rendering_queue()
 systems_should_skip_unregistered_alias()
 systems_should_add_multiple_aliases()
+system_registration_should_save_boundary_attribute()
 resolve_system_render_params_returns_label_from_descriptor()
 resolve_system_render_params_sets_render_proc_to_System()
 resolve_system_render_params_maps_queue_type_to_SystemQueue()

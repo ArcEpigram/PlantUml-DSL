@@ -66,13 +66,48 @@
     end caption
 
     !$rendering_queue = $get_rendering_queue()
+    !$boundary_groups = $get_boundary_groups()
 
-    !foreach $alias in $rendering_queue
-        !$descriptor = $get_descriptor($alias)
-        !$decorator = $get_decorator($alias)
-        $render_dispatch($alias, $descriptor, $decorator)
+    '' Собираем список алиасов, входящих в группы
+    !$grouped_aliases = []
+    !foreach $group in $boundary_groups
+        !foreach $a in $group.aliases
+            !if $contain_in_list($grouped_aliases, $a) == %false()
+                !$grouped_aliases = $append_to_list($grouped_aliases, $a)
+            !endif
+        !endfor
     !endfor
+
+    '' Рендерим группы ПЕРВЫМИ: открываем Boundary, рендерим элементы внутри, закрываем
+    !foreach $group in $boundary_groups
+        !$native_proc = $resolve_boundary_native_proc($default($group.b_type))
+        $emit_boundary_open( \
+            $native_proc, \
+            $group.b_alias, \
+            $group.label, \
+            $default($group.sprite), \
+            $default($group.tags), \
+            $default($group.link) \
+        )
+        !foreach $alias in $group.aliases
+            !$descriptor = $get_descriptor($alias)
+            !$decorator = $get_decorator($alias)
+            $render_dispatch($alias, $descriptor, $decorator)
+        !endfor
+        $emit_boundary_close()
+    !endfor
+
+    '' Затем рендерим негруппированные элементы (включая Relations)
+    !foreach $alias in $rendering_queue
+        !if $contain_in_list($grouped_aliases, $alias) == %false()
+            !$descriptor = $get_descriptor($alias)
+            !$decorator = $get_decorator($alias)
+            $render_dispatch($alias, $descriptor, $decorator)
+        !endif
+    !endfor
+
     $reset_rendering_queue()
+    $reset_boundary_groups()
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Диспетчер рендеринга: выбирает процедуру рендеринга по типу элемента.

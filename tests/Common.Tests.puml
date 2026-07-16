@@ -118,6 +118,52 @@
     !assert %size($queue) == 0
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
+'' Boundary groups
+''----------------------------------------------------------------------------------------------------------------------
+!procedure add_boundary_group_should_create_group()
+    '' Arrange
+    $reset_boundary_groups()
+
+    '' Act
+    $add_boundary_group("Ent", "Корп. окружение", "Enterprise", "ERP SSO", "", "", "")
+    !$groups = $get_boundary_groups()
+
+    '' Assert
+    !assert %size($groups) == 1
+    !assert $groups[0].b_alias == "Ent"
+    !assert $groups[0].label == "Корп. окружение"
+    !assert $groups[0].b_type == "Enterprise"
+    !assert $groups[0].aliases[0] == "ERP"
+    !assert $groups[0].aliases[1] == "SSO"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure add_boundary_group_should_merge_aliases_for_same_boundary()
+    '' Arrange
+    $reset_boundary_groups()
+    $add_boundary_group("Ent", "Корп. окружение", "Enterprise", "ERP", "", "", "")
+
+    '' Act
+    $add_boundary_group("Ent", "Обновлённое окружение", "Enterprise", "SSO", "", "", "")
+    !$groups = $get_boundary_groups()
+
+    '' Assert
+    !assert %size($groups) == 1
+    !assert $groups[0].label == "Обновлённое окружение"
+    !assert %size($groups[0].aliases) == 2
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure reset_boundary_groups_should_clear_all()
+    '' Arrange
+    $add_boundary_group("Test", "Test Label", "", "A B", "", "", "")
+
+    '' Act
+    $reset_boundary_groups()
+    !$groups = $get_boundary_groups()
+
+    '' Assert
+    !assert %size($groups) == 0
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
 '' Tests RUN!
 ''----------------------------------------------------------------------------------------------------------------------
 register_descriptor_should_save_and_retrieve()
@@ -129,6 +175,9 @@ update_decorator_should_modify_specific_field()
 add_to_queue_should_append_alias()
 add_to_queue_should_not_duplicate_alias()
 reset_queue_should_clear_all_entries()
+add_boundary_group_should_create_group()
+add_boundary_group_should_merge_aliases_for_same_boundary()
+reset_boundary_groups_should_clear_all()
 ''----------------------------------------------------------------------------------------------------------------------
 caption OK
 @enduml

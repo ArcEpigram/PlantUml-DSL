@@ -105,4 +105,110 @@
     %set_variable_value("RENDERING_QUEUE", [])
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
+'' Добавляет или обновляет группу Boundary.
+'' Если группа с таким b_alias уже существует — мёрджит aliases, обновляет label/type (непустые).
+'' args: $b_alias - алиас Boundary
+''       $label - метка группы
+''       $b_type - тип границы: "Enterprise", "System", "Container" или ""
+''       $aliases - алиасы элементов в группе (строка через пробел)
+''       $sprite - спрайт (опционально)
+''       $tags - теги (опционально)
+''       $link - ссылка (опционально)
+'' example: $add_boundary_group("Ent", "Enterprise", "Enterprise", "ERP SSO", "", "", "")
+!procedure $add_boundary_group($b_alias, $label, $b_type, $aliases, $sprite, $tags, $link)
+    !$groups = []
+    !if %variable_exists("BOUNDARY_GROUPS")
+        !$groups = %get_variable_value("BOUNDARY_GROUPS")
+    !endif
+
+    !$found = %false()
+    !$new_groups = []
+
+    !foreach $group in $groups
+        !if $group.b_alias == $b_alias
+            !$found = %true()
+            '' Merge aliases
+            !$merged = $group.aliases
+            !foreach $a in %splitstr($aliases, " ")
+                !if $a != "" && $contain_in_list($merged, $a) == %false()
+                    !$merged = $append_to_list($merged, $a)
+                !endif
+            !endfor
+
+            '' Build updated group
+            !$updated = {}
+            !$updated = $json_add($updated, "b_alias", $group.b_alias)
+            !$updated = $json_add($updated, "label", $value_or_default($label != "", $label, $group.label))
+            !$updated = $json_add($updated, "b_type", $value_or_default($b_type != "", $b_type, $group.b_type))
+            !$updated = $json_add($updated, "aliases", $merged)
+            !$updated = $json_add($updated, "sprite", $value_or_default($sprite != "", $sprite, $group.sprite))
+            !$updated = $json_add($updated, "tags", $value_or_default($tags != "", $tags, $group.tags))
+            !$updated = $json_add($updated, "link", $value_or_default($link != "", $link, $group.link))
+
+            !$new_groups = $append_to_list($new_groups, $updated)
+        !else
+            !$new_groups = $append_to_list($new_groups, $group)
+        !endif
+    !endfor
+
+    !if $found == %false()
+        '' Build new aliases array
+        !$new_aliases = []
+        !foreach $a in %splitstr($aliases, " ")
+            !if $a != ""
+                !$new_aliases = $append_to_list($new_aliases, $a)
+            !endif
+        !endfor
+
+        '' Create new group
+        !$new_group = {}
+        !$new_group = $json_add($new_group, "b_alias", $b_alias)
+        !$new_group = $json_add($new_group, "label", $label)
+        !$new_group = $json_add($new_group, "b_type", $b_type)
+        !$new_group = $json_add($new_group, "aliases", $new_aliases)
+        !$new_group = $json_add($new_group, "sprite", $sprite)
+        !$new_group = $json_add($new_group, "tags", $tags)
+        !$new_group = $json_add($new_group, "link", $link)
+
+        !$new_groups = $append_to_list($new_groups, $new_group)
+    !endif
+
+    %set_variable_value("BOUNDARY_GROUPS", $new_groups)
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Возвращает массив групп Boundary.
+'' returns: JSON-массив объектов {b_alias, label, b_type, aliases, sprite, tags, link}
+'' example: !$groups = $get_boundary_groups()
+!function $get_boundary_groups()
+    !if %variable_exists("BOUNDARY_GROUPS")
+        !return %get_variable_value("BOUNDARY_GROUPS")
+    !else
+        !return []
+    !endif
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Возвращает индекс группы, к которой принадлежит элемент, или -1.
+'' args: $alias - алиас элемента
+'' returns: индекс группы в BOUNDARY_GROUPS или -1
+'' example: !$idx = $get_element_group_index("ERP")
+!function $get_element_group_index($alias)
+    !if %variable_exists("BOUNDARY_GROUPS")
+        !$groups = %get_variable_value("BOUNDARY_GROUPS")
+        !$i = 0
+        !while $i < %size($groups)
+            !if $contain_in_list($groups[$i].aliases, $alias) == %true()
+                !return $i
+            !endif
+            !$i = $i + 1
+        !endwhile
+    !endif
+    !return -1
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Очищает все группы Boundary.
+'' example: $reset_boundary_groups()
+!procedure $reset_boundary_groups()
+    %set_variable_value("BOUNDARY_GROUPS", [])
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
 @enduml
