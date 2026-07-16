@@ -15,8 +15,8 @@ $Boundary("CoreSystem", "Программное ядро", "", "", "", "System")
 $Person("User", "Пользователь", "Конечный пользователь системы")
 $Person("Admin", "Администратор", "Управляет доступом и конфигурацией")
 $System("ERP", "ERP", "Корпоративная система планирования")
-$System("Queue", "Очередь сообщений", "RabbitMQ", "", "", "Queue")
-$System("DB", "База данных", "PostgreSQL 15", "db+relational", "", "Db")
+$System("Queue", "Очередь сообщений", "RabbitMQ", $type="Queue")
+$System("DB", "База данных", "PostgreSQL 15", $type="Db")
 
 '' 3. Регистрация связей
 $Relation("U-A", "User", "Admin", "Получает разрешения")
@@ -38,6 +38,4 @@ Group("Пользователи системы", "User Admin")
 
 '' 6. Рендеринг
 Diagram("C4 Context — демонстрация Boundary")
-
-@enduml
 @enduml

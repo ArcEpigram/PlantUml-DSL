@@ -2,5 +2,5 @@
 !include ../../../src/C4/Context.puml
 
 '' Регистрация элемента
-$System(ERP, "ERP", $descr="Корпоративная система ресурсного планирования")
+$System(ERP, "ERP", $boundary=Enterprise, $descr="Корпоративная система ресурсного планирования")
 @enduml

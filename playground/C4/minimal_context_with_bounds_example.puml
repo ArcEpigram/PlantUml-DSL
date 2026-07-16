@@ -1,0 +1,12 @@
+@startuml
+!include ../../src/C4/Context.puml
+
+Systems("Elements", ERP DB Queue)
+
+'' 1 группа - только ERP - объявлено в процедуре регистрации ERP
+
+'' 2 группа - DB и Queue - объявлена только в этой диаграмме
+Group("Infrastructure", DB Queue)
+
+Diagram("C4 Context — демонстрация Boundary")
+@enduml

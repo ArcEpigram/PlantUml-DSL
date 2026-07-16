@@ -1,0 +1,4 @@
+@startuml
+!include ../../../src/C4/Context.puml
+$Boundary(Enterprise, "Корп. окружение", "Защищённый контур компании", "", "", "Enterprise")
+@enduml
