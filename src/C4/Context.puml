@@ -357,7 +357,7 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
 '' Создаёт декоратор связи со значениями по умолчанию.
-'' returns: JSON-объект {show_label, show_techn, show_descr, link, sprite, styles}
+'' returns: JSON-объект {show_label, show_techn, show_descr, link, sprite, styles, lay_direction}
 !function $default_relation_decorator()
     !$decorator = {}
     !$decorator = $json_add($decorator, "show_label", %true())
@@ -366,6 +366,7 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
     !$decorator = $json_add($decorator, "link", "")
     !$decorator = $json_add($decorator, "sprite", "")
     !$decorator = $json_add($decorator, "styles", [])
+    !$decorator = $json_add($decorator, "lay_direction", "")
     !return $decorator
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
@@ -411,11 +412,48 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
     $include_relations($source, $aliases)
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
+'' Устанавливает направление связи "вниз" для заданных связей.
+'' Изменяет декоратор каждой связи, добавляя lay_direction = "Down".
+'' args: $aliases - перечисление алиасов связей (разделенные пробелом)
+'' example: Align_Down("User-ERP ERP-1C")
+!unquoted procedure Align_Down($aliases)
+    !foreach $alias in %splitstr($aliases, " ")
+        $update_decorator($alias, "lay_direction", "Down")
+    !endfor
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Устанавливает направление связи "вверх" для заданных связей.
+'' args: $aliases - перечисление алиасов связей (разделенные пробелом)
+'' example: Align_Up("User-ERP")
+!unquoted procedure Align_Up($aliases)
+    !foreach $alias in %splitstr($aliases, " ")
+        $update_decorator($alias, "lay_direction", "Up")
+    !endfor
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Устанавливает направление связи "влево" для заданных связей.
+'' args: $aliases - перечисление алиасов связей (разделенные пробелом)
+'' example: Align_Left("ERP-1C")
+!unquoted procedure Align_Left($aliases)
+    !foreach $alias in %splitstr($aliases, " ")
+        $update_decorator($alias, "lay_direction", "Left")
+    !endfor
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Устанавливает направление связи "вправо" для заданных связей.
+'' args: $aliases - перечисление алиасов связей (разделенные пробелом)
+'' example: Align_Right("ERP-SSO")
+!unquoted procedure Align_Right($aliases)
+    !foreach $alias in %splitstr($aliases, " ")
+        $update_decorator($alias, "lay_direction", "Right")
+    !endfor
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
 '' Вычисляет параметры рендеринга для связи Relation на основе дескриптора и декоратора.
 '' Чистая функция: не имеет побочных эффектов.
 '' args: $descriptor - JSON-объект {type, from, to, label, techn, descr, tags}
-''       $decorator - JSON-объект {show_label, show_techn, show_descr, link, sprite, styles}
-'' returns: JSON-объект {from, to, label, techn, descr, sprite, link, tags}
+''       $decorator - JSON-объект {show_label, show_techn, show_descr, link, sprite, styles, lay_direction}
+'' returns: JSON-объект {from, to, label, techn, descr, sprite, link, tags, lay_direction}
 !function $resolve_relation_render_params($descriptor, $decorator)
     !$params = {}
 
@@ -431,21 +469,26 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
 
     !$params = $json_add($params, "tags", $array2str($decorator.styles, "+"))
 
+    !$params = $json_add($params, "lay_direction", $default($decorator.lay_direction))
+
     !return $params
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
 '' Рендерит связь в нотации C4 Context.
 '' Десериализует дескриптор, вычисляет параметры с учётом декоратора,
-'' затем вызывает стандартную функцию Rel().
+'' затем вызывает стандартную функцию Rel(), Rel_D(), Rel_U(), Rel_L() или Rel_R()
+'' в зависимости от направления связи (lay_direction).
 '' args: $alias - алиас связи
 ''       $serialized_descriptor - дескриптор связи {type, from, to, label, techn, descr, tags}
-''       $decorator - декоратор связи {show_label, show_techn, show_descr, link, sprite, styles}
+''       $decorator - декоратор связи {show_label, show_techn, show_descr, link, sprite, styles, lay_direction}
 !procedure $render_relation($alias, $serialized_descriptor, $decorator)
     !$descriptor = $str2json($serialized_descriptor, $without_quotes = %true())
     !$params = $resolve_relation_render_params($descriptor, $decorator)
 
+    !$native_proc = $resolve_relation_native_proc($default($params.lay_direction))
+
     %invoke_procedure(\
-        "Rel", \
+        $native_proc, \
         $params.from, \
         $params.to, \
         $default($params.label), \
@@ -471,6 +514,25 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
         !return "Container_Boundary"
     !else
         !return "Boundary"
+    !endif
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Преобразует направление связи в имя нативной процедуры C4-PlantUML.
+'' Чистая функция: не имеет побочных эффектов.
+'' args: $lay_direction - направление связи: "Down", "Up", "Left", "Right" или "" (default)
+'' returns: имя нативной процедуры: "Rel_D", "Rel_U", "Rel_L", "Rel_R" или "Rel"
+'' example: !$proc = $resolve_relation_native_proc("Down")
+!function $resolve_relation_native_proc($lay_direction)
+    !if $lay_direction == "Down"
+        !return "Rel_D"
+    !elseif $lay_direction == "Up"
+        !return "Rel_U"
+    !elseif $lay_direction == "Left"
+        !return "Rel_L"
+    !elseif $lay_direction == "Right"
+        !return "Rel_R"
+    !else
+        !return "Rel"
     !endif
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------

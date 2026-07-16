@@ -504,6 +504,48 @@
     '' Assert
     !assert $params.tags == "a+b"
 !endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Tests for $resolve_relation_native_proc
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_relation_native_proc_should_map_down_to_rel_d()
+    '' Arrange, Act
+    !$actual = $resolve_relation_native_proc("Down")
+
+    '' Assert
+    !assert $actual == "Rel_D"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_relation_native_proc_should_map_up_to_rel_u()
+    '' Arrange, Act
+    !$actual = $resolve_relation_native_proc("Up")
+
+    '' Assert
+    !assert $actual == "Rel_U"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_relation_native_proc_should_map_left_to_rel_l()
+    '' Arrange, Act
+    !$actual = $resolve_relation_native_proc("Left")
+
+    '' Assert
+    !assert $actual == "Rel_L"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_relation_native_proc_should_map_right_to_rel_r()
+    '' Arrange, Act
+    !$actual = $resolve_relation_native_proc("Right")
+
+    '' Assert
+    !assert $actual == "Rel_R"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_relation_native_proc_should_default_to_rel()
+    '' Arrange, Act
+    !$actual = $resolve_relation_native_proc("")
+
+    '' Assert
+    !assert $actual == "Rel"
+!endprocedure
 ''======================================================================================================================
 ''  System Tests
 ''======================================================================================================================
@@ -891,6 +933,115 @@
     !assert %size($groups[0].aliases) == 2
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
+!procedure default_relation_decorator_should_include_lay_direction_with_empty_default()
+    '' Arrange, Act
+    !$decor = $default_relation_decorator()
+
+    '' Assert
+    !assert $default($decor.lay_direction) == ""
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure align_down_should_set_lay_direction_to_down()
+    '' Arrange
+    $Relation("A_Down", "A", "B", "DownLink")
+    $include_relations("", "A_Down")
+
+    '' Act
+    Align_Down("A_Down")
+    !$decor = $get_decorator("A_Down")
+
+    '' Assert
+    !assert $decor.lay_direction == "Down"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure align_up_should_set_lay_direction_to_up()
+    '' Arrange
+    $Relation("A_Up", "A", "B", "UpLink")
+    $include_relations("", "A_Up")
+
+    '' Act
+    Align_Up("A_Up")
+    !$decor = $get_decorator("A_Up")
+
+    '' Assert
+    !assert $decor.lay_direction == "Up"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure align_left_should_set_lay_direction_to_left()
+    '' Arrange
+    $Relation("A_Left", "A", "B", "LeftLink")
+    $include_relations("", "A_Left")
+
+    '' Act
+    Align_Left("A_Left")
+    !$decor = $get_decorator("A_Left")
+
+    '' Assert
+    !assert $decor.lay_direction == "Left"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure align_right_should_set_lay_direction_to_right()
+    '' Arrange
+    $Relation("A_Right", "A", "B", "RightLink")
+    $include_relations("", "A_Right")
+
+    '' Act
+    Align_Right("A_Right")
+    !$decor = $get_decorator("A_Right")
+
+    '' Assert
+    !assert $decor.lay_direction == "Right"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure align_should_set_lay_direction_on_multiple_relations()
+    '' Arrange
+    $Relation("AM1", "A", "B", "M1")
+    $Relation("AM2", "C", "D", "M2")
+    $include_relations("", "AM1 AM2")
+
+    '' Act
+    Align_Down("AM1 AM2")
+    !$decor1 = $get_decorator("AM1")
+    !$decor2 = $get_decorator("AM2")
+
+    '' Assert
+    !assert $decor1.lay_direction == "Down"
+    !assert $decor2.lay_direction == "Down"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_relation_render_params_should_pass_lay_direction_through()
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "Relation")
+    !$desc = $json_add($desc, "from", "A")
+    !$desc = $json_add($desc, "to", "B")
+    !$desc = $json_add($desc, "label", "L")
+    !$decor = $default_relation_decorator()
+    !$decor = $json_set($decor, "lay_direction", "Down")
+
+    '' Act
+    !$params = $resolve_relation_render_params($desc, $decor)
+
+    '' Assert
+    !assert $params.lay_direction == "Down"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_relation_render_params_should_default_lay_direction_to_empty()
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "Relation")
+    !$desc = $json_add($desc, "from", "A")
+    !$desc = $json_add($desc, "to", "B")
+    !$desc = $json_add($desc, "label", "L")
+    !$decor = $default_relation_decorator()
+
+    '' Act
+    !$params = $resolve_relation_render_params($desc, $decor)
+
+    '' Assert
+    !assert $default($params.lay_direction) == ""
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
 person_registration_should_create_descriptor_with_person_type()
 person_registration_should_create_decorator_with_defaults()
 person_registration_should_save_description()
@@ -937,6 +1088,19 @@ resolve_boundary_native_proc_should_map_enterprise()
 resolve_boundary_native_proc_should_map_system()
 resolve_boundary_native_proc_should_map_container()
 resolve_boundary_native_proc_should_default_to_boundary()
+resolve_relation_native_proc_should_map_down_to_rel_d()
+resolve_relation_native_proc_should_map_up_to_rel_u()
+resolve_relation_native_proc_should_map_left_to_rel_l()
+resolve_relation_native_proc_should_map_right_to_rel_r()
+resolve_relation_native_proc_should_default_to_rel()
+default_relation_decorator_should_include_lay_direction_with_empty_default()
+align_down_should_set_lay_direction_to_down()
+align_up_should_set_lay_direction_to_up()
+align_left_should_set_lay_direction_to_left()
+align_right_should_set_lay_direction_to_right()
+align_should_set_lay_direction_on_multiple_relations()
+resolve_relation_render_params_should_pass_lay_direction_through()
+resolve_relation_render_params_should_default_lay_direction_to_empty()
 ''----------------------------------------------------------------------------------------------------------------------
 ''  System
 ''----------------------------------------------------------------------------------------------------------------------

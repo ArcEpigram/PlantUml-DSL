@@ -1,0 +1,24 @@
+@startuml
+!include ../../src/C4/Context.puml
+
+'' ======================================================================
+'' C4 Relation Alignment — управление направлением связей
+'' Демонстрирует выравнивание элементов через Align_* процедуры
+'' ======================================================================
+
+'' 1. Включение элементов в диаграмму
+Persons("Elements", User Admin)
+Systems("Elements", ERP)
+Systems_Ext("Elements", Queue)
+
+'' 2. Включение связей в диаграмму
+Relations("Relations", User-ERP User-Admin ERP-Queue)
+
+'' 3. Относительные выравнивания:
+Align_Down(User-ERP)
+Align_Left(User-Admin)
+Align_Right(ERP-Queue)
+
+'' 4. Рендеринг
+Diagram("System Context — Relation Alignment Demo")
+@enduml
