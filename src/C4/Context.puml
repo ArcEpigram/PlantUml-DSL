@@ -9,7 +9,6 @@
 $register_rendering_proc("Person", $proc="$render_person")
 $register_rendering_proc("Relation", $proc="$render_relation")
 $register_rendering_proc("System", $proc="$render_system")
-$register_rendering_proc("Boundary", $proc="$render_boundary")
 ''----------------------------------------------------------------------------------------------------------------------
 '' Регистрирует архитектурный элемент типа Person.
 '' Создаёт дескриптор (атрибуты) и декоратор (опции отображения по умолчанию),
@@ -61,21 +60,6 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
 '' example: $System("ERP", "ERP-система", "Основная учётная система")
 !unquoted procedure $System($alias, $label, $descr="", $sprite="", $tags="", $link="", $type="", $reason="", $reason_source="")
     !$descriptor = $default_c4_element_descriptor("System", $label, $descr, $sprite, $tags, $link, $type, $reason, $reason_source)
-    $register_descriptor($alias, $json2str($descriptor, %true()))
-!endprocedure
-''----------------------------------------------------------------------------------------------------------------------
-'' Регистрирует архитектурный элемент типа Boundary (граница системы).
-'' args: $alias - уникальный алиас границы
-''       $label - отображаемое имя границы
-''       $descr - описание (опционально)
-''       $tags - теги (опционально)
-''       $link - ссылка (опционально)
-''       $type - тип границы: "" для System_Boundary, "Enterprise" для Enterprise_Boundary (опционально)
-''       $reason - обоснование присутствия элемента в архитектуре (опционально)
-''       $reason_source - источник обоснования: требование, документ, глоссарий (опционально)
-'' example: $Boundary("Core", "Core Systems", "Основные системы")
-!unquoted procedure $Boundary($alias, $label, $descr="", $tags="", $link="", $type="", $reason="", $reason_source="")
-    !$descriptor = $default_c4_element_descriptor("Boundary", $label, $descr, "", $tags, $link, $type, $reason, $reason_source)
     $register_descriptor($alias, $json2str($descriptor, %true()))
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
@@ -148,15 +132,6 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
 !unquoted procedure Systems_Ext($source, $aliases)
     $include_elements("system", $source, $aliases, %true())
 !endprocedure
-''----------------------------------------------------------------------------------------------------------------------
-'' Включает зарегистрированные границы Boundary в текущую диаграмму.
-'' args: $source - путь к каталогу с объявлениями границ.
-''       $aliases - перечисление имен границ (разделенные пробелом).
-'' example: Boundaries("Boundaries", Core)
-!unquoted procedure Boundaries($source, $aliases)
-    $include_elements("boundary", $source, $aliases, %false())
-!endprocedure
-''----------------------------------------------------------------------------------------------------------------------
 '' Рендерит элемент типа Person в нотации C4 Context.
 '' Десериализует дескриптор, проверяет флаги show_desc и is_extern,
 '' затем вызывает стандартную функцию Person() или Person_Ext().
@@ -178,23 +153,6 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
     !$params = $resolve_system_render_params($descriptor, $decorator)
     $render_c4_element($alias, $params)
 !endprocedure
-''----------------------------------------------------------------------------------------------------------------------
-'' Рендерит границу Boundary в нотации C4 Context.
-'' Вызывает Enterprise_Boundary или System_Boundary в зависимости от element_type.
-!procedure $render_boundary($alias, $serialized_descriptor, $decorator)
-    !$descriptor = $str2json($serialized_descriptor, $without_quotes = %true())
-    !$params = $resolve_boundary_render_params($descriptor, $decorator)
-
-    %invoke_procedure(\
-        $params.boundary_type, \
-        $alias, \
-        $params.label, \
-        $default($params.tags), \
-        $default($params.link), \
-        $default($params.desc) \
-    )
-!endprocedure
-''----------------------------------------------------------------------------------------------------------------------
 !procedure $render_c4_element($alias, $params)
     !if $params.is_extern == %true()
         !$render_proc_name = $format("%1_Ext", $params.render_proc)
@@ -289,30 +247,6 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
     !$params = $json_add($params, "link", $default($descriptor.link))
 
     !$params = $json_add($params, "is_extern", $decorator.is_extern)
-
-    !return $params
-!endfunction
-''----------------------------------------------------------------------------------------------------------------------
-'' Вычисляет параметры рендеринга для границы Boundary.
-'' args: $descriptor - JSON-объект {type, label, desc, tags, link, element_type, reason, reason_source}
-''       $decorator - JSON-объект {is_extern, show_desc, sprite, styles}
-'' returns: JSON-объект {boundary_type, label, desc, tags, link}
-!function $resolve_boundary_render_params($descriptor, $decorator)
-    !$params = {}
-
-    !$params = $json_add($params, "label", $descriptor.label)
-
-    !$params = $json_add($params, "desc", $value_or_default($decorator.show_desc == %true(), $descriptor.desc))
-
-    !if $default($descriptor.element_type) == "Enterprise"
-        !$params = $json_add($params, "boundary_type", "Enterprise_Boundary")
-    !else
-        !$params = $json_add($params, "boundary_type", "System_Boundary")
-    !endif
-
-    !$params = $json_add($params, "tags", $combine_tags($default($descriptor.tags), $array2str($decorator.styles, "+")))
-
-    !$params = $json_add($params, "link", $default($descriptor.link))
 
     !return $params
 !endfunction
