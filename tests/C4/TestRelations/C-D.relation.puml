@@ -1,0 +1,4 @@
+@startuml
+
+$Relation("C", "D", "Another", "", "TCP", "")
+@enduml

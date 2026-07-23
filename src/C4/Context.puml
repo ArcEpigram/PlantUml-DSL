@@ -370,20 +370,39 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
     !return $decorator
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
+'' Формирует alias связи из from/to и опционального суффикса.
+'' Без суффикса: "ERP-DB". С суффиксом: "ERP-DB-slow".
+'' Чистая функция: не имеет побочных эффектов.
+'' args: $from - алиас исходного элемента
+''       $to - алиас целевого элемента
+''       $suffix - суффикс для дизамбигуации при нескольких связях между парой (опционально)
+'' example: !$alias = $build_relation_alias("ERP", "DB")           '' "ERP-DB"
+'' example: !$alias = $build_relation_alias("ERP", "DB", "slow")   '' "ERP-DB-slow"
+!function $build_relation_alias($from, $to, $suffix="")
+    !if $default($suffix) == ""
+        !return $format("%1-%2", $from, $to)
+    !else
+        !return $format("%1-%2-%3", $from, $to, $suffix)
+    !endif
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
 '' Регистрирует связь между элементами.
-'' Создаёт дескриптор (атрибуты) и сохраняет его в глобальный реестр.
+'' Создаёт дескриптор (атрибуты) и сохраняет его в глобальный реестр под автоматически сгенерированным alias.
+'' Alias формируется как "from-to" (или "from-to-suffix" при заданном $suffix).
 '' Декоратор создаётся при включении в диаграмму командой Relations().
-'' args: $alias - уникальный алиас связи
-''       $from - алиас исходного элемента
+'' args: $from - алиас исходного элемента
 ''       $to - алиас целевого элемента
 ''       $label - отображаемая метка связи
+''       $suffix - суффикс alias для дизамбигуации нескольких связей между парой (опционально)
 ''       $techn - технология (опционально)
 ''       $descr - описание (опционально)
 ''       $tags - теги (опционально)
 ''       $reason - обоснование присутствия связи в архитектуре (опционально)
 ''       $reason_source - источник обоснования: требование, документ, глоссарий (опционально)
-'' example: $Relation("User-ERP", "User", "ERP", "Использует", "HTTPS", "Основной канал работы", "critical")
-!unquoted procedure $Relation($alias, $from, $to, $label, $techn="", $descr="", $tags="", $reason="", $reason_source="")
+'' example: $Relation("ERP", "DB", "Читает и пишет", "", "JDBC", "Основной канал данных")
+'' example: $Relation("ERP", "DB", "Медленный путь", "slow")
+!unquoted procedure $Relation($from, $to, $label, $suffix="", $techn="", $descr="", $tags="", $reason="", $reason_source="")
+    !$alias = $build_relation_alias($from, $to, $suffix)
     !$descriptor = $default_relation_descriptor($from, $to, $label, $techn, $descr, $tags, $reason, $reason_source)
     $register_descriptor($alias, $json2str($descriptor, %true()))
 !endprocedure
