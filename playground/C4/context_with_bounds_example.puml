@@ -19,15 +19,15 @@ $System("Queue", "Очередь сообщений", "RabbitMQ", $type="Queue")
 $System("DB", "База данных", "PostgreSQL 15", $type="Db")
 
 '' 3. Регистрация связей
-$Relation("U-A", "User", "Admin", "Получает разрешения")
-$Relation("U-E", "User", "ERP", "Выполняет обязанности")
-$Relation("U-Q", "User", "Queue", "Публикует события")
-$Relation("E-D", "ERP", "DB", "Читает и пишет", "JDBC", "Основной канал данных")
+$Relation(User, Admin, "Получает разрешения")
+$Relation(User, ERP, "Выполняет обязанности")
+$Relation(User, Queue, "Публикует события")
+$Relation(ERP, DB, "Читает и пишет", "", "JDBC", "Основной канал данных")
 
 '' 4. Включение в диаграмму (source="" — элементы уже зарегистрированы)
 Persons("", User Admin)
 Systems("", ERP Queue DB)
-Relations("", U-A U-E U-Q E-D)
+Relations("", User-Admin User-ERP User-Queue ERP-DB)
 
 '' 5. Group() — ad-hoc группировка:
 ''    Форма 1 (3 аргумента): Group("BoundaryAlias", "Label", "aliases")

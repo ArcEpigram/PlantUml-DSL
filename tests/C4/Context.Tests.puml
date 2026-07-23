@@ -321,8 +321,8 @@
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure relation_registration_should_create_descriptor_with_relation_type()
     '' Arrange, Act
-    $Relation("Test", "A", "B", "TestLabel")
-    !$desc_str = $get_descriptor("Test")
+    $Relation("A", "B", "TestLabel")
+    !$desc_str = $get_descriptor("A-B")
     !$desc = $str2json($desc_str, $without_quotes = %true())
 
     '' Assert
@@ -334,8 +334,8 @@
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure relation_registration_should_save_techn_and_descr()
     '' Arrange, Act
-    $Relation("R", "X", "Y", "Link", "HTTP", "Описание связи")
-    !$desc_str = $get_descriptor("R")
+    $Relation("X", "Y", "Link", "", "HTTP", "Описание связи")
+    !$desc_str = $get_descriptor("X-Y")
     !$desc = $str2json($desc_str, $without_quotes = %true())
 
     '' Assert
@@ -350,12 +350,12 @@
     $reset_rendering_queue()
 
     '' Act
-    $include_relations("TestRelations", "R1")
+    $include_relations("TestRelations", "A-B")
     !$queue = $get_rendering_queue()
 
     '' Assert
     !assert %size($queue) == 1
-    !assert $queue[0] == "R1"
+    !assert $queue[0] == "A-B"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure relations_should_skip_unregistered_alias()
@@ -376,7 +376,7 @@
     $reset_rendering_queue()
 
     '' Act
-    $include_relations("TestRelations", "R1 R2")
+    $include_relations("TestRelations", "A-B C-D")
     !$queue = $get_rendering_queue()
 
     '' Assert
@@ -943,12 +943,12 @@
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure align_down_should_set_lay_direction_to_down()
     '' Arrange
-    $Relation("A_Down", "A", "B", "DownLink")
-    $include_relations("", "A_Down")
+    $Relation("A", "B", "DownLink")
+    $include_relations("", "A-B")
 
     '' Act
-    Align_Down("A_Down")
-    !$decor = $get_decorator("A_Down")
+    Align_Down("A-B")
+    !$decor = $get_decorator("A-B")
 
     '' Assert
     !assert $decor.lay_direction == "Down"
@@ -956,12 +956,12 @@
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure align_up_should_set_lay_direction_to_up()
     '' Arrange
-    $Relation("A_Up", "A", "B", "UpLink")
-    $include_relations("", "A_Up")
+    $Relation("A", "B", "UpLink")
+    $include_relations("", "A-B")
 
     '' Act
-    Align_Up("A_Up")
-    !$decor = $get_decorator("A_Up")
+    Align_Up("A-B")
+    !$decor = $get_decorator("A-B")
 
     '' Assert
     !assert $decor.lay_direction == "Up"
@@ -969,12 +969,12 @@
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure align_left_should_set_lay_direction_to_left()
     '' Arrange
-    $Relation("A_Left", "A", "B", "LeftLink")
-    $include_relations("", "A_Left")
+    $Relation("A", "B", "LeftLink")
+    $include_relations("", "A-B")
 
     '' Act
-    Align_Left("A_Left")
-    !$decor = $get_decorator("A_Left")
+    Align_Left("A-B")
+    !$decor = $get_decorator("A-B")
 
     '' Assert
     !assert $decor.lay_direction == "Left"
@@ -982,12 +982,12 @@
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure align_right_should_set_lay_direction_to_right()
     '' Arrange
-    $Relation("A_Right", "A", "B", "RightLink")
-    $include_relations("", "A_Right")
+    $Relation("A", "B", "RightLink")
+    $include_relations("", "A-B")
 
     '' Act
-    Align_Right("A_Right")
-    !$decor = $get_decorator("A_Right")
+    Align_Right("A-B")
+    !$decor = $get_decorator("A-B")
 
     '' Assert
     !assert $decor.lay_direction == "Right"
@@ -995,14 +995,14 @@
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure align_should_set_lay_direction_on_multiple_relations()
     '' Arrange
-    $Relation("AM1", "A", "B", "M1")
-    $Relation("AM2", "C", "D", "M2")
-    $include_relations("", "AM1 AM2")
+    $Relation("A", "B", "M1")
+    $Relation("C", "D", "M2")
+    $include_relations("", "A-B C-D")
 
     '' Act
-    Align_Down("AM1 AM2")
-    !$decor1 = $get_decorator("AM1")
-    !$decor2 = $get_decorator("AM2")
+    Align_Down("A-B C-D")
+    !$decor1 = $get_decorator("A-B")
+    !$decor2 = $get_decorator("C-D")
 
     '' Assert
     !assert $decor1.lay_direction == "Down"
@@ -1042,6 +1042,39 @@
     !assert $default($params.lay_direction) == ""
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
+'' Tests for $build_relation_alias
+''----------------------------------------------------------------------------------------------------------------------
+!procedure build_relation_alias_should_generate_from_to()
+    '' Arrange, Act
+    !$actual = $build_relation_alias("ERP", "DB")
+
+    '' Assert
+    !assert $actual == "ERP-DB"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure build_relation_alias_should_append_suffix_when_provided()
+    '' Arrange, Act
+    !$actual = $build_relation_alias("ERP", "DB", "slow")
+
+    '' Assert
+    !assert $actual == "ERP-DB-slow"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure relation_with_suffix_should_register_under_disambiguated_alias()
+    '' Arrange, Act — две связи между одной парой, с разными суффиксами
+    $Relation("ERP", "DB", "Чтение", "read", "JDBC")
+    $Relation("ERP", "DB", "Запись", "write", "REST")
+
+    '' Assert — дескрипторы зарегистрированы под разными alias
+    !$desc_read = $str2json($get_descriptor("ERP-DB-read"), $without_quotes = %true())
+    !$desc_write = $str2json($get_descriptor("ERP-DB-write"), $without_quotes = %true())
+
+    !assert $desc_read.label == "Чтение"
+    !assert $desc_read.techn == "JDBC"
+    !assert $desc_write.label == "Запись"
+    !assert $desc_write.techn == "REST"
+!endprocedure
+
 person_registration_should_create_descriptor_with_person_type()
 person_registration_should_create_decorator_with_defaults()
 person_registration_should_save_description()
@@ -1101,6 +1134,9 @@ align_right_should_set_lay_direction_to_right()
 align_should_set_lay_direction_on_multiple_relations()
 resolve_relation_render_params_should_pass_lay_direction_through()
 resolve_relation_render_params_should_default_lay_direction_to_empty()
+build_relation_alias_should_generate_from_to()
+build_relation_alias_should_append_suffix_when_provided()
+relation_with_suffix_should_register_under_disambiguated_alias()
 ''----------------------------------------------------------------------------------------------------------------------
 ''  System
 ''----------------------------------------------------------------------------------------------------------------------

@@ -1,4 +1,4 @@
 @startuml
 !include ../../../src/C4/Context.puml
-$Relation(ERP-Queue, ERP, Queue, "Обмен сообщениями с внешними системами")
+$Relation(ERP, Queue, "Обмен сообщениями с внешними системами")
 @enduml

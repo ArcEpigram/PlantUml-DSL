@@ -1,4 +1,4 @@
 @startuml
 !include ../../../src/C4/Context.puml
-$Relation(User-Admin, User, Admin, "Получает разрешения")
+$Relation(User, Admin, "Получает разрешения")
 @enduml
