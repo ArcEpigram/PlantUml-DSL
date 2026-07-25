@@ -1,7 +1,7 @@
 # PlantUML DSL
 ![logo](./logo.png)
 
-![Version](https://img.shields.io/badge/version-0.14.0-blue) ![Tests](https://img.shields.io/badge/tests-passing-brightgreen) ![License](https://img.shields.io/badge/license-MIT-green)
+![Version](https://img.shields.io/badge/version-0.15.0-blue) ![Tests](https://img.shields.io/badge/tests-passing-brightgreen) ![License](https://img.shields.io/badge/license-MIT-green)
 
 ---
 
@@ -32,6 +32,7 @@ PlantUML DSL - это декларативная надстройка повер
 - **Декларативный API**: описываете **что** рисовать, а не **как**
 - **Переиспользование**: регистрация элементов → подключение к разным диаграммам
 - **Модульность**: C4, Data, Dynamic, Deployment, ...
+- **Locator**: автоматическое вычисление путей к элементам по конвенции каталогов — не нужно повторять `Persons("Elements/...", User)` в каждой диаграмме
 - **Встроенная трассировка и валидация**
 
 ---
@@ -57,7 +58,54 @@ PlantUML DSL - это декларативная надстройка повер
 ---
 
 ## Структура библиотеки
-> TODO
+
+```
+src/
+├── Utils.puml          — общие утилиты ($format, $fail, $trace, ...)
+├── Common.puml         — реестр элементов (дескрипторы, декораторы, очередь рендеринга)
+├── Rendering.puml      — рендеринг диаграмм (Diagram, ApplyStyle, HideDescription, ...)
+├── Locator.puml        — автоматическое вычисление путей к элементам
+└── C4/
+    └── Context.puml    — C4 Context диаграммы (Persons, Systems, Relations, Boundaries)
+```
+
+## Locator — автоматическое разрешение путей
+
+Вместо того чтобы указывать путь к элементам в каждой диаграмме:
+
+```plantuml
+Persons("Elements/Persons", User Admin)
+Systems("Elements/Systems", ERP DB)
+Relations("Elements/Relations", User-ERP)
+```
+
+Locator позволяет задать конвенцию один раз (в `ENV.puml`) и использовать краткую форму:
+
+```plantuml
+!include ENV.puml
+Persons(User Admin)
+Systems(ERP DB)
+Relations(User-ERP)
+```
+
+**Как это работает:**
+
+1. Создайте `ENV.puml` с переменными окружения:
+   ```plantuml
+   %set_variable_value("LOCATOR_PERSONS_ROOT", "Elements/Persons")
+   %set_variable_value("LOCATOR_SYSTEMS_ROOT", "Elements/Systems")
+   %set_variable_value("LOCATOR_BOUNDARIES_ROOT", "Elements/Boundaries")
+   %set_variable_value("LOCATOR_RELATIONS_ROOT", "Elements/Relations")
+   ```
+
+2. Разместите файлы элементов по конвенции:
+   - `Elements/Persons/User.person.puml`
+   - `Elements/Systems/ERP.system.puml`
+   - `Elements/Relations/User-ERP.relation.puml`
+
+3. Используйте 1-arg формы DSL-процедур — Locator сам найдёт файлы.
+
+Пример: [`playground/LocatorDemo/`](./playground/LocatorDemo/)
 
 ---
 
