@@ -1,0 +1,51 @@
+@startuml
+''----------------------------------------------------------------------------------------------------------------------
+'' C4 Context Diagram — демонстрация Locator.
+''
+'' Locator автоматически вычисляет пути к файлам элементов на основе
+'' переменных окружения, заданных в ENV.puml. Это позволяет использовать
+'' краткую 1-arg форму процедур (Persons, Systems, Relations, Boundaries)
+'' без явного указания путей к каталогам.
+''
+'' Конвенция каталогов (задана в ENV.puml):
+''   Elements/Persons/     — *.person.puml
+''   Elements/Systems/     — *.system.puml
+''   Elements/Boundaries/  — *.boundary.puml
+''   Elements/Relations/   — *.relation.puml
+''
+'' Сравните с playground/C4/context_diagram_example.puml —
+'' там используется 2-arg форма с явным указанием пути:
+''   Persons("Elements", User Admin)
+'' Здесь — 1-arg Locator-форма:
+''   Persons(User Admin)
+''----------------------------------------------------------------------------------------------------------------------
+
+'' 1. Подключаем ENV (переменные окружения) ДО Context.puml
+!include ENV.puml
+
+'' 2. Подключаем библиотеку C4 Context
+!include ../../src/C4/Context.puml
+
+'' 3. Включаем элементы — Locator сам найдёт файлы по алиасам
+''    (User.person.puml, Admin.person.puml в Elements/Persons/)
+Persons(User Admin)
+
+'' 4. Включаем системы
+''    (ERP.system.puml, Queue.system.puml, DB.system.puml в Elements/Systems/)
+Systems(ERP Queue DB)
+
+'' 5. Включаем границу (Enterprise.boundary.puml в Elements/Boundaries/)
+Boundaries(Enterprise)
+
+'' 6. Включаем связи (User-ERP.relation.puml, ... в Elements/Relations/)
+Relations(User-Admin User-ERP User-Queue ERP-DB)
+
+'' 7. Группируем элементы в границу
+Group("Enterprise", "Enterprise Boundary", "ERP DB")
+
+'' 8. Дополнительные настройки
+HideDescription(Admin)
+
+'' 9. Рендеринг
+Diagram("C4 System Context — Locator Demo")
+@enduml

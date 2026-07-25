@@ -1,0 +1,5 @@
+@startuml
+!include ../../../../src/C4/Context.puml
+'' Регистрация связи
+$Relation(ERP, DB, "Читает и пишет", "", "JDBC", "Основной канал данных")
+@enduml

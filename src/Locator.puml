@@ -8,15 +8,17 @@
 '' Зависимости: Utils.puml
 ''----------------------------------------------------------------------------------------------------------------------
 '' Возвращает имя переменной окружения для заданного типа элемента.
-'' Маппинг: kind → plural UPPER (boundary → BOUNDARIES)
+'' Маппинг: kind → plural UPPER (person→PERSONS, boundary→BOUNDARIES, system→SYSTEMS, ...)
 '' args: $kind - тип элемента ("person", "system", "relation", "boundary", "container", "component")
 '' returns: имя переменной (например "LOCATOR_PERSONS_ROOT")
 !function $__locator_var_name($kind)
     !$upper = %upper($kind)
     !if $upper == "BOUNDARY"
-        !$upper = "BOUNDARIES"
+        !$plural = "BOUNDARIES"
+    !else
+        !$plural = $upper + "S"
     !endif
-    !return $format("LOCATOR_%1_ROOT", $upper)
+    !return $format("LOCATOR_%1_ROOT", $plural)
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
 '' Возвращает корневой каталог для заданного типа элемента.

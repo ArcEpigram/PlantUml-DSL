@@ -1,0 +1,5 @@
+@startuml
+!include ../../../../src/C4/Context.puml
+'' Регистрация элемента
+$System(ERP, "ERP", "Корпоративная система планирования")
+@enduml

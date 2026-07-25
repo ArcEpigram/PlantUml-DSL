@@ -1,0 +1,5 @@
+@startuml
+!include ../../../../src/C4/Context.puml
+'' Регистрация связи
+$Relation(User, Admin, "Получает разрешения")
+@enduml
