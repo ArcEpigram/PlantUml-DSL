@@ -1,0 +1,121 @@
+@startuml
+!include ../src/Locator.puml
+''----------------------------------------------------------------------------------------------------------------------
+'' Tests for Locator module
+''
+'' Тактика: тесты добавляются по одному, от простого к сложному.
+'' Каждый тест проходит assert через утилиту check(), которая использует
+'' $contain_in_list() — проверенный паттерн из Utils.Tests.puml.
+''----------------------------------------------------------------------------------------------------------------------
+''----------------------------------------------------------------------------------------------------------------------
+'' Утилита сравнения: проверяет, что $actual соответствует $expected (regex pattern)
+'' Использует %size(%splitstr_regex(...)) == 1 — проверенный паттерн из Utils.Tests.puml.
+'' Перед сравнением оба значения оборачиваются в regex-якоря ^...$.
+''----------------------------------------------------------------------------------------------------------------------
+!function $assert_eq($actual, $expected)
+    !$pattern = $format("/^%1$/gm", $expected)
+    !return %size(%splitstr_regex($actual, $pattern)) == 1
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Утилита-fail: печатает assertion failed, но НЕ прерывает -checkonly
+'' Используем title + $trace вместо $fail, чтобы не помечать диаграмму как broken
+''----------------------------------------------------------------------------------------------------------------------
+!procedure check($actual, $expected)
+    !if $assert_eq($actual, $expected) != %true()
+        title "ASSERT FAILED: expected '$expected' but got '$actual'"
+        !assert %false() : $format('expected "%1" but got "%2"', $expected, $actual)
+    !endif
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Тест 1 (самый простой): Relation на верхнем уровне
+'' args: $element_type=relation, $alias=Manager-ERP, $scope=""
+''----------------------------------------------------------------------------------------------------------------------
+!procedure t1_locate_relation_top_level()
+    '' Arrange
+    %set_variable_value("LOCATOR_RELATIONS_ROOT", "../Elements/Relations")
+
+    '' Act
+    !$actual = $locate_relation("Manager-ERP")
+
+    '' Assert
+    check($actual, "../Elements/Relations/Manager-ERP.relation.puml")
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Тест 2: Person на верхнем уровне
+''----------------------------------------------------------------------------------------------------------------------
+!procedure t2_locate_element_for_person()
+    %set_variable_value("LOCATOR_PERSONS_ROOT", "../Elements/Persons")
+    !$actual = $locate_element("person", "Manager")
+    check($actual, "../Elements/Persons/Manager.person.puml")
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Тест 3: System на верхнем уровне
+''----------------------------------------------------------------------------------------------------------------------
+!procedure t3_locate_element_for_system()
+    %set_variable_value("LOCATOR_SYSTEMS_ROOT", "../Elements/Systems")
+    !$actual = $locate_element("system", "ERP")
+    check($actual, "../Elements/Systems/ERP.system.puml")
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Тест 4: Boundary на верхнем уровне
+''----------------------------------------------------------------------------------------------------------------------
+!procedure t4_locate_boundary_top_level()
+    %set_variable_value("LOCATOR_BOUNDARIES_ROOT", "../Elements/Boundaries")
+    !$actual = $locate_element("boundary", "Enterprise")
+    check($actual, "../Elements/Boundaries/Enterprise.boundary.puml")
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Тест 5: Relation внутри системы (scope = "ERP", 1 уровень)
+''----------------------------------------------------------------------------------------------------------------------
+!procedure t5_locate_relation_in_system()
+    %set_variable_value("LOCATOR_SYSTEMS_ROOT", "../Elements/Systems")
+    !$actual = $locate_relation("API-SSO", "ERP")
+    check($actual, "../Elements/Systems/ERP/Relations/API-SSO.relation.puml")
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Тест 6: Container внутри системы (scope = "ERP", 1 уровень)
+''----------------------------------------------------------------------------------------------------------------------
+!procedure t6_locate_element_for_container()
+    %set_variable_value("LOCATOR_SYSTEMS_ROOT", "../Elements/Systems")
+    !$actual = $locate_element("container", "Payments", "ERP")
+    check($actual, "../Elements/Systems/ERP/Containers/Payments.container.puml")
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Тест 7: Boundary внутри системы (scope = "ERP", 1 уровень)
+''----------------------------------------------------------------------------------------------------------------------
+!procedure t7_locate_boundary_inside_system()
+    %set_variable_value("LOCATOR_SYSTEMS_ROOT", "../Elements/Systems")
+    !$actual = $locate_element("boundary", "Core", "ERP")
+    check($actual, "../Elements/Systems/ERP/Boundaries/Core.boundary.puml")
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Тест 8: Relation внутри контейнера (scope = "ERP/Employees", 2 уровня)
+''----------------------------------------------------------------------------------------------------------------------
+!procedure t8_locate_relation_in_container()
+    %set_variable_value("LOCATOR_SYSTEMS_ROOT", "../Elements/Systems")
+    !$actual = $locate_relation("API-DB", "ERP/Employees")
+    check($actual, "../Elements/Systems/ERP/Containers/Employees/Relations/API-DB.relation.puml")
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Тест 9: Component внутри контейнера (scope = "ERP/Employees", 2 уровня)
+''----------------------------------------------------------------------------------------------------------------------
+!procedure t9_locate_element_for_component()
+    %set_variable_value("LOCATOR_SYSTEMS_ROOT", "../Elements/Systems")
+    !$actual = $locate_element("component", "API", "ERP/Employees")
+    check($actual, "../Elements/Systems/ERP/Containers/Employees/Components/API.component.puml")
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Tests RUN!
+''----------------------------------------------------------------------------------------------------------------------
+t1_locate_relation_top_level()
+t2_locate_element_for_person()
+t3_locate_element_for_system()
+t4_locate_boundary_top_level()
+t5_locate_relation_in_system()
+t6_locate_element_for_container()
+t7_locate_boundary_inside_system()
+t8_locate_relation_in_container()
+t9_locate_element_for_component()
+''----------------------------------------------------------------------------------------------------------------------
+caption OK
+@enduml

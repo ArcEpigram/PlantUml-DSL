@@ -1,0 +1,21 @@
+@startuml
+!include ../src/Locator.puml
+
+%set_variable_value("LOCATOR_PERSONS_ROOT", "TestLocator/Persons")
+!$path = $locate_element("person", "Alice")
+!assert %size(%splitstr_regex($path, "/TestLocator/Persons/Alice.person.puml")) == 1
+
+%set_variable_value("LOCATOR_SYSTEMS_ROOT", "TestLocator/Systems")
+!$path2 = $locate_element("system", "ERP")
+!assert %size(%splitstr_regex($path2, "/TestLocator/Systems/ERP.system.puml")) == 1
+
+%set_variable_value("LOCATOR_BOUNDARIES_ROOT", "TestLocator/Boundaries")
+!$path3 = $locate_element("boundary", "Enterprise")
+!assert %size(%splitstr_regex($path3, "/TestLocator/Boundaries/Enterprise.boundary.puml")) == 1
+
+%set_variable_value("LOCATOR_RELATIONS_ROOT", "TestLocator/Relations")
+!$path4 = $locate_relation("User-ERP")
+!assert %size(%splitstr_regex($path4, "/TestLocator/Relations/User-ERP.relation.puml")) == 1
+
+caption OK
+@enduml

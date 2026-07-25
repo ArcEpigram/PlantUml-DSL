@@ -1,0 +1,132 @@
+@startuml
+!include Utils.puml
+''----------------------------------------------------------------------------------------------------------------------
+'' Модуль локатора архитектурных элементов.
+'' Вычисляет путь к файлам элементов по конвенции каталогов,
+'' хранящейся в переменных окружения проекта (LOCATOR_*_ROOT).
+'' Все функции — чистые (без побочных эффектов), согласно programming-guideline §5.1.
+'' Зависимости: Utils.puml
+''----------------------------------------------------------------------------------------------------------------------
+'' Возвращает имя переменной окружения для заданного типа элемента.
+'' Маппинг: kind → plural UPPER (boundary → BOUNDARIES)
+'' args: $kind - тип элемента ("person", "system", "relation", "boundary", "container", "component")
+'' returns: имя переменной (например "LOCATOR_PERSONS_ROOT")
+!function $__locator_var_name($kind)
+    !$upper = %upper($kind)
+    !if $upper == "BOUNDARY"
+        !$upper = "BOUNDARIES"
+    !endif
+    !return $format("LOCATOR_%1_ROOT", $upper)
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Возвращает корневой каталог для заданного типа элемента.
+'' При отсутствии переменной возвращает пустую строку.
+'' args: $kind - тип элемента ("person", "system", "relation", "boundary")
+'' returns: относительный путь к корню или "" при ошибке
+'' example: !$root = $locator_root("person")
+!function $locator_root($kind)
+    !$var_name = $__locator_var_name($kind)
+    !if %not(%variable_exists($var_name))
+        !return ""
+    !endif
+    !return %get_variable_value($var_name)
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Проверяет, что корневая переменная локатора задана. Прерывает выполнение, если нет.
+'' Вызывать как guard перед $locator_root().
+'' args: $kind - тип элемента ("person", "system", "relation", "boundary")
+'' example: $assert_locator_root("person")
+!unquoted procedure $assert_locator_root($kind)
+    !$var_name = $__locator_var_name($kind)
+    !if %not(%variable_exists($var_name))
+        $fail($format('LOCATOR_%1_ROOT не определён. Создайте ENV.puml с переменной !$LOCATOR_%1_ROOT=...', %upper($kind)))
+    !endif
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Возвращает plural-форму для имени подкаталога.
+'' args: $kind - тип элемента
+'' returns: PascalCase plural (например "Boundaries", "Containers", "Components")
+!function $__plural($kind)
+    !if $kind == "boundary"
+        !return "Boundaries"
+    !else
+        !$first = %upper(%substr($kind, 0, 1))
+        !$rest = %substr($kind, 1)
+        !return $first + $rest + "s"
+    !endif
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Вычисляет путь к файлу архитектурного элемента.
+'' Конвенция:
+''   scope=""               → верхний уровень (kind_root/alias.kind.puml)
+''   scope="sys"            → внутри системы (systems_root/sys/Kindss/alias.kind.puml)
+''   scope="sys/container"  → компонент внутри контейнера (systems_root/sys/Containers/container/Components/alias.component.puml)
+'' args: $element_type - тип элемента ("person", "system", "container", "component", "boundary")
+''       $alias - алиас элемента
+''       $scope - область вложенности (например "ERP" или "ERP/Employees"), опционально
+'' returns: относительный путь к файлу или "" если root не задан
+'' example: !$path = $locate_element("person", "Manager")
+'' example: !$path = $locate_element("container", "Payments", "ERP")
+'' example: !$path = $locate_element("component", "API", "ERP/Employees")
+!function $locate_element($element_type, $alias, $scope="")
+    !if $element_type == "person" && $default($scope) != ""
+        !return ""
+    !endif
+
+    !if $default($scope) == ""
+        !$root = $locator_root($element_type)
+        !if $root == ""
+            !return ""
+        !endif
+        !return $format("%1/%2.%3.puml", $root, $alias, $element_type)
+    !else
+        !$sys_root = $locator_root("system")
+        !if $sys_root == ""
+            !return ""
+        !endif
+        !$parts = %splitstr($scope, "/")
+        !if %size($parts) == 1
+            !return $format("%1/%2/%3/%4.%5.puml", $sys_root, $parts[0], $__plural($element_type), $alias, $element_type)
+        !elseif %size($parts) == 2
+            !return $format("%1/%2/Containers/%3/%4/%5.%6.puml", $sys_root, $parts[0], $parts[1], $__plural($element_type), $alias, $element_type)
+        !else
+            !return ""
+        !endif
+    !endif
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Вычисляет путь к файлу связи Relation.
+'' По глубине scope определяет уровень вложенности:
+''   ""  → верхний уровень в LOCATOR_RELATIONS_ROOT
+''   "sys" → внутри системы в LOCATOR_SYSTEMS_ROOT
+''   "sys/container" → внутри контейнера в LOCATOR_SYSTEMS_ROOT
+'' args: $alias - алиас связи (например "Manager-ERP")
+''       $scope - область вложенности, опционально
+'' returns: относительный путь или "" если root не задан
+'' example: !$path = $locate_relation("Manager-ERP")
+'' example: !$path = $locate_relation("API-SSO", "ERP")
+'' example: !$path = $locate_relation("API-DB", "ERP/Employees")
+!function $locate_relation($alias, $scope="")
+    !if $default($scope) == ""
+        !$root = $locator_root("relation")
+        !if $root == ""
+            !return ""
+        !endif
+        !return $format("%1/%2.relation.puml", $root, $alias)
+    !else
+        !$sys_root = $locator_root("system")
+        !if $sys_root == ""
+            !return ""
+        !endif
+        !$parts = %splitstr($scope, "/")
+        !if %size($parts) == 1
+            !return $format("%1/%2/Relations/%3.relation.puml", $sys_root, $parts[0], $alias)
+        !elseif %size($parts) == 2
+            !return $format("%1/%2/Containers/%3/Relations/%4.relation.puml", $sys_root, $parts[0], $parts[1], $alias)
+        !else
+            !return ""
+        !endif
+    !endif
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+@enduml

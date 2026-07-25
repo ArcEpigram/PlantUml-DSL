@@ -3,6 +3,7 @@
 !include ../Utils.puml
 !include ../Common.puml
 !include ../Rendering.puml
+!include ../Locator.puml
 ''----------------------------------------------------------------------------------------------------------------------
 '' Регистрация процедур рендеринга элементов.
 ''----------------------------------------------------------------------------------------------------------------------
@@ -31,17 +32,30 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Включает зарегистрированные элементы Person в текущую диаграмму.
-'' Добавляет алиасы в очередь рендеринга.
-'' args: $source - путь к каталогу к объявлениям элементов.
-''       $aliases - перечисление имен элементов (разделенные пробелом).
+'' 1-arg форма: пути через Locator (нужна переменная окружения LOCATOR_PERSONS_ROOT).
+'' args: $aliases - перечисление имен элементов (разделенные пробелом)
+'' example: Persons(User Admin)
+!unquoted procedure Persons($aliases)
+    $include_elements("person", "", $aliases, %false())
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' 2-arg форма Persons: явный путь к каталогу с объявлениями элементов.
+'' args: $source - путь к каталогу к объявлениям элементов
+''       $aliases - перечисление имен элементов (разделенные пробелом)
 '' example: Persons("Elements", User)
 !unquoted procedure Persons($source, $aliases)
     $include_elements("person", $source, $aliases, %false())
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
-'' Включает зарегистрированные элементы Person как внешние (с серым фоном) в текущую диаграмму.
-'' args: $source - путь к каталогу к объявлениям элементов.
-''       $aliases - перечисление имен элементов (разделенные пробелом).
+'' Включает зарегистрированные элементы Person как внешние (с серым фоном).
+'' 1-arg форма: пути через Locator (нужна переменная окружения LOCATOR_PERSONS_ROOT).
+'' args: $aliases - перечисление имен элементов (разделенные пробелом)
+'' example: Persons_Ext(Admin)
+!unquoted procedure Persons_Ext($aliases)
+    $include_elements("person", "", $aliases, %true())
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' 2-arg форма Persons_Ext: явный путь к каталогу с объявлениями элементов.
 '' example: Persons_Ext("Elements", Admin)
 !unquoted procedure Persons_Ext($source, $aliases)
     $include_elements("person", $source, $aliases, %true())
@@ -66,23 +80,42 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
 ''----------------------------------------------------------------------------------------------------------------------
 '' Включает зарегистрированные Boundary в текущую диаграмму.
 '' Создаёт/обновляет группу в BOUNDARY_GROUPS с label и типом из дескриптора.
+'' 1-arg форма: пути через Locator (нужна переменная окружения LOCATOR_BOUNDARIES_ROOT).
+'' args: $aliases - алиасы границ (разделённые пробелом)
+'' example: Boundaries(Enterprise CoreSystem)
+!unquoted procedure Boundaries($aliases)
+    $include_boundaries("", $aliases)
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' 2-arg форма Boundaries: явный путь к каталогу с объявлениями границ.
 '' args: $source - путь к каталогу с объявлениями границ
 ''       $aliases - алиасы границ (разделённые пробелом)
 '' example: Boundaries("TestBoundaries", "Enterprise CoreSystem")
 !unquoted procedure Boundaries($source, $aliases)
-    !if $source != ""
-        !foreach $alias in %splitstr($aliases, " ")
+    $include_boundaries($source, $aliases)
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Внутренняя реализация включения Boundaries в диаграмму.
+'' Если $source пустой — пути через Locator (LOCATOR_BOUNDARIES_ROOT).
+!unquoted procedure $include_boundaries($source, $aliases, $scope="")
+    !foreach $alias in %splitstr($aliases, " ")
+        !if $source != ""
             !$boundary_file = $format("%1/%2.boundary.puml", $source, $alias)
             !include $boundary_file
+        !else
+            !$boundary_file = $locate_element("boundary", $alias, $scope)
+            !if $boundary_file != ""
+                !include $boundary_file
+            !endif
+        !endif
 
-            '' Обновляем группу: label и тип из дескриптора, aliases пока пустые
-            !$serialized_desc = $get_descriptor($alias)
-            !$desc = $str2json($serialized_desc, $without_quotes = %true())
-            !$b_type = $default($desc.boundary_type)
-            !$b_label = $desc.label
-            $add_boundary_group($alias, $b_label, $b_type, "", "", "", "")
-        !endfor
-    !endif
+        '' Обновляем группу: label и тип из дескриптора, aliases пока пустые
+        !$serialized_desc = $get_descriptor($alias)
+        !$desc = $str2json($serialized_desc, $without_quotes = %true())
+        !$b_type = $default($desc.boundary_type)
+        !$b_label = $desc.label
+        $add_boundary_group($alias, $b_label, $b_type, "", "", "", "")
+    !endfor
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Создаёт ad-hoc группировку элементов в границу на диаграмме.
@@ -182,11 +215,19 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Внутренняя реализация включения элементов в диаграмму.
-!unquoted procedure $include_elements($element_type, $source, $aliases, $is_extern)
+'' Если $source пустой — пути вычисляются через Locator на основе LOCATOR_*_ROOT переменных окружения.
+'' Если переменная LOCATOR_*_ROOT не задана, путь будет пустым и !include будет пропущен
+'' (но алиас всё равно попадёт в очередь рендеринга).
+!unquoted procedure $include_elements($element_type, $source, $aliases, $is_extern, $scope="")
     !foreach $alias in %splitstr($aliases, " ")
         !if $source != ""
             !$element_file = $format("%1/%2.%3.puml", $source, $alias, $element_type)
             !include $element_file
+        !else
+            !$element_file = $locate_element($element_type, $alias, $scope)
+            !if $element_file != ""
+                !include $element_file
+            !endif
         !endif
 
         !$decorator = $default_c4_element_decorator($is_extern)
@@ -199,16 +240,28 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Включает зарегистрированные элементы System в текущую диаграмму.
-'' args: $source - путь к каталогу к объявлениям элементов.
-''       $aliases - перечисление имен элементов (разделенные пробелом).
+'' 1-arg форма: пути через Locator (нужна переменная окружения LOCATOR_SYSTEMS_ROOT).
+'' args: $aliases - перечисление имен элементов (разделенные пробелом)
+'' example: Systems(ERP CMS)
+!unquoted procedure Systems($aliases)
+    $include_elements("system", "", $aliases, %false())
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' 2-arg форма Systems: явный путь к каталогу с объявлениями элементов.
+'' args: $source - путь к каталогу к объявлениям элементов
+''       $aliases - перечисление имен элементов (разделенные пробелом)
 '' example: Systems("Elements", ERP CMS)
 !unquoted procedure Systems($source, $aliases)
     $include_elements("system", $source, $aliases, %false())
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
-'' Включает зарегистрированные элементы System как внешние (с серым фоном) в текущую диаграмму.
-'' args: $source - путь к каталогу к объявлениям элементов.
-''       $aliases - перечисление имен элементов (разделенные пробелом).
+'' Включает зарегистрированные элементы System как внешние (с серым фоном).
+'' 1-arg форма: пути через Locator.
+!unquoted procedure Systems_Ext($aliases)
+    $include_elements("system", "", $aliases, %true())
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' 2-arg форма Systems_Ext: явный путь.
 '' example: Systems_Ext("Elements", ExternalService)
 !unquoted procedure Systems_Ext($source, $aliases)
     $include_elements("system", $source, $aliases, %true())
@@ -408,11 +461,17 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Внутренняя реализация включения связей в диаграмму.
-!unquoted procedure $include_relations($source, $aliases)
+'' Если $source пустой — пути через Locator (LOCATOR_RELATIONS_ROOT или LOCATOR_SYSTEMS_ROOT).
+!unquoted procedure $include_relations($source, $aliases, $scope="")
     !foreach $alias in %splitstr($aliases, " ")
         !if $source != ""
             !$relation_file = $format("%1/%2.relation.puml", $source, $alias)
             !include $relation_file
+        !else
+            !$relation_file = $locate_relation($alias, $scope)
+            !if $relation_file != ""
+                !include $relation_file
+            !endif
         !endif
 
         !$decorator = $default_relation_decorator()
@@ -423,9 +482,16 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Включает зарегистрированные связи в текущую диаграмму.
-'' Добавляет алиасы в очередь рендеринга.
-'' args: $source - путь к каталогу с объявлениями связей.
-''       $aliases - перечисление алиасов связей (разделенные пробелом).
+'' 1-arg форма: пути через Locator (нужна переменная окружения LOCATOR_RELATIONS_ROOT).
+'' args: $aliases - перечисление алиасов связей (разделенные пробелом)
+'' example: Relations(User-ERP ERP-1C)
+!unquoted procedure Relations($aliases)
+    $include_relations("", $aliases)
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' 2-arg форма Relations: явный путь к каталогу с объявлениями связей.
+'' args: $source - путь к каталогу с объявлениями связей
+''       $aliases - перечисление алиасов связей (разделенные пробелом)
 '' example: Relations("Relations", User-ERP ERP-1C)
 !unquoted procedure Relations($source, $aliases)
     $include_relations($source, $aliases)
