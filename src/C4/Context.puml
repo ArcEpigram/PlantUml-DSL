@@ -12,6 +12,7 @@ $register_rendering_proc("Person", $proc="$render_person")
 $register_rendering_proc("Relation", $proc="$render_relation")
 $register_rendering_proc("System", $proc="$render_system")
 $register_rendering_proc("Boundary", $proc="$render_boundary")
+$register_rendering_proc("Container", $proc="$render_container")
 ''----------------------------------------------------------------------------------------------------------------------
 '' Регистрирует архитектурный элемент типа Person.
 '' Создаёт дескриптор (атрибуты) и декоратор (опции отображения по умолчанию),
