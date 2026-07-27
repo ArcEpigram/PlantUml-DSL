@@ -107,6 +107,27 @@ Relations(User-ERP)
 
 Пример: [`playground/LocatorDemo/`](./playground/LocatorDemo/)
 
+## C4 Container
+
+Элементы уровня Container описывают приложения, БД и очереди внутри системы.
+
+### Регистрация
+
+```plantuml
+$Container("Payments", "Платежи", "Java 17 + Spring Boot", "Микросервис платежей")
+$ContainerDb("PaymentsDb", "БД платежей", "PostgreSQL 15", "Хранилище транзакций")
+$ContainerQueue("PaymentsQueue", "Очередь событий", "RabbitMQ 3.12", "Уведомления")
+```
+
+### Включение в диаграмму
+
+```plantuml
+Containers(Payments PaymentsDb PaymentsQueue)
+Containers_Ext(ExternalApi)
+```
+
+См. playground-пример: [`playground/C4/container_diagram_example.puml`](./playground/C4/container_diagram_example.puml).
+
 ---
 
 ## Roadmap

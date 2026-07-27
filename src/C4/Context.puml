@@ -1,5 +1,6 @@
 @startuml
 !include <C4/C4_Context>
+!include <C4/C4_Container>
 !include ../Utils.puml
 !include ../Common.puml
 !include ../Rendering.puml
@@ -11,6 +12,7 @@ $register_rendering_proc("Person", $proc="$render_person")
 $register_rendering_proc("Relation", $proc="$render_relation")
 $register_rendering_proc("System", $proc="$render_system")
 $register_rendering_proc("Boundary", $proc="$render_boundary")
+$register_rendering_proc("Container", $proc="$render_container")
 ''----------------------------------------------------------------------------------------------------------------------
 '' Регистрирует архитектурный элемент типа Person.
 '' Создаёт дескриптор (атрибуты) и декоратор (опции отображения по умолчанию),
@@ -76,6 +78,121 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
 !unquoted procedure $System($alias, $label, $descr="", $sprite="", $tags="", $link="", $type="", $reason="", $reason_source="", $boundary="")
     !$descriptor = $default_c4_element_descriptor("System", $label, $descr, $sprite, $tags, $link, $type, $reason, $reason_source, $boundary)
     $register_descriptor($alias, $json2str($descriptor, %true()))
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Регистрирует архитектурный элемент типа Container.
+'' Совместима со стандартной библиотекой C4-PlantUML.
+'' Сигнатура: Container($alias, $label, $techn, $descr, $sprite, $tags, $link, $baseShape).
+'' args: $alias - уникальный алиас элемента
+''       $label - отображаемое имя элемента
+''       $techn - технология (опционально)
+''       $descr - описание элемента (опционально)
+''       $sprite - спрайт элемента (опционально)
+''       $tags - теги элемента (опционально)
+''       $link - ссылка элемента (опционально)
+''       $baseShape - форма контейнера (опционально, по умолчанию rectangle в C4-PlantUML)
+''       $reason - обоснование присутствия элемента в архитектуре (опционально)
+''       $reason_source - источник обоснования: требование, документ, глоссарий (опционально)
+''       $boundary - алиас Boundary для авто-группировки (опционально)
+'' example: $Container("Payments", "Платежи", "Java 17 + Spring Boot", "Микросервис платежей")
+!unquoted procedure $Container($alias, $label, $techn="", $descr="", $sprite="", \
+    $tags="", $link="", $baseShape="", $reason="", $reason_source="", \
+    $boundary="")
+    !assert $alias != "" : "Container alias is required"
+    !assert $label != "" : "Container label is required"
+    !$descriptor = $default_c4_element_descriptor("Container", \
+        $label, $descr, $sprite, $tags, $link, "", \
+        $reason, $reason_source, $boundary, $techn, $baseShape \
+    )
+    $register_descriptor($alias, $json2str($descriptor, %true()))
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Регистрирует архитектурный элемент типа ContainerDb (БД в форме "цилиндр").
+'' Совместима со стандартной библиотекой C4-PlantUML.
+'' Сигнатура: ContainerDb($alias, $label, $techn, $descr, $sprite, $tags, $link).
+'' args: $alias - уникальный алиас элемента
+''       $label - отображаемое имя элемента
+''       $techn - технология (опционально)
+''       $descr - описание элемента (опционально)
+''       $sprite - спрайт элемента (опционально)
+''       $tags - теги элемента (опционально)
+''       $link - ссылка элемента (опционально)
+''       $reason - обоснование присутствия элемента в архитектуре (опционально)
+''       $reason_source - источник обоснования (опционально)
+''       $boundary - алиас Boundary для авто-группировки (опционально)
+'' example: $ContainerDb("PaymentsDb", "БД платежей", "PostgreSQL 15", "Хранилище транзакций")
+!unquoted procedure $ContainerDb($alias, $label, $techn="", $descr="", $sprite="", \
+    $tags="", $link="", $reason="", $reason_source="", $boundary="")
+    !assert $alias != "" : "ContainerDb alias is required"
+    !assert $label != "" : "ContainerDb label is required"
+    !$descriptor = $default_c4_element_descriptor("Container", \
+        $label, $descr, $sprite, $tags, $link, "Db", \
+        $reason, $reason_source, $boundary, $techn, "" \
+    )
+    $register_descriptor($alias, $json2str($descriptor, %true()))
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Регистрирует архитектурный элемент типа ContainerQueue (очередь в форме "pipeline").
+'' Совместима со стандартной библиотекой C4-PlantUML.
+'' Сигнатура: ContainerQueue($alias, $label, $techn, $descr, $sprite, $tags, $link).
+'' args: $alias - уникальный алиас элемента
+''       $label - отображаемое имя элемента
+''       $techn - технология (опционально)
+''       $descr - описание элемента (опционально)
+''       $sprite - спрайт элемента (опционально)
+''       $tags - теги элемента (опционально)
+''       $link - ссылка элемента (опционально)
+''       $reason - обоснование присутствия элемента в архитектуре (опционально)
+''       $reason_source - источник обоснования (опционально)
+''       $boundary - алиас Boundary для авто-группировки (опционально)
+'' example: $ContainerQueue("PaymentsQueue", "Очередь событий", "RabbitMQ 3.12", "Уведомления")
+!unquoted procedure $ContainerQueue($alias, $label, $techn="", $descr="", $sprite="", \
+    $tags="", $link="", $reason="", $reason_source="", $boundary="")
+    !assert $alias != "" : "ContainerQueue alias is required"
+    !assert $label != "" : "ContainerQueue label is required"
+    !$descriptor = $default_c4_element_descriptor("Container", \
+        $label, $descr, $sprite, $tags, $link, "Queue", \
+        $reason, $reason_source, $boundary, $techn, "" \
+    )
+    $register_descriptor($alias, $json2str($descriptor, %true()))
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Включает зарегистрированные элементы Container в текущую диаграмму.
+'' 1-arg форма: пути через Locator (нужна переменная окружения LOCATOR_CONTAINERS_ROOT).
+'' args: $aliases - перечисление имен элементов (разделенные пробелом)
+'' example: Containers(Payments PaymentsDb)
+!unquoted procedure Containers($aliases)
+    !assert $aliases != "" : "At least one alias required"
+    $include_elements("container", "", $aliases, %false())
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' 2-arg форма Containers: явный путь к каталогу с объявлениями элементов.
+'' args: $source - путь к каталогу с объявлениями элементов
+''       $aliases - перечисление имен элементов (разделенные пробелом)
+'' example: Containers("Elements", Payments PaymentsDb)
+!unquoted procedure Containers($source, $aliases)
+    !assert $source != "" : "Source path is required"
+    !assert $aliases != "" : "At least one alias required"
+    $include_elements("container", $source, $aliases, %false())
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Включает зарегистрированные элементы Container как внешние (с серым фоном).
+'' 1-arg форма: пути через Locator.
+'' args: $aliases - перечисление имен элементов (разделенные пробелом)
+'' example: Containers_Ext(ExternalApi)
+!unquoted procedure Containers_Ext($aliases)
+    !assert $aliases != "" : "At least one alias required"
+    $include_elements("container", "", $aliases, %true())
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' 2-arg форма Containers_Ext: явный путь.
+'' args: $source - путь к каталогу с объявлениями элементов
+''       $aliases - перечисление имен элементов (разделенные пробелом)
+'' example: Containers_Ext("Elements", ExternalApi)
+!unquoted procedure Containers_Ext($source, $aliases)
+    !assert $source != "" : "Source path is required"
+    !assert $aliases != "" : "At least one alias required"
+    $include_elements("container", $source, $aliases, %true())
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Включает зарегистрированные Boundary в текущую диаграмму.
@@ -174,7 +291,10 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
 ''       $reason - обоснование присутствия элемента в архитектуре (опционально)
 ''       $reason_source - источник обоснования: требование, документ, глоссарий (опционально)
 '' returns: JSON-объект {type, label, desc, sprite, tags, link, element_type, reason, reason_source}
-!function $default_c4_element_descriptor($element_type, $label, $desc="", $sprite="", $tags="", $link="", $type="", $reason="", $reason_source="", $boundary="")
+!function $default_c4_element_descriptor( \
+    $element_type, $label, $desc="", $sprite="", $tags="", $link="", \
+    $type="", $reason="", $reason_source="", $boundary="", $techn="", $baseShape="" \
+)
     '' TODO: добавить остальные атрибуты C4-элемента
     !$descriptor = {}
     !$descriptor = $json_add($descriptor, "type", $element_type)
@@ -187,6 +307,8 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
     !$descriptor = $json_add($descriptor, "reason", $reason)
     !$descriptor = $json_add($descriptor, "reason_source", $reason_source)
     !$descriptor = $json_add($descriptor, "boundary", $boundary)
+    !$descriptor = $json_add($descriptor, "techn", $techn)
+    !$descriptor = $json_add($descriptor, "baseShape", $baseShape)
     !return $descriptor
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
@@ -287,6 +409,57 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
     !$params = $resolve_system_render_params($descriptor, $decorator)
     $render_c4_element($alias, $params)
 !endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Рендерит элемент типа Container в нотации C4 Container.
+'' Десериализует дескриптор, вычисляет параметры с учётом декоратора,
+'' затем вызывает диспетчер $render_c4_container_element.
+'' args: $alias - алиас элемента
+''       $serialized_descriptor - дескриптор элемента
+''         {type, label, techn, desc, sprite, tags, link, element_type, baseShape}
+''       $decorator - декоратор элемента {is_extern, show_desc, sprite, styles}
+!procedure $render_container($alias, $serialized_descriptor, $decorator)
+    !$descriptor = $str2json($serialized_descriptor, $without_quotes = %true())
+    !$params = $resolve_container_render_params($descriptor, $decorator)
+    $render_c4_container_element($alias, $params)
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Диспетчер рендеринга: вызывает нативную процедуру C4-PlantUML.
+'' Container(...) принимает 8 аргументов (включая $baseShape),
+'' ContainerDb(...) и ContainerQueue(...) принимают 7 аргументов.
+'' args: $alias - алиас элемента
+''       $params - JSON с полями {label, techn, desc, sprite, render_proc, baseShape, tags, link, is_extern}
+!procedure $render_c4_container_element($alias, $params)
+    !if $params.is_extern == %true()
+        !$render_proc_name = $format("%1_Ext", $params.render_proc)
+    !else
+        !$render_proc_name = $params.render_proc
+    !endif
+
+    !if $params.render_proc == "Container"
+        %invoke_procedure(\
+            $render_proc_name, \
+            $alias, \
+            $params.label, \
+            $params.techn, \
+            $default($params.desc), \
+            $default($params.sprite), \
+            $default($params.tags), \
+            $default($params.link), \
+            $default($params.baseShape) \
+        )
+    !else
+        %invoke_procedure(\
+            $render_proc_name, \
+            $alias, \
+            $params.label, \
+            $params.techn, \
+            $default($params.desc), \
+            $default($params.sprite), \
+            $default($params.tags), \
+            $default($params.link) \
+        )
+    !endif
+!endprocedure
 !procedure $render_c4_element($alias, $params)
     !if $params.is_extern == %true()
         !$render_proc_name = $format("%1_Ext", $params.render_proc)
@@ -382,6 +555,40 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
 
     !$params = $json_add($params, "is_extern", $decorator.is_extern)
 
+    !return $params
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Вычисляет параметры рендеринга для элемента Container.
+'' Маппинг element_type → нативная функция:
+''   "Db" → ContainerDb, "Queue" → ContainerQueue, иначе → Container
+''   $baseShape передаётся только для Container (у Db/Queue форма фиксирована).
+'' args: $descriptor - JSON-объект {type, label, techn, desc, sprite, tags, link, element_type, baseShape}
+''       $decorator - JSON-объект {is_extern, show_desc, sprite, styles}
+'' returns: JSON-объект {label, techn, desc, sprite, render_proc, baseShape, tags, type, link, is_extern}
+!function $resolve_container_render_params($descriptor, $decorator)
+    !$params = {}
+    !$etype = $default($descriptor.element_type)
+
+    !$params = $json_add($params, "label", $descriptor.label)
+    !$params = $json_add($params, "techn", $default($descriptor.techn))
+    !$params = $json_add($params, "desc", $value_or_default($decorator.show_desc == %true(), $descriptor.desc))
+    !$params = $json_add($params, "sprite", $value_or_default($decorator.sprite, $default($descriptor.sprite)))
+
+    !if $etype == "Db"
+        !$params = $json_add($params, "render_proc", "ContainerDb")
+        !$params = $json_add($params, "baseShape", "")
+    !elseif $etype == "Queue"
+        !$params = $json_add($params, "render_proc", "ContainerQueue")
+        !$params = $json_add($params, "baseShape", "")
+    !else
+        !$params = $json_add($params, "render_proc", "Container")
+        !$params = $json_add($params, "baseShape", $default($descriptor.baseShape))
+    !endif
+
+    !$params = $json_add($params, "tags", $combine_tags($default($descriptor.tags), $array2str($decorator.styles, "+")))
+    !$params = $json_add($params, "type", $etype)
+    !$params = $json_add($params, "link", $default($descriptor.link))
+    !$params = $json_add($params, "is_extern", $decorator.is_extern)
     !return $params
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------

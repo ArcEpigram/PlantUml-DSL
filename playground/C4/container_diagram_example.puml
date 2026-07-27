@@ -1,0 +1,45 @@
+@startuml
+!include ../../src/C4/Context.puml
+
+'' ======================================================================
+'' C4 Container — демонстрация работы с контейнерами
+'' Показывает регистрацию $Container / $ContainerDb / $ContainerQueue,
+'' включение в диаграмму через Containers(), и вложение в Boundary
+'' через атрибут $boundary.
+'' ======================================================================
+
+'' Окружение Locator — пути к каталогам с описаниями элементов.
+'' В реальном проекте это выносится в ENV.puml, но для автономного
+'' playground-примера задаём переменные inline.
+!$LOCATOR_BOUNDARIES_ROOT = "Elements"
+!$LOCATOR_SYSTEMS_ROOT = "Elements"
+!$LOCATOR_CONTAINERS_ROOT = "Elements"
+!$LOCATOR_RELATIONS_ROOT = "Relations"
+
+'' 1. Регистрация границ
+$Boundary("Enterprise", "Корп. окружение", "Защищённый контур компании", "", "", "Enterprise")
+$Boundary("CoreSystem", "Программное ядро", "", "", "", "System")
+
+'' 2. Регистрация родительской системы
+$System("ERP", "ERP-система", "Корпоративная система планирования", $boundary=CoreSystem)
+
+'' 3. Регистрация контейнеров — три варианта
+$Container("Payments", "Платежи", "Java 17 + Spring Boot", \
+            "Микросервис обработки платежей", $boundary=CoreSystem)
+$ContainerDb("PaymentsDb", "БД платежей", "PostgreSQL 15", \
+             "Хранилище платёжных транзакций", $boundary=CoreSystem)
+$ContainerQueue("PaymentsQueue", "Очередь событий", "RabbitMQ 3.12", \
+                "Асинхронные уведомления", $boundary=CoreSystem)
+
+'' 4. Регистрация связей между контейнерами
+$Relation(Payments, PaymentsDb, "Читает и пишет", "", "JDBC", "Основной канал данных")
+$Relation(Payments, PaymentsQueue, "Публикует события", "", "AMQP", "Уведомления")
+$Relation(PaymentsQueue, Payments, "Доставляет события", "", "AMQP")
+
+'' 5. Включение в диаграмму (1-arg форма: пути через Locator)
+Containers(Payments PaymentsDb PaymentsQueue)
+Relations(Payments-PaymentsDb Payments-PaymentsQueue PaymentsQueue-Payments)
+
+'' 6. Рендеринг
+Diagram("C4 Container — Payments внутри ERP")
+@enduml
