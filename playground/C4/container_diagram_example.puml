@@ -8,6 +8,14 @@
 '' через атрибут $boundary.
 '' ======================================================================
 
+'' Окружение Locator — пути к каталогам с описаниями элементов.
+'' В реальном проекте это выносится в ENV.puml, но для автономного
+'' playground-примера задаём переменные inline.
+!$LOCATOR_BOUNDARIES_ROOT = "Elements"
+!$LOCATOR_SYSTEMS_ROOT = "Elements"
+!$LOCATOR_CONTAINERS_ROOT = "Elements"
+!$LOCATOR_RELATIONS_ROOT = "Relations"
+
 '' 1. Регистрация границ
 $Boundary("Enterprise", "Корп. окружение", "Защищённый контур компании", "", "", "Enterprise")
 $Boundary("CoreSystem", "Программное ядро", "", "", "", "System")
@@ -28,9 +36,9 @@ $Relation(Payments, PaymentsDb, "Читает и пишет", "", "JDBC", "Ос�
 $Relation(Payments, PaymentsQueue, "Публикует события", "", "AMQP", "Уведомления")
 $Relation(PaymentsQueue, Payments, "Доставляет события", "", "AMQP")
 
-'' 5. Включение в диаграмму
-Containers("", Payments PaymentsDb PaymentsQueue)
-Relations("", Payments-PaymentsDb Payments-PaymentsQueue PaymentsQueue-Payments)
+'' 5. Включение в диаграмму (1-arg форма: пути через Locator)
+Containers(Payments PaymentsDb PaymentsQueue)
+Relations(Payments-PaymentsDb Payments-PaymentsQueue PaymentsQueue-Payments)
 
 '' 6. Рендеринг
 Diagram("C4 Container — Payments внутри ERP")
