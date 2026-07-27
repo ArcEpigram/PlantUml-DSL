@@ -1,7 +1,7 @@
 @startuml
 !include ../../../src/C4/Context.puml
 
-\ Регистрация элемента
-$ContainerQueue(PaymentsQueue, "Очередь событий", "RabbitMQ 3.12", \r
+'' Регистрация элемента
+$ContainerQueue(PaymentsQueue, "Очередь событий", "RabbitMQ 3.12", \
                 "Асинхронные уведомления", $boundary=CoreSystem)
 @enduml
