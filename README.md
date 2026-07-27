@@ -1,7 +1,7 @@
 # PlantUML DSL
 ![logo](./logo.png)
 
-![Version](https://img.shields.io/badge/version-0.15.0-blue) ![Tests](https://img.shields.io/badge/tests-passing-brightgreen) ![License](https://img.shields.io/badge/license-MIT-green)
+![Version](https://img.shields.io/badge/version-0.16.0-blue) ![Tests](https://img.shields.io/badge/tests-passing-brightgreen) ![License](https://img.shields.io/badge/license-MIT-green)
 
 ---
 
