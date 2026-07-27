@@ -408,6 +408,57 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
     !$params = $resolve_system_render_params($descriptor, $decorator)
     $render_c4_element($alias, $params)
 !endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Рендерит элемент типа Container в нотации C4 Container.
+'' Десериализует дескриптор, вычисляет параметры с учётом декоратора,
+'' затем вызывает диспетчер $render_c4_container_element.
+'' args: $alias - алиас элемента
+''       $serialized_descriptor - дескриптор элемента
+''         {type, label, techn, desc, sprite, tags, link, element_type, baseShape}
+''       $decorator - декоратор элемента {is_extern, show_desc, sprite, styles}
+!procedure $render_container($alias, $serialized_descriptor, $decorator)
+    !$descriptor = $str2json($serialized_descriptor, $without_quotes = %true())
+    !$params = $resolve_container_render_params($descriptor, $decorator)
+    $render_c4_container_element($alias, $params)
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Диспетчер рендеринга: вызывает нативную процедуру C4-PlantUML.
+'' Container(...) принимает 8 аргументов (включая $baseShape),
+'' ContainerDb(...) и ContainerQueue(...) принимают 7 аргументов.
+'' args: $alias - алиас элемента
+''       $params - JSON с полями {label, techn, desc, sprite, render_proc, baseShape, tags, link, is_extern}
+!procedure $render_c4_container_element($alias, $params)
+    !if $params.is_extern == %true()
+        !$render_proc_name = $format("%1_Ext", $params.render_proc)
+    !else
+        !$render_proc_name = $params.render_proc
+    !endif
+
+    !if $params.render_proc == "Container"
+        %invoke_procedure(\
+            $render_proc_name, \
+            $alias, \
+            $params.label, \
+            $params.techn, \
+            $params.desc, \
+            $params.sprite, \
+            $params.tags, \
+            $params.link, \
+            $params.baseShape \
+        )
+    !else
+        %invoke_procedure(\
+            $render_proc_name, \
+            $alias, \
+            $params.label, \
+            $params.techn, \
+            $params.desc, \
+            $params.sprite, \
+            $params.tags, \
+            $params.link \
+        )
+    !endif
+!endprocedure
 !procedure $render_c4_element($alias, $params)
     !if $params.is_extern == %true()
         !$render_proc_name = $format("%1_Ext", $params.render_proc)

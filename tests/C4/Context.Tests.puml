@@ -1420,6 +1420,47 @@
     '' Cleanup
     $reset_rendering_queue()
 !endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Container dispatch
+''----------------------------------------------------------------------------------------------------------------------
+!procedure render_dispatch_should_call_render_container_for_default()
+    '' Arrange
+    $Container("Cn_Disp1", "MyContainer", "Java")
+    !$descriptor = $get_descriptor("Cn_Disp1")
+    !$decorator = $get_decorator("Cn_Disp1")
+
+    '' Act
+    !$render_proc_key = "RENDER_PROC_Container"
+    !assert %variable_exists($render_proc_key) == %true()
+    !$render_proc = %get_variable_value($render_proc_key)
+    !assert $render_proc == "$render_container"
+!endprocedure
+
+!procedure render_dispatch_should_call_render_container_for_db()
+    '' Arrange
+    $ContainerDb("Cn_Disp2", "MyDb", "PostgreSQL")
+    !$descriptor = $get_descriptor("Cn_Disp2")
+    !$decorator = $get_decorator("Cn_Disp2")
+
+    '' Act
+    !$render_proc_key = "RENDER_PROC_Container"
+    !assert %variable_exists($render_proc_key) == %true()
+    !$render_proc = %get_variable_value($render_proc_key)
+    !assert $render_proc == "$render_container"
+!endprocedure
+
+!procedure render_dispatch_should_call_render_container_for_queue()
+    '' Arrange
+    $ContainerQueue("Cn_Disp3", "MyQueue", "RabbitMQ")
+    !$descriptor = $get_descriptor("Cn_Disp3")
+    !$decorator = $get_decorator("Cn_Disp3")
+
+    '' Act
+    !$render_proc_key = "RENDER_PROC_Container"
+    !assert %variable_exists($render_proc_key) == %true()
+    !$render_proc = %get_variable_value($render_proc_key)
+    !assert $render_proc == "$render_container"
+!endprocedure
 
 person_registration_should_create_descriptor_with_person_type()
 person_registration_should_create_decorator_with_defaults()
@@ -1524,6 +1565,9 @@ resolve_container_render_params_should_ignore_baseShape_for_queue()
 resolve_container_render_params_should_pass_descr_when_show_desc_true()
 include_elements_should_locate_container_via_locator()
 include_elements_should_explicit_source_path_for_container()
+render_dispatch_should_call_render_container_for_default()
+render_dispatch_should_call_render_container_for_db()
+render_dispatch_should_call_render_container_for_queue()
 ''----------------------------------------------------------------------------------------------------------------------
 caption OK
 @enduml
