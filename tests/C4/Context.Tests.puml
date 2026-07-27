@@ -1106,6 +1106,80 @@
 
     !assert $result == %true()
 !endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Container registration
+''----------------------------------------------------------------------------------------------------------------------
+!procedure container_registration_should_create_descriptor_with_type_container()
+    '' Arrange, Act
+    $Container("Cn_Reg1", "MyContainer")
+
+    '' Assert
+    !$serialized = $get_descriptor("Cn_Reg1")
+    !$desc = $str2json($serialized, $without_quotes = %true())
+    !assert $desc.type == "Container"
+!endprocedure
+
+!procedure container_registration_should_save_label_and_descr()
+    '' Arrange, Act
+    $Container("Cn_Reg2", "MyContainer", "", "My descr")
+
+    '' Assert
+    !$serialized = $get_descriptor("Cn_Reg2")
+    !$desc = $str2json($serialized, $without_quotes = %true())
+    !assert $desc.label == "MyContainer"
+    !assert $desc.desc == "My descr"
+!endprocedure
+
+!procedure container_registration_should_save_techn_field()
+    '' Arrange, Act
+    $Container("Cn_Reg3", "MyContainer", "Java 17 + Spring")
+
+    '' Assert
+    !$serialized = $get_descriptor("Cn_Reg3")
+    !$desc = $str2json($serialized, $without_quotes = %true())
+    !assert $default($desc.techn) == "Java 17 + Spring"
+!endprocedure
+
+!procedure container_registration_should_default_techn_to_empty()
+    '' Arrange, Act
+    $Container("Cn_Reg4", "MyContainer")
+
+    '' Assert
+    !$serialized = $get_descriptor("Cn_Reg4")
+    !$desc = $str2json($serialized, $without_quotes = %true())
+    !assert $default($desc.techn) == ""
+!endprocedure
+
+!procedure container_registration_should_default_baseShape_to_empty()
+    '' Arrange, Act
+    $Container("Cn_Reg5", "MyContainer")
+
+    '' Assert
+    !$serialized = $get_descriptor("Cn_Reg5")
+    !$desc = $str2json($serialized, $without_quotes = %true())
+    !assert $default($desc.baseShape) == ""
+!endprocedure
+
+!procedure container_registration_should_save_baseShape_field()
+    '' Arrange, Act
+    $Container("Cn_Reg6", "MyContainer", "", "", "", "", "", "hexagon")
+
+    '' Assert
+    !$serialized = $get_descriptor("Cn_Reg6")
+    !$desc = $str2json($serialized, $without_quotes = %true())
+    !assert $desc.baseShape == "hexagon"
+!endprocedure
+
+!procedure container_registration_should_save_boundary_attribute()
+    '' Arrange, Act
+    $Boundary("CnBnd", "Test Boundary", "", "", "", "System")
+    $Container("Cn_Reg7", "MyContainer", "", "", "", "", "", "", "", "", "CnBnd")
+
+    '' Assert
+    !$serialized = $get_descriptor("Cn_Reg7")
+    !$desc = $str2json($serialized, $without_quotes = %true())
+    !assert $desc.boundary == "CnBnd"
+!endprocedure
 
 person_registration_should_create_descriptor_with_person_type()
 person_registration_should_create_decorator_with_defaults()
@@ -1189,6 +1263,13 @@ resolve_system_render_params_sets_render_proc_to_System()
 resolve_system_render_params_maps_queue_type_to_SystemQueue()
 resolve_system_render_params_maps_db_type_to_SystemDb()
 c4_container_stdlib_should_be_loaded()
+container_registration_should_create_descriptor_with_type_container()
+container_registration_should_save_label_and_descr()
+container_registration_should_save_techn_field()
+container_registration_should_default_techn_to_empty()
+container_registration_should_default_baseShape_to_empty()
+container_registration_should_save_baseShape_field()
+container_registration_should_save_boundary_attribute()
 ''----------------------------------------------------------------------------------------------------------------------
 caption OK
 @enduml
