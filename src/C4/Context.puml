@@ -96,8 +96,8 @@ $register_rendering_proc("Container", $proc="$render_container")
 ''       $boundary - алиас Boundary для авто-группировки (опционально)
 '' example: $Container("Payments", "Платежи", "Java 17 + Spring Boot", "Микросервис платежей")
 !unquoted procedure $Container($alias, $label, $techn="", $descr="", $sprite="", \
-    $tags="", $link="", $baseShape="", $reason="", $reason_source="", \
-    $boundary="")
+    $tags="", $link="", $baseShape="rectangle", $reason="", \
+    $reason_source="", $boundary="")
     !assert $alias != "" : "Container alias is required"
     !assert $label != "" : "Container label is required"
     !$descriptor = $default_c4_element_descriptor("Container", \
