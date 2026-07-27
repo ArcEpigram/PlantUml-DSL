@@ -1,0 +1,7 @@
+@startuml
+!include ../../../src/C4/Context.puml
+
+\ Регистрация элемента
+$Container(Payments, "Платежи", "Java 17 + Spring Boot", \r
+           "Микросервис обработки платежей", $boundary=CoreSystem)
+@enduml

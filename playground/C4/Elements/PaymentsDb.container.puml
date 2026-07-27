@@ -1,0 +1,7 @@
+@startuml
+!include ../../../src/C4/Context.puml
+
+\ Регистрация элемента
+$ContainerDb(PaymentsDb, "БД платежей", "PostgreSQL 15", \r
+             "Хранилище платёжных транзакций", $boundary=CoreSystem)
+@enduml
