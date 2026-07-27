@@ -93,10 +93,15 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
 ''       $reason_source - источник обоснования: требование, документ, глоссарий (опционально)
 ''       $boundary - алиас Boundary для авто-группировки (опционально)
 '' example: $Container("Payments", "Платежи", "Java 17 + Spring Boot", "Микросервис платежей")
-!unquoted procedure $Container($alias, $label, $techn="", $descr="", $sprite="", $tags="", $link="", $baseShape="", $reason="", $reason_source="", $boundary="")
+!unquoted procedure $Container($alias, $label, $techn="", $descr="", $sprite="", \
+    $tags="", $link="", $baseShape="", $reason="", $reason_source="", \
+    $boundary="")
     !assert $alias != "" : "Container alias is required"
     !assert $label != "" : "Container label is required"
-    !$descriptor = $default_c4_element_descriptor("Container", $label, $descr, $sprite, $tags, $link, "", $reason, $reason_source, $boundary, $techn, $baseShape)
+    !$descriptor = $default_c4_element_descriptor("Container", \
+        $label, $descr, $sprite, $tags, $link, "", \
+        $reason, $reason_source, $boundary, $techn, $baseShape \
+    )
     $register_descriptor($alias, $json2str($descriptor, %true()))
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
