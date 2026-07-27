@@ -80,7 +80,8 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Регистрирует архитектурный элемент типа Container.
-'' Совместима со стандартной библиотекой C4-PlantUML: Container($alias, $label, $techn, $descr, $sprite, $tags, $link, $baseShape).
+'' Совместима со стандартной библиотекой C4-PlantUML.
+'' Сигнатура: Container($alias, $label, $techn, $descr, $sprite, $tags, $link, $baseShape).
 '' args: $alias - уникальный алиас элемента
 ''       $label - отображаемое имя элемента
 ''       $techn - технология (опционально)
@@ -106,7 +107,8 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Регистрирует архитектурный элемент типа ContainerDb (БД в форме "цилиндр").
-'' Совместима со стандартной библиотекой C4-PlantUML: ContainerDb($alias, $label, $techn, $descr, $sprite, $tags, $link).
+'' Совместима со стандартной библиотекой C4-PlantUML.
+'' Сигнатура: ContainerDb($alias, $label, $techn, $descr, $sprite, $tags, $link).
 '' args: $alias - уникальный алиас элемента
 ''       $label - отображаемое имя элемента
 ''       $techn - технология (опционально)
