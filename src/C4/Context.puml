@@ -441,11 +441,11 @@ $register_rendering_proc("Container", $proc="$render_container")
             $alias, \
             $params.label, \
             $params.techn, \
-            $params.desc, \
-            $params.sprite, \
-            $params.tags, \
-            $params.link, \
-            $params.baseShape \
+            $default($params.desc), \
+            $default($params.sprite), \
+            $default($params.tags), \
+            $default($params.link), \
+            $default($params.baseShape) \
         )
     !else
         %invoke_procedure(\
@@ -453,10 +453,10 @@ $register_rendering_proc("Container", $proc="$render_container")
             $alias, \
             $params.label, \
             $params.techn, \
-            $params.desc, \
-            $params.sprite, \
-            $params.tags, \
-            $params.link \
+            $default($params.desc), \
+            $default($params.sprite), \
+            $default($params.tags), \
+            $default($params.link) \
         )
     !endif
 !endprocedure
