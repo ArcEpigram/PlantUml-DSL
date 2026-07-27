@@ -1230,6 +1230,37 @@
     !assert $default($desc.baseShape) == ""
     !assert $default($desc.techn) == "RabbitMQ 3.12"
 !endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure include_elements_should_locate_container_via_locator()
+    '' Arrange
+    !$LOCATOR_CONTAINERS_ROOT = "TestContainers"
+    $Container("Cn_Inc1", "MyContainer", "Java")
+
+    '' Act
+    Containers(Cn_Inc1)
+
+    '' Assert: элемент попал в очередь рендеринга
+    !$queue = $get_rendering_queue()
+    !assert $contain_in_list($queue, "Cn_Inc1") == %true()
+
+    '' Cleanup
+    $reset_rendering_queue()
+!endprocedure
+
+!procedure include_elements_should_explicit_source_path_for_container()
+    '' Arrange
+    $Container("Cn_Inc2", "MyContainer2", "Go")
+
+    '' Act
+    Containers("TestContainers", Cn_Inc2)
+
+    '' Assert: элемент в очереди (включение с явным source)
+    !$queue = $get_rendering_queue()
+    !assert $contain_in_list($queue, "Cn_Inc2") == %true()
+
+    '' Cleanup
+    $reset_rendering_queue()
+!endprocedure
 
 person_registration_should_create_descriptor_with_person_type()
 person_registration_should_create_decorator_with_defaults()
@@ -1324,6 +1355,8 @@ containerdb_registration_should_set_element_type_to_db()
 containerdb_registration_should_not_carry_baseshape()
 containerqueue_registration_should_set_element_type_to_queue()
 containerqueue_registration_should_not_carry_baseshape()
+include_elements_should_locate_container_via_locator()
+include_elements_should_explicit_source_path_for_container()
 ''----------------------------------------------------------------------------------------------------------------------
 caption OK
 @enduml

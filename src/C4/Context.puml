@@ -156,6 +156,44 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
     $register_descriptor($alias, $json2str($descriptor, %true()))
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
+'' Включает зарегистрированные элементы Container в текущую диаграмму.
+'' 1-arg форма: пути через Locator (нужна переменная окружения LOCATOR_CONTAINERS_ROOT).
+'' args: $aliases - перечисление имен элементов (разделенные пробелом)
+'' example: Containers(Payments PaymentsDb)
+!unquoted procedure Containers($aliases)
+    !assert $aliases != "" : "At least one alias required"
+    $include_elements("container", "", $aliases, %false())
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' 2-arg форма Containers: явный путь к каталогу с объявлениями элементов.
+'' args: $source - путь к каталогу с объявлениями элементов
+''       $aliases - перечисление имен элементов (разделенные пробелом)
+'' example: Containers("Elements", Payments PaymentsDb)
+!unquoted procedure Containers($source, $aliases)
+    !assert $source != "" : "Source path is required"
+    !assert $aliases != "" : "At least one alias required"
+    $include_elements("container", $source, $aliases, %false())
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Включает зарегистрированные элементы Container как внешние (с серым фоном).
+'' 1-arg форма: пути через Locator.
+'' args: $aliases - перечисление имен элементов (разделенные пробелом)
+'' example: Containers_Ext(ExternalApi)
+!unquoted procedure Containers_Ext($aliases)
+    !assert $aliases != "" : "At least one alias required"
+    $include_elements("container", "", $aliases, %true())
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' 2-arg форма Containers_Ext: явный путь.
+'' args: $source - путь к каталогу с объявлениями элементов
+''       $aliases - перечисление имен элементов (разделенные пробелом)
+'' example: Containers_Ext("Elements", ExternalApi)
+!unquoted procedure Containers_Ext($source, $aliases)
+    !assert $source != "" : "Source path is required"
+    !assert $aliases != "" : "At least one alias required"
+    $include_elements("container", $source, $aliases, %true())
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
 '' Включает зарегистрированные Boundary в текущую диаграмму.
 '' Создаёт/обновляет группу в BOUNDARY_GROUPS с label и типом из дескриптора.
 '' 1-arg форма: пути через Locator (нужна переменная окружения LOCATOR_BOUNDARIES_ROOT).
