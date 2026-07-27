@@ -105,6 +105,30 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
     $register_descriptor($alias, $json2str($descriptor, %true()))
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
+'' Регистрирует архитектурный элемент типа ContainerDb (БД в форме "цилиндр").
+'' Совместима со стандартной библиотекой C4-PlantUML: ContainerDb($alias, $label, $techn, $descr, $sprite, $tags, $link).
+'' args: $alias - уникальный алиас элемента
+''       $label - отображаемое имя элемента
+''       $techn - технология (опционально)
+''       $descr - описание элемента (опционально)
+''       $sprite - спрайт элемента (опционально)
+''       $tags - теги элемента (опционально)
+''       $link - ссылка элемента (опционально)
+''       $reason - обоснование присутствия элемента в архитектуре (опционально)
+''       $reason_source - источник обоснования (опционально)
+''       $boundary - алиас Boundary для авто-группировки (опционально)
+'' example: $ContainerDb("PaymentsDb", "БД платежей", "PostgreSQL 15", "Хранилище транзакций")
+!unquoted procedure $ContainerDb($alias, $label, $techn="", $descr="", $sprite="", \
+    $tags="", $link="", $reason="", $reason_source="", $boundary="")
+    !assert $alias != "" : "ContainerDb alias is required"
+    !assert $label != "" : "ContainerDb label is required"
+    !$descriptor = $default_c4_element_descriptor("Container", \
+        $label, $descr, $sprite, $tags, $link, "Db", \
+        $reason, $reason_source, $boundary, $techn, "" \
+    )
+    $register_descriptor($alias, $json2str($descriptor, %true()))
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
 '' Включает зарегистрированные Boundary в текущую диаграмму.
 '' Создаёт/обновляет группу в BOUNDARY_GROUPS с label и типом из дескриптора.
 '' 1-arg форма: пути через Locator (нужна переменная окружения LOCATOR_BOUNDARIES_ROOT).

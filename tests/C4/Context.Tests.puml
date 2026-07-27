@@ -1181,6 +1181,31 @@
     !assert $desc.boundary == "CnBnd"
 !endprocedure
 
+''----------------------------------------------------------------------------------------------------------------------
+'' ContainerDb registration
+''----------------------------------------------------------------------------------------------------------------------
+!procedure containerdb_registration_should_set_element_type_to_db()
+    '' Arrange, Act
+    $ContainerDb("Db_Reg1", "MyDb")
+
+    '' Assert
+    !$serialized = $get_descriptor("Db_Reg1")
+    !$desc = $str2json($serialized, $without_quotes = %true())
+    !assert $desc.type == "Container"
+    !assert $desc.element_type == "Db"
+!endprocedure
+
+!procedure containerdb_registration_should_not_carry_baseshape()
+    '' Arrange, Act
+    $ContainerDb("Db_Reg2", "MyDb", "PostgreSQL 15")
+
+    '' Assert
+    !$serialized = $get_descriptor("Db_Reg2")
+    !$desc = $str2json($serialized, $without_quotes = %true())
+    !assert $default($desc.baseShape) == ""
+    !assert $default($desc.techn) == "PostgreSQL 15"
+!endprocedure
+
 person_registration_should_create_descriptor_with_person_type()
 person_registration_should_create_decorator_with_defaults()
 person_registration_should_save_description()
@@ -1270,6 +1295,8 @@ container_registration_should_default_techn_to_empty()
 container_registration_should_default_baseShape_to_empty()
 container_registration_should_save_baseShape_field()
 container_registration_should_save_boundary_attribute()
+containerdb_registration_should_set_element_type_to_db()
+containerdb_registration_should_not_carry_baseshape()
 ''----------------------------------------------------------------------------------------------------------------------
 caption OK
 @enduml
