@@ -567,54 +567,158 @@
 '' Tests for $resolve_container_render_params
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_container_render_params_should_map_default_to_container()
-    !$descriptor = {"type":"Container", "element_type":"", "label":"L", "techn":"T", "desc":"D", "sprite":"", "tags":"", "link":"", "baseShape":"hexagon"}
-    !$decorator = {"is_extern":%false(), "show_desc":%true(), "sprite":"", "styles":[]}
+    !$descriptor = {}
+    !$descriptor = $json_add($descriptor, "type", "Container")
+    !$descriptor = $json_add($descriptor, "element_type", "")
+    !$descriptor = $json_add($descriptor, "label", "L")
+    !$descriptor = $json_add($descriptor, "techn", "T")
+    !$descriptor = $json_add($descriptor, "desc", "D")
+    !$descriptor = $json_add($descriptor, "sprite", "")
+    !$descriptor = $json_add($descriptor, "tags", "")
+    !$descriptor = $json_add($descriptor, "link", "")
+    !$descriptor = $json_add($descriptor, "baseShape", "hexagon")
+    !$decorator = {}
+    !$decorator = $json_add($decorator, "is_extern", %false())
+    !$decorator = $json_add($decorator, "show_desc", %true())
+    !$decorator = $json_add($decorator, "sprite", "")
+    !$decorator = $json_add($decorator, "styles", [])
     !$params = $resolve_container_render_params($descriptor, $decorator)
     !assert $params.render_proc == "Container"
     !assert $params.baseShape == "hexagon"
 !endprocedure
 !procedure resolve_container_render_params_should_map_db_to_containerdb()
-    !$descriptor = {"type":"Container", "element_type":"Db", "label":"L", "techn":"T", "desc":"D", "sprite":"", "tags":"", "link":"", "baseShape":"hexagon"}
-    !$decorator = {"is_extern":%false(), "show_desc":%true(), "sprite":"", "styles":[]}
+    !$descriptor = {}
+    !$descriptor = $json_add($descriptor, "type", "Container")
+    !$descriptor = $json_add($descriptor, "element_type", "Db")
+    !$descriptor = $json_add($descriptor, "label", "L")
+    !$descriptor = $json_add($descriptor, "techn", "T")
+    !$descriptor = $json_add($descriptor, "desc", "D")
+    !$descriptor = $json_add($descriptor, "sprite", "")
+    !$descriptor = $json_add($descriptor, "tags", "")
+    !$descriptor = $json_add($descriptor, "link", "")
+    !$descriptor = $json_add($descriptor, "baseShape", "hexagon")
+    !$decorator = {}
+    !$decorator = $json_add($decorator, "is_extern", %false())
+    !$decorator = $json_add($decorator, "show_desc", %true())
+    !$decorator = $json_add($decorator, "sprite", "")
+    !$decorator = $json_add($decorator, "styles", [])
     !$params = $resolve_container_render_params($descriptor, $decorator)
     !assert $params.render_proc == "ContainerDb"
     !assert $params.baseShape == ""
 !endprocedure
 !procedure resolve_container_render_params_should_map_queue_to_containerqueue()
-    !$descriptor = {"type":"Container", "element_type":"Queue", "label":"L", "techn":"T", "desc":"D", "sprite":"", "tags":"", "link":"", "baseShape":"hexagon"}
-    !$decorator = {"is_extern":%false(), "show_desc":%true(), "sprite":"", "styles":[]}
+    !$descriptor = {}
+    !$descriptor = $json_add($descriptor, "type", "Container")
+    !$descriptor = $json_add($descriptor, "element_type", "Queue")
+    !$descriptor = $json_add($descriptor, "label", "L")
+    !$descriptor = $json_add($descriptor, "techn", "T")
+    !$descriptor = $json_add($descriptor, "desc", "D")
+    !$descriptor = $json_add($descriptor, "sprite", "")
+    !$descriptor = $json_add($descriptor, "tags", "")
+    !$descriptor = $json_add($descriptor, "link", "")
+    !$descriptor = $json_add($descriptor, "baseShape", "hexagon")
+    !$decorator = {}
+    !$decorator = $json_add($decorator, "is_extern", %false())
+    !$decorator = $json_add($decorator, "show_desc", %true())
+    !$decorator = $json_add($decorator, "sprite", "")
+    !$decorator = $json_add($decorator, "styles", [])
     !$params = $resolve_container_render_params($descriptor, $decorator)
     !assert $params.render_proc == "ContainerQueue"
     !assert $params.baseShape == ""
 !endprocedure
 !procedure resolve_container_render_params_should_pass_techn_to_label_position()
-    !$descriptor = {"type":"Container", "element_type":"", "label":"MyLabel", "techn":"Java + Spring", "desc":"", "sprite":"", "tags":"", "link":"", "baseShape":""}
-    !$decorator = {"is_extern":%false(), "show_desc":%true(), "sprite":"", "styles":[]}
+    !$descriptor = {}
+    !$descriptor = $json_add($descriptor, "type", "Container")
+    !$descriptor = $json_add($descriptor, "element_type", "")
+    !$descriptor = $json_add($descriptor, "label", "MyLabel")
+    !$descriptor = $json_add($descriptor, "techn", "Java + Spring")
+    !$descriptor = $json_add($descriptor, "desc", "")
+    !$descriptor = $json_add($descriptor, "sprite", "")
+    !$descriptor = $json_add($descriptor, "tags", "")
+    !$descriptor = $json_add($descriptor, "link", "")
+    !$descriptor = $json_add($descriptor, "baseShape", "")
+    !$decorator = {}
+    !$decorator = $json_add($decorator, "is_extern", %false())
+    !$decorator = $json_add($decorator, "show_desc", %true())
+    !$decorator = $json_add($decorator, "sprite", "")
+    !$decorator = $json_add($decorator, "styles", [])
     !$params = $resolve_container_render_params($descriptor, $decorator)
     !assert $params.techn == "Java + Spring"
     !assert $params.label == "MyLabel"
 !endprocedure
 !procedure resolve_container_render_params_should_pass_baseShape_for_default()
-    !$descriptor = {"type":"Container", "element_type":"", "label":"L", "techn":"", "desc":"", "sprite":"", "tags":"", "link":"", "baseShape":"rectangle"}
-    !$decorator = {"is_extern":%false(), "show_desc":%true(), "sprite":"", "styles":[]}
+    !$descriptor = {}
+    !$descriptor = $json_add($descriptor, "type", "Container")
+    !$descriptor = $json_add($descriptor, "element_type", "")
+    !$descriptor = $json_add($descriptor, "label", "L")
+    !$descriptor = $json_add($descriptor, "techn", "")
+    !$descriptor = $json_add($descriptor, "desc", "")
+    !$descriptor = $json_add($descriptor, "sprite", "")
+    !$descriptor = $json_add($descriptor, "tags", "")
+    !$descriptor = $json_add($descriptor, "link", "")
+    !$descriptor = $json_add($descriptor, "baseShape", "rectangle")
+    !$decorator = {}
+    !$decorator = $json_add($decorator, "is_extern", %false())
+    !$decorator = $json_add($decorator, "show_desc", %true())
+    !$decorator = $json_add($decorator, "sprite", "")
+    !$decorator = $json_add($decorator, "styles", [])
     !$params = $resolve_container_render_params($descriptor, $decorator)
     !assert $params.baseShape == "rectangle"
 !endprocedure
 !procedure resolve_container_render_params_should_ignore_baseShape_for_db()
-    !$descriptor = {"type":"Container", "element_type":"Db", "label":"L", "techn":"", "desc":"", "sprite":"", "tags":"", "link":"", "baseShape":"hexagon"}
-    !$decorator = {"is_extern":%false(), "show_desc":%true(), "sprite":"", "styles":[]}
+    !$descriptor = {}
+    !$descriptor = $json_add($descriptor, "type", "Container")
+    !$descriptor = $json_add($descriptor, "element_type", "Db")
+    !$descriptor = $json_add($descriptor, "label", "L")
+    !$descriptor = $json_add($descriptor, "techn", "")
+    !$descriptor = $json_add($descriptor, "desc", "")
+    !$descriptor = $json_add($descriptor, "sprite", "")
+    !$descriptor = $json_add($descriptor, "tags", "")
+    !$descriptor = $json_add($descriptor, "link", "")
+    !$descriptor = $json_add($descriptor, "baseShape", "hexagon")
+    !$decorator = {}
+    !$decorator = $json_add($decorator, "is_extern", %false())
+    !$decorator = $json_add($decorator, "show_desc", %true())
+    !$decorator = $json_add($decorator, "sprite", "")
+    !$decorator = $json_add($decorator, "styles", [])
     !$params = $resolve_container_render_params($descriptor, $decorator)
     !assert $params.baseShape == ""
 !endprocedure
 !procedure resolve_container_render_params_should_ignore_baseShape_for_queue()
-    !$descriptor = {"type":"Container", "element_type":"Queue", "label":"L", "techn":"", "desc":"", "sprite":"", "tags":"", "link":"", "baseShape":"hexagon"}
-    !$decorator = {"is_extern":%false(), "show_desc":%true(), "sprite":"", "styles":[]}
+    !$descriptor = {}
+    !$descriptor = $json_add($descriptor, "type", "Container")
+    !$descriptor = $json_add($descriptor, "element_type", "Queue")
+    !$descriptor = $json_add($descriptor, "label", "L")
+    !$descriptor = $json_add($descriptor, "techn", "")
+    !$descriptor = $json_add($descriptor, "desc", "")
+    !$descriptor = $json_add($descriptor, "sprite", "")
+    !$descriptor = $json_add($descriptor, "tags", "")
+    !$descriptor = $json_add($descriptor, "link", "")
+    !$descriptor = $json_add($descriptor, "baseShape", "hexagon")
+    !$decorator = {}
+    !$decorator = $json_add($decorator, "is_extern", %false())
+    !$decorator = $json_add($decorator, "show_desc", %true())
+    !$decorator = $json_add($decorator, "sprite", "")
+    !$decorator = $json_add($decorator, "styles", [])
     !$params = $resolve_container_render_params($descriptor, $decorator)
     !assert $params.baseShape == ""
 !endprocedure
 !procedure resolve_container_render_params_should_pass_descr_when_show_desc_true()
-    !$descriptor = {"type":"Container", "element_type":"", "label":"L", "techn":"", "desc":"My descr", "sprite":"", "tags":"", "link":"", "baseShape":""}
-    !$decorator = {"is_extern":%false(), "show_desc":%true(), "sprite":"", "styles":[]}
+    !$descriptor = {}
+    !$descriptor = $json_add($descriptor, "type", "Container")
+    !$descriptor = $json_add($descriptor, "element_type", "")
+    !$descriptor = $json_add($descriptor, "label", "L")
+    !$descriptor = $json_add($descriptor, "techn", "")
+    !$descriptor = $json_add($descriptor, "desc", "My descr")
+    !$descriptor = $json_add($descriptor, "sprite", "")
+    !$descriptor = $json_add($descriptor, "tags", "")
+    !$descriptor = $json_add($descriptor, "link", "")
+    !$descriptor = $json_add($descriptor, "baseShape", "")
+    !$decorator = {}
+    !$decorator = $json_add($decorator, "is_extern", %false())
+    !$decorator = $json_add($decorator, "show_desc", %true())
+    !$decorator = $json_add($decorator, "sprite", "")
+    !$decorator = $json_add($decorator, "styles", [])
     !$params = $resolve_container_render_params($descriptor, $decorator)
     !assert $params.desc == "My descr"
 !endprocedure
