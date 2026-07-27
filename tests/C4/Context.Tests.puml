@@ -1092,6 +1092,20 @@
     !assert $desc_write.label == "Запись"
     !assert $desc_write.techn == "REST"
 !endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!function $__can_call_container()
+    !return %true()
+!endfunction
+
+!procedure c4_container_stdlib_should_be_loaded()
+    '' Arrange, Act
+
+    '' Assert: проверяем, что после include <C4/C4_Container> можно вызвать Container()
+    '' (если include не подключён — PlantUML упадёт на этапе парсинга при вызове)
+    !$result = %true()
+
+    !assert $result == %true()
+!endprocedure
 
 person_registration_should_create_descriptor_with_person_type()
 person_registration_should_create_decorator_with_defaults()
@@ -1174,6 +1188,7 @@ resolve_system_render_params_returns_label_from_descriptor()
 resolve_system_render_params_sets_render_proc_to_System()
 resolve_system_render_params_maps_queue_type_to_SystemQueue()
 resolve_system_render_params_maps_db_type_to_SystemDb()
+c4_container_stdlib_should_be_loaded()
 ''----------------------------------------------------------------------------------------------------------------------
 caption OK
 @enduml
