@@ -1206,6 +1206,31 @@
     !assert $default($desc.techn) == "PostgreSQL 15"
 !endprocedure
 
+''----------------------------------------------------------------------------------------------------------------------
+'' ContainerQueue registration
+''----------------------------------------------------------------------------------------------------------------------
+!procedure containerqueue_registration_should_set_element_type_to_queue()
+    '' Arrange, Act
+    $ContainerQueue("Q_Reg1", "MyQueue")
+
+    '' Assert
+    !$serialized = $get_descriptor("Q_Reg1")
+    !$desc = $str2json($serialized, $without_quotes = %true())
+    !assert $desc.type == "Container"
+    !assert $desc.element_type == "Queue"
+!endprocedure
+
+!procedure containerqueue_registration_should_not_carry_baseshape()
+    '' Arrange, Act
+    $ContainerQueue("Q_Reg2", "MyQueue", "RabbitMQ 3.12")
+
+    '' Assert
+    !$serialized = $get_descriptor("Q_Reg2")
+    !$desc = $str2json($serialized, $without_quotes = %true())
+    !assert $default($desc.baseShape) == ""
+    !assert $default($desc.techn) == "RabbitMQ 3.12"
+!endprocedure
+
 person_registration_should_create_descriptor_with_person_type()
 person_registration_should_create_decorator_with_defaults()
 person_registration_should_save_description()
@@ -1297,6 +1322,8 @@ container_registration_should_save_baseShape_field()
 container_registration_should_save_boundary_attribute()
 containerdb_registration_should_set_element_type_to_db()
 containerdb_registration_should_not_carry_baseshape()
+containerqueue_registration_should_set_element_type_to_queue()
+containerqueue_registration_should_not_carry_baseshape()
 ''----------------------------------------------------------------------------------------------------------------------
 caption OK
 @enduml
