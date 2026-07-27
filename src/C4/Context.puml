@@ -174,7 +174,10 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
 ''       $reason - обоснование присутствия элемента в архитектуре (опционально)
 ''       $reason_source - источник обоснования: требование, документ, глоссарий (опционально)
 '' returns: JSON-объект {type, label, desc, sprite, tags, link, element_type, reason, reason_source}
-!function $default_c4_element_descriptor($element_type, $label, $desc="", $sprite="", $tags="", $link="", $type="", $reason="", $reason_source="", $boundary="", $techn="", $baseShape="")
+!function $default_c4_element_descriptor( \
+    $element_type, $label, $desc="", $sprite="", $tags="", $link="", \
+    $type="", $reason="", $reason_source="", $boundary="", $techn="", $baseShape="" \
+)
     '' TODO: добавить остальные атрибуты C4-элемента
     !$descriptor = {}
     !$descriptor = $json_add($descriptor, "type", $element_type)
