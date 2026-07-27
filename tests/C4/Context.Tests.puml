@@ -563,6 +563,61 @@
 
     '' Assert
     !assert $descriptor.baseShape == "hexagon"
+''----------------------------------------------------------------------------------------------------------------------
+'' Tests for $resolve_container_render_params
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_container_render_params_should_map_default_to_container()
+    !$descriptor = {"type":"Container", "element_type":"", "label":"L", "techn":"T", "desc":"D", "sprite":"", "tags":"", "link":"", "baseShape":"hexagon"}
+    !$decorator = {"is_extern":%false(), "show_desc":%true(), "sprite":"", "styles":[]}
+    !$params = $resolve_container_render_params($descriptor, $decorator)
+    !assert $params.render_proc == "Container"
+    !assert $params.baseShape == "hexagon"
+!endprocedure
+!procedure resolve_container_render_params_should_map_db_to_containerdb()
+    !$descriptor = {"type":"Container", "element_type":"Db", "label":"L", "techn":"T", "desc":"D", "sprite":"", "tags":"", "link":"", "baseShape":"hexagon"}
+    !$decorator = {"is_extern":%false(), "show_desc":%true(), "sprite":"", "styles":[]}
+    !$params = $resolve_container_render_params($descriptor, $decorator)
+    !assert $params.render_proc == "ContainerDb"
+    !assert $params.baseShape == ""
+!endprocedure
+!procedure resolve_container_render_params_should_map_queue_to_containerqueue()
+    !$descriptor = {"type":"Container", "element_type":"Queue", "label":"L", "techn":"T", "desc":"D", "sprite":"", "tags":"", "link":"", "baseShape":"hexagon"}
+    !$decorator = {"is_extern":%false(), "show_desc":%true(), "sprite":"", "styles":[]}
+    !$params = $resolve_container_render_params($descriptor, $decorator)
+    !assert $params.render_proc == "ContainerQueue"
+    !assert $params.baseShape == ""
+!endprocedure
+!procedure resolve_container_render_params_should_pass_techn_to_label_position()
+    !$descriptor = {"type":"Container", "element_type":"", "label":"MyLabel", "techn":"Java + Spring", "desc":"", "sprite":"", "tags":"", "link":"", "baseShape":""}
+    !$decorator = {"is_extern":%false(), "show_desc":%true(), "sprite":"", "styles":[]}
+    !$params = $resolve_container_render_params($descriptor, $decorator)
+    !assert $params.techn == "Java + Spring"
+    !assert $params.label == "MyLabel"
+!endprocedure
+!procedure resolve_container_render_params_should_pass_baseShape_for_default()
+    !$descriptor = {"type":"Container", "element_type":"", "label":"L", "techn":"", "desc":"", "sprite":"", "tags":"", "link":"", "baseShape":"rectangle"}
+    !$decorator = {"is_extern":%false(), "show_desc":%true(), "sprite":"", "styles":[]}
+    !$params = $resolve_container_render_params($descriptor, $decorator)
+    !assert $params.baseShape == "rectangle"
+!endprocedure
+!procedure resolve_container_render_params_should_ignore_baseShape_for_db()
+    !$descriptor = {"type":"Container", "element_type":"Db", "label":"L", "techn":"", "desc":"", "sprite":"", "tags":"", "link":"", "baseShape":"hexagon"}
+    !$decorator = {"is_extern":%false(), "show_desc":%true(), "sprite":"", "styles":[]}
+    !$params = $resolve_container_render_params($descriptor, $decorator)
+    !assert $params.baseShape == ""
+!endprocedure
+!procedure resolve_container_render_params_should_ignore_baseShape_for_queue()
+    !$descriptor = {"type":"Container", "element_type":"Queue", "label":"L", "techn":"", "desc":"", "sprite":"", "tags":"", "link":"", "baseShape":"hexagon"}
+    !$decorator = {"is_extern":%false(), "show_desc":%true(), "sprite":"", "styles":[]}
+    !$params = $resolve_container_render_params($descriptor, $decorator)
+    !assert $params.baseShape == ""
+!endprocedure
+!procedure resolve_container_render_params_should_pass_descr_when_show_desc_true()
+    !$descriptor = {"type":"Container", "element_type":"", "label":"L", "techn":"", "desc":"My descr", "sprite":"", "tags":"", "link":"", "baseShape":""}
+    !$decorator = {"is_extern":%false(), "show_desc":%true(), "sprite":"", "styles":[]}
+    !$params = $resolve_container_render_params($descriptor, $decorator)
+    !assert $params.desc == "My descr"
+!endprocedure
 !endprocedure
 ''======================================================================================================================
 ''  System Tests
@@ -1355,6 +1410,14 @@ containerdb_registration_should_set_element_type_to_db()
 containerdb_registration_should_not_carry_baseshape()
 containerqueue_registration_should_set_element_type_to_queue()
 containerqueue_registration_should_not_carry_baseshape()
+resolve_container_render_params_should_map_default_to_container()
+resolve_container_render_params_should_map_db_to_containerdb()
+resolve_container_render_params_should_map_queue_to_containerqueue()
+resolve_container_render_params_should_pass_techn_to_label_position()
+resolve_container_render_params_should_pass_baseShape_for_default()
+resolve_container_render_params_should_ignore_baseShape_for_db()
+resolve_container_render_params_should_ignore_baseShape_for_queue()
+resolve_container_render_params_should_pass_descr_when_show_desc_true()
 include_elements_should_locate_container_via_locator()
 include_elements_should_explicit_source_path_for_container()
 ''----------------------------------------------------------------------------------------------------------------------

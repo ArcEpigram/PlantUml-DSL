@@ -506,6 +506,40 @@ $register_rendering_proc("Boundary", $proc="$render_boundary")
     !return $params
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
+'' Вычисляет параметры рендеринга для элемента Container.
+'' Маппинг element_type → нативная функция:
+''   "Db" → ContainerDb, "Queue" → ContainerQueue, иначе → Container
+''   $baseShape передаётся только для Container (у Db/Queue форма фиксирована).
+'' args: $descriptor - JSON-объект {type, label, techn, desc, sprite, tags, link, element_type, baseShape}
+''       $decorator - JSON-объект {is_extern, show_desc, sprite, styles}
+'' returns: JSON-объект {label, techn, desc, sprite, render_proc, baseShape, tags, type, link, is_extern}
+!function $resolve_container_render_params($descriptor, $decorator)
+    !$params = {}
+    !$etype = $default($descriptor.element_type)
+
+    !$params = $json_add($params, "label", $descriptor.label)
+    !$params = $json_add($params, "techn", $default($descriptor.techn))
+    !$params = $json_add($params, "desc", $value_or_default($decorator.show_desc == %true(), $descriptor.desc))
+    !$params = $json_add($params, "sprite", $value_or_default($decorator.sprite, $default($descriptor.sprite)))
+
+    !if $etype == "Db"
+        !$params = $json_add($params, "render_proc", "ContainerDb")
+        !$params = $json_add($params, "baseShape", "")
+    !elseif $etype == "Queue"
+        !$params = $json_add($params, "render_proc", "ContainerQueue")
+        !$params = $json_add($params, "baseShape", "")
+    !else
+        !$params = $json_add($params, "render_proc", "Container")
+        !$params = $json_add($params, "baseShape", $default($descriptor.baseShape))
+    !endif
+
+    !$params = $json_add($params, "tags", $combine_tags($default($descriptor.tags), $array2str($decorator.styles, "+")))
+    !$params = $json_add($params, "type", $etype)
+    !$params = $json_add($params, "link", $default($descriptor.link))
+    !$params = $json_add($params, "is_extern", $decorator.is_extern)
+    !return $params
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
 '' Создаёт дескриптор связи C4 Relation.
 '' args: $from - алиас исходного элемента
 ''       $to - алиас целевого элемента
