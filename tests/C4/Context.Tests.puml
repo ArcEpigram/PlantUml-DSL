@@ -546,6 +546,24 @@
     '' Assert
     !assert $actual == "Rel"
 !endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Tests for $default_c4_element_descriptor (techn / baseShape fields)
+''----------------------------------------------------------------------------------------------------------------------
+!procedure default_c4_element_descriptor_should_save_techn_field()
+    '' Arrange, Act
+    !$descriptor = $default_c4_element_descriptor("Container", "L", "", "", "", "", "", "", "", "", "Spring", "")
+
+    '' Assert
+    !assert $descriptor.techn == "Spring"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure default_c4_element_descriptor_should_save_baseShape_field()
+    '' Arrange, Act
+    !$descriptor = $default_c4_element_descriptor("Container", "L", "", "", "", "", "", "", "", "", "", "hexagon")
+
+    '' Assert
+    !assert $descriptor.baseShape == "hexagon"
+!endprocedure
 ''======================================================================================================================
 ''  System Tests
 ''======================================================================================================================
@@ -1126,6 +1144,8 @@ resolve_relation_native_proc_should_map_up_to_rel_u()
 resolve_relation_native_proc_should_map_left_to_rel_l()
 resolve_relation_native_proc_should_map_right_to_rel_r()
 resolve_relation_native_proc_should_default_to_rel()
+default_c4_element_descriptor_should_save_techn_field()
+default_c4_element_descriptor_should_save_baseShape_field()
 default_relation_decorator_should_include_lay_direction_with_empty_default()
 align_down_should_set_lay_direction_to_down()
 align_up_should_set_lay_direction_to_up()
