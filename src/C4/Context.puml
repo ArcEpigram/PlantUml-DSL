@@ -426,38 +426,59 @@ $register_rendering_proc("Container", $proc="$render_container")
 '' Диспетчер рендеринга: вызывает нативную процедуру C4-PlantUML.
 '' Container(...) принимает 8 аргументов (включая $baseShape),
 '' ContainerDb(...) и ContainerQueue(...) принимают 7 аргументов.
+''
+'' ВАЖНО: здесь намеренно используются прямые вызовы нативных процедур через
+'' `!unquoted procedure` + `$format`, а не `%invoke_procedure`. В PlantUML
+'' 1.2026.2 был баг, из-за которого `%invoke_procedure` с пустыми строками
+'' в позиционных аргументах ($tags, $link) сдвигал последующие аргументы,
+'' в результате $sprite терялся и контейнер рендерился без пиктограммы.
+'' Прямые вызовы этой проблемы не имеют.
 '' args: $alias - алиас элемента
 ''       $params - JSON с полями {label, techn, desc, sprite, render_proc, baseShape, tags, link, is_extern}
 !procedure $render_c4_container_element($alias, $params)
-    !if $params.is_extern == %true()
-        !$render_proc_name = $format("%1_Ext", $params.render_proc)
-    !else
-        !$render_proc_name = $params.render_proc
+    '' Преобразуем __EMPTY__ → "" в локальных переменных, чтобы sentinel не дошёл
+    '' до нативной процедуры C4-PlantUML.
+    !$sprite = $default($params.sprite)
+    !if $sprite == "__EMPTY__"
+        !$sprite = ""
+    !endif
+    !$desc = $default($params.desc)
+    !if $desc == "__EMPTY__"
+        !$desc = ""
+    !endif
+    !$tags = $default($params.tags)
+    !if $tags == "__EMPTY__"
+        !$tags = ""
+    !endif
+    !$link = $default($params.link)
+    !if $link == "__EMPTY__"
+        !$link = ""
+    !endif
+    !$techn = $default($params.techn)
+    !if $techn == "__EMPTY__"
+        !$techn = ""
+    !endif
+    !$baseShape = $default($params.baseShape)
+    !if $baseShape == "__EMPTY__"
+        !$baseShape = ""
     !endif
 
-    !if $params.render_proc == "Container"
-        %invoke_procedure(\
-            $render_proc_name, \
-            $alias, \
-            $params.label, \
-            $params.techn, \
-            $default($params.desc), \
-            $default($params.sprite), \
-            $default($params.tags), \
-            $default($params.link), \
-            $default($params.baseShape) \
-        )
+    !if $params.is_extern == %true()
+        !if $params.render_proc == "Container"
+            Container_Ext($alias, $params.label, $techn, $desc, $sprite, $tags, $link, $baseShape)
+        !elseif $params.render_proc == "ContainerDb"
+            ContainerDb_Ext($alias, $params.label, $techn, $desc, $sprite, $tags, $link)
+        !else
+            ContainerQueue_Ext($alias, $params.label, $techn, $desc, $sprite, $tags, $link)
+        !endif
     !else
-        %invoke_procedure(\
-            $render_proc_name, \
-            $alias, \
-            $params.label, \
-            $params.techn, \
-            $default($params.desc), \
-            $default($params.sprite), \
-            $default($params.tags), \
-            $default($params.link) \
-        )
+        !if $params.render_proc == "Container"
+            Container($alias, $params.label, $techn, $desc, $sprite, $tags, $link, $baseShape)
+        !elseif $params.render_proc == "ContainerDb"
+            ContainerDb($alias, $params.label, $techn, $desc, $sprite, $tags, $link)
+        !else
+            ContainerQueue($alias, $params.label, $techn, $desc, $sprite, $tags, $link)
+        !endif
     !endif
 !endprocedure
 !procedure $render_c4_element($alias, $params)
@@ -572,7 +593,11 @@ $register_rendering_proc("Container", $proc="$render_container")
     !$params = $json_add($params, "label", $descriptor.label)
     !$params = $json_add($params, "techn", $default($descriptor.techn))
     !$params = $json_add($params, "desc", $value_or_default($decorator.show_desc == %true(), $descriptor.desc))
-    !$params = $json_add($params, "sprite", $value_or_default($decorator.sprite, $default($descriptor.sprite)))
+    !if $default($decorator.sprite) != ""
+        !$params = $json_add($params, "sprite", $default($decorator.sprite))
+    !else
+        !$params = $json_add($params, "sprite", $default($descriptor.sprite))
+    !endif
 
     !if $etype == "Db"
         !$params = $json_add($params, "render_proc", "ContainerDb")

@@ -1340,6 +1340,46 @@
     !assert $desc.boundary == "CnBnd"
 !endprocedure
 
+!procedure container_registration_should_save_sprite_field()
+    '' Arrange, Act
+    $Container("Cn_Reg8", "MyContainer", "", "", "spring-icon")
+
+    '' Assert
+    !$serialized = $get_descriptor("Cn_Reg8")
+    !$desc = $str2json($serialized, $without_quotes = %true())
+    !assert $desc.sprite == "spring-icon"
+!endprocedure
+
+!procedure container_registration_should_default_sprite_to_empty()
+    '' Arrange, Act
+    $Container("Cn_Reg9", "MyContainer")
+
+    '' Assert
+    !$serialized = $get_descriptor("Cn_Reg9")
+    !$desc = $str2json($serialized, $without_quotes = %true())
+    !assert $default($desc.sprite) == ""
+!endprocedure
+
+!procedure containerdb_registration_should_save_sprite_field()
+    '' Arrange, Act
+    $ContainerDb("Db_Reg3", "MyDb", "PostgreSQL", "Описание", "database")
+
+    '' Assert
+    !$serialized = $get_descriptor("Db_Reg3")
+    !$desc = $str2json($serialized, $without_quotes = %true())
+    !assert $desc.sprite == "database"
+!endprocedure
+
+!procedure containerqueue_registration_should_save_sprite_field()
+    '' Arrange, Act
+    $ContainerQueue("Q_Reg3", "MyQueue", "RabbitMQ", "Описание", "server")
+
+    '' Assert
+    !$serialized = $get_descriptor("Q_Reg3")
+    !$desc = $str2json($serialized, $without_quotes = %true())
+    !assert $desc.sprite == "server"
+!endprocedure
+
 ''----------------------------------------------------------------------------------------------------------------------
 '' ContainerDb registration
 ''----------------------------------------------------------------------------------------------------------------------
@@ -1551,10 +1591,14 @@ container_registration_should_default_techn_to_empty()
 container_registration_should_default_baseShape_to_empty()
 container_registration_should_save_baseShape_field()
 container_registration_should_save_boundary_attribute()
+container_registration_should_save_sprite_field()
+container_registration_should_default_sprite_to_empty()
 containerdb_registration_should_set_element_type_to_db()
 containerdb_registration_should_not_carry_baseshape()
+containerdb_registration_should_save_sprite_field()
 containerqueue_registration_should_set_element_type_to_queue()
 containerqueue_registration_should_not_carry_baseshape()
+containerqueue_registration_should_save_sprite_field()
 resolve_container_render_params_should_map_default_to_container()
 resolve_container_render_params_should_map_db_to_containerdb()
 resolve_container_render_params_should_map_queue_to_containerqueue()

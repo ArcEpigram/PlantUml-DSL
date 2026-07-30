@@ -1,0 +1,21 @@
+@startuml
+''----------------------------------------------------------------------------------------------------------------------
+'' Sprite-обёртка spring-icon.
+'' Тонкая обёртка над пиктограммой Spring Boot.
+'' Саму пиктограмму регистрирует пользователь через !include <logos/spring-icon> в самом
+'' верху своей диаграммы (PlantUML требует, чтобы stdlib-инклуды шли до любых других include).
+'' Наша обёртка только предоставляет функцию $getSpringIcon($alias), чтобы имя алиаса
+'' не зависело от пути include и оставалось стабильным: <$spring-icon>.
+'' Использование:
+''   !include <logos/spring-icon>
+''   !include <путь/к/спрайтам/spring-icon>
+''   Container(api, "API", "Spring Boot", "Описание", $sprite="spring-icon")
+''----------------------------------------------------------------------------------------------------------------------
+!unquoted function $getSpringIcon($alias)
+  !if %substr($alias, 0, 1) == "&" || %substr($alias, 0, 4) == "img:"
+    !return "<" + $alias + ">"
+  !else
+    !return "<$" + $alias + ">"
+  !endif
+!endfunction
+@enduml
