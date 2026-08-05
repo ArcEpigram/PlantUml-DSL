@@ -230,9 +230,39 @@
     !assert $sprite == "rabbitmq"
 !endprocedure
 
-!procedure sprite_from_tech_should_return_empty_for_tech_without_sprite()
-    '' Java — основной язык (P3), у неё нет спрайта в справочнике
+!procedure sprite_from_tech_should_return_sprite_for_mysql()
+    !$sprite = $get_sprite_from_technologies("MySQL 8")
+    !assert $sprite == "mysql"
+!endprocedure
+
+!procedure sprite_from_tech_should_return_sprite_for_mongodb()
+    !$sprite = $get_sprite_from_technologies("MongoDB 6")
+    !assert $sprite == "mongodb"
+!endprocedure
+
+!procedure sprite_from_tech_should_return_sprite_for_kafka()
+    !$sprite = $get_sprite_from_technologies("Kafka")
+    !assert $sprite == "kafka"
+!endprocedure
+
+!procedure sprite_from_tech_should_return_sprite_for_redis()
+    !$sprite = $get_sprite_from_technologies("Redis 7")
+    !assert $sprite == "redis"
+!endprocedure
+
+!procedure sprite_from_tech_should_return_sprite_for_nodejs()
+    !$sprite = $get_sprite_from_technologies("Node.js 20")
+    !assert $sprite == "nodejs"
+!endprocedure
+
+!procedure sprite_from_tech_should_return_sprite_for_java()
     !$sprite = $get_sprite_from_technologies("Java 25")
+    !assert $sprite == "java"
+!endprocedure
+
+!procedure sprite_from_tech_should_return_empty_for_tech_without_sprite()
+    '' Python — основной язык (P3), у неё нет стандартного спрайта в справочнике
+    !$sprite = $get_sprite_from_technologies("Python 3.12")
     !assert $sprite == ""
 !endprocedure
 
@@ -296,6 +326,12 @@ main_tech_should_keep_first_on_equal_priority()
 sprite_from_tech_should_return_sprite_for_framework()
 sprite_from_tech_should_return_sprite_for_datastore()
 sprite_from_tech_should_return_sprite_for_queue()
+sprite_from_tech_should_return_sprite_for_mysql()
+sprite_from_tech_should_return_sprite_for_mongodb()
+sprite_from_tech_should_return_sprite_for_kafka()
+sprite_from_tech_should_return_sprite_for_redis()
+sprite_from_tech_should_return_sprite_for_nodejs()
+sprite_from_tech_should_return_sprite_for_java()
 sprite_from_tech_should_return_empty_for_tech_without_sprite()
 sprite_from_tech_should_return_empty_for_unknown()
 sprite_from_tech_should_return_empty_for_empty_input()

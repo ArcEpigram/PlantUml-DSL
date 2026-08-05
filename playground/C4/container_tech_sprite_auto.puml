@@ -1,18 +1,15 @@
 @startuml
 '' Демонстрация сценария 3.3 из issue #22: авто-подбор пиктограммы контейнера
-'' по списку его технологий. Спрайты НЕ задаются явно через $sprite=.
-'' DSL вызывает $get_sprite_from_technologies(...) автоматически в момент рендеринга,
-'' когда ни дескриптор, ни декоратор не содержат явного спрайта.
-
-'' Спрайт-библиотеки подключаются в самом верху (требование PlantUML).
-!include <logos/spring-icon>
-!include <logos/postgresql>
-!include <logos/rabbitmq>
+'' по списку его технологий.
+''
+'' Пользователь подключает ТОЛЬКО Context.puml — необходимые stdlib-спрайты
+'' подключаются транзитивно через src/C4/Sprites.puml, писать вручную
+'' !include <logos/...> не нужно.
 
 !include ../../src/C4/Context.puml
 
 '' Регистрация контейнеров с технологиями, но БЕЗ явного $sprite=
-'' Спрайты будут выведены автоматически:
+'' Спрайты выводятся автоматически из справочника технологий:
 ''   Payments       — Spring Boot  → spring-icon
 ''   PaymentsDb     — PostgreSQL   → postgresql
 ''   PaymentsQueue  — RabbitMQ     → rabbitmq
