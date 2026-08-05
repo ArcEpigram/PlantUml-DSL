@@ -599,11 +599,14 @@ $register_rendering_proc("Container", $proc="$render_container")
         !$params = $json_add($params, "sprite", $default($decorator.sprite))
     !elseif $default($descriptor.sprite) != ""
         !$params = $json_add($params, "sprite", $default($descriptor.sprite))
-    !else
+    !elseif $__tech_sprite_auto_enabled() == %true()
         '' Авто-подбор спрайта по списку технологий (сценарий 3.3 issue #22):
-        '' если спрайт не задан явно, пытаемся вывести его из technologies.
+        '' если спрайт не задан явно и авто-подбор включён (по умолчанию ВКЛ,
+        '' управляется SHOW_TECH_SPRITE_AUTO/HIDE_TECH_SPRITE_AUTO).
         !$auto_sprite = $get_sprite_from_technologies($default($descriptor.techn))
         !$params = $json_add($params, "sprite", $auto_sprite)
+    !else
+        !$params = $json_add($params, "sprite", "")
     !endif
 
     !if $etype == "Db"

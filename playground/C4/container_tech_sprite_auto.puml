@@ -17,7 +17,9 @@ $Container("Payments", "Платежи", "Java 17 + Spring Boot", "Микрос�
 $ContainerDb("PaymentsDb", "БД платежей", "PostgreSQL 15", "Хранилище платёжных транзакций")
 $ContainerQueue("PaymentsQueue", "Очередь событий", "RabbitMQ 3.12", "Асинхронные уведомления")
 
-'' Включение контейнеров в диаграмму и рендеринг
+'' Включение контейнеров в диаграмму
 Containers(Payments PaymentsDb PaymentsQueue)
+
+'' и рендеринг
 Diagram("C4 Container — авто-подбор спрайта по технологиям")
 @enduml

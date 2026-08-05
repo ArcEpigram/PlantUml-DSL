@@ -276,6 +276,34 @@
     !assert $sprite == ""
 !endprocedure
 
+''--------------------
+'' $__tech_sprite_auto_enabled / SHOW_TECH_SPRITE_AUTO / HIDE_TECH_SPRITE_AUTO
+''--------------------
+!procedure tech_sprite_auto_should_be_enabled_by_default()
+    '' Arrange — флаг не установлен, состояние по умолчанию
+    !assert $__tech_sprite_auto_enabled() == %true()
+!endprocedure
+
+!procedure hide_tech_sprite_auto_should_turn_flag_off()
+    '' Arrange, Act
+    HIDE_TECH_SPRITE_AUTO()
+    !assert $__tech_sprite_auto_enabled() == %false()
+    '' Cleanup — восстанавливаем дефолтное состояние для последующих тестов
+    SHOW_TECH_SPRITE_AUTO()
+!endprocedure
+
+!procedure show_tech_sprite_auto_should_turn_flag_on()
+    '' Arrange
+    HIDE_TECH_SPRITE_AUTO()
+    !assert $__tech_sprite_auto_enabled() == %false()
+
+    '' Act
+    SHOW_TECH_SPRITE_AUTO()
+
+    '' Assert
+    !assert $__tech_sprite_auto_enabled() == %true()
+!endprocedure
+
 ''----------------------------------------------------------------------------------------------------------------------
 '' Tests RUN!
 ''----------------------------------------------------------------------------------------------------------------------
@@ -335,6 +363,10 @@ sprite_from_tech_should_return_sprite_for_java()
 sprite_from_tech_should_return_empty_for_tech_without_sprite()
 sprite_from_tech_should_return_empty_for_unknown()
 sprite_from_tech_should_return_empty_for_empty_input()
+
+tech_sprite_auto_should_be_enabled_by_default()
+hide_tech_sprite_auto_should_turn_flag_off()
+show_tech_sprite_auto_should_turn_flag_on()
 ''----------------------------------------------------------------------------------------------------------------------
 caption OK
 @enduml

@@ -145,85 +145,55 @@
     !return $result
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
-'' Строит запись справочника технологий и возвращает её.
+'' Возвращает встроенный каталог технологий C4-контейнеров как JSON-массив.
+'' Каждая запись: {canonical, aliases[], category, sprite}, где aliases — массив
+'' альтернативных имён (lowercase, без версии). Это карта сопоставления
+'' "технология + альтернативные имена → спрайт", редактируемая без изменения логики.
 '' Чистая функция: идемпотентна, без побочных эффектов.
-'' args: $alias - альтернативное имя (нормализованное, в нижнем регистре)
-''       $canonical - каноническое имя (для отображения/идентификации)
-''       $category - категория ("framework", "datastore", "queue", "cache", "platform", "language")
-''       $sprite - имя спрайта (или "" если нет стандартного)
-'' returns: JSON-объект {alias, canonical, category, sprite}
-!function $__tech_record($alias, $canonical, $category, $sprite)
-    !$rec = {}
-    !$rec = $json_add($rec, "alias", $alias)
-    !$rec = $json_add($rec, "canonical", $canonical)
-    !$rec = $json_add($rec, "category", $category)
-    !$rec = $json_add($rec, "sprite", $sprite)
-    !return $rec
-!endfunction
-''----------------------------------------------------------------------------------------------------------------------
-'' Строит справочник технологий C4-контейнеров (MVP-набор, issue #22).
-'' Каждая запись связывает нормализованное алиас-имя с каноническим именем,
-'' категорией и именем спрайта. Альтернативные имена (например, "spring",
-'' "spring-boot") регистрируются отдельными записями с тем же каноническим.
-'' Чистая функция: идемпотентна, без побочных эффектов.
-'' returns: JSON-массив записей {alias, canonical, category, sprite}
+'' returns: JSON-массив записей {canonical, aliases, category, sprite}
 !function $__tech_catalog()
-    !$cat = []
-
-    '' framework (приоритет 1)
-    !$cat = $append_to_list($cat, $__tech_record("spring boot", "Spring Boot", "framework", "spring-icon"))
-    !$cat = $append_to_list($cat, $__tech_record("spring-boot", "Spring Boot", "framework", "spring-icon"))
-    !$cat = $append_to_list($cat, $__tech_record("spring", "Spring Boot", "framework", "spring-icon"))
-    !$cat = $append_to_list($cat, $__tech_record("asp.net", "ASP.NET", "framework", ""))
-    !$cat = $append_to_list($cat, $__tech_record("asp net", "ASP.NET", "framework", ""))
-    !$cat = $append_to_list($cat, $__tech_record("flask", "Flask", "framework", ""))
-    !$cat = $append_to_list($cat, $__tech_record("django", "Django", "framework", ""))
-    !$cat = $append_to_list($cat, $__tech_record("express", "Express", "framework", ""))
-    !$cat = $append_to_list($cat, $__tech_record("react", "React", "framework", ""))
-
-    '' datastore (приоритет 1)
-    !$cat = $append_to_list($cat, $__tech_record("postgresql", "PostgreSQL", "datastore", "postgresql"))
-    !$cat = $append_to_list($cat, $__tech_record("postgres", "PostgreSQL", "datastore", "postgresql"))
-    !$cat = $append_to_list($cat, $__tech_record("mysql", "MySQL", "datastore", "mysql"))
-    !$cat = $append_to_list($cat, $__tech_record("mongodb", "MongoDB", "datastore", "mongodb"))
-    !$cat = $append_to_list($cat, $__tech_record("mongo", "MongoDB", "datastore", "mongodb"))
-
-    '' queue (приоритет 1)
-    !$cat = $append_to_list($cat, $__tech_record("rabbitmq", "RabbitMQ", "queue", "rabbitmq"))
-    !$cat = $append_to_list($cat, $__tech_record("kafka", "Kafka", "queue", "kafka"))
-
-    '' cache (приоритет 1)
-    !$cat = $append_to_list($cat, $__tech_record("redis", "Redis", "cache", "redis"))
-
-    '' platform (приоритет 2)
-    !$cat = $append_to_list($cat, $__tech_record("jvm", "JVM", "platform", ""))
-    !$cat = $append_to_list($cat, $__tech_record(".net", ".NET", "platform", ""))
-    !$cat = $append_to_list($cat, $__tech_record("dotnet", ".NET", "platform", ""))
-    !$cat = $append_to_list($cat, $__tech_record("node.js", "Node.js", "platform", "nodejs"))
-    !$cat = $append_to_list($cat, $__tech_record("nodejs", "Node.js", "platform", "nodejs"))
-
-    '' language (приоритет 3)
-    !$cat = $append_to_list($cat, $__tech_record("java", "Java", "language", "java"))
-    !$cat = $append_to_list($cat, $__tech_record("c#", "C#", "language", ""))
-    !$cat = $append_to_list($cat, $__tech_record("python", "Python", "language", ""))
-    !$cat = $append_to_list($cat, $__tech_record("javascript", "JavaScript", "language", ""))
-    !$cat = $append_to_list($cat, $__tech_record("typescript", "TypeScript", "language", ""))
-    !$cat = $append_to_list($cat, $__tech_record("go", "Go", "language", ""))
-    !$cat = $append_to_list($cat, $__tech_record("golang", "Go", "language", ""))
-
-    !return $cat
+    !$tech_map = [
+        {"canonical": "Spring Boot", "aliases": ["spring boot", "spring-boot", "spring"], "category": "framework", "sprite": "spring-icon"},
+        {"canonical": "ASP.NET", "aliases": ["asp.net", "asp net"], "category": "framework", "sprite": ""},
+        {"canonical": "Flask", "aliases": ["flask"], "category": "framework", "sprite": ""},
+        {"canonical": "Django", "aliases": ["django"], "category": "framework", "sprite": ""},
+        {"canonical": "Express", "aliases": ["express"], "category": "framework", "sprite": ""},
+        {"canonical": "React", "aliases": ["react"], "category": "framework", "sprite": ""},
+        {"canonical": "PostgreSQL", "aliases": ["postgresql", "postgres"], "category": "datastore", "sprite": "postgresql"},
+        {"canonical": "MySQL", "aliases": ["mysql"], "category": "datastore", "sprite": "mysql"},
+        {"canonical": "MongoDB", "aliases": ["mongodb", "mongo"], "category": "datastore", "sprite": "mongodb"},
+        {"canonical": "RabbitMQ", "aliases": ["rabbitmq"], "category": "queue", "sprite": "rabbitmq"},
+        {"canonical": "Kafka", "aliases": ["kafka"], "category": "queue", "sprite": "kafka"},
+        {"canonical": "Redis", "aliases": ["redis"], "category": "cache", "sprite": "redis"},
+        {"canonical": "JVM", "aliases": ["jvm"], "category": "platform", "sprite": ""},
+        {"canonical": ".NET", "aliases": [".net", "dotnet"], "category": "platform", "sprite": ""},
+        {"canonical": "Node.js", "aliases": ["node.js", "nodejs"], "category": "platform", "sprite": "nodejs"},
+        {"canonical": "Java", "aliases": ["java"], "category": "language", "sprite": "java"},
+        {"canonical": "C#", "aliases": ["c#"], "category": "language", "sprite": ""},
+        {"canonical": "Python", "aliases": ["python"], "category": "language", "sprite": ""},
+        {"canonical": "JavaScript", "aliases": ["javascript"], "category": "language", "sprite": ""},
+        {"canonical": "TypeScript", "aliases": ["typescript"], "category": "language", "sprite": ""},
+        {"canonical": "Go", "aliases": ["go", "golang"], "category": "language", "sprite": ""}
+    ]
+    !return $tech_map
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
-'' Ищет запись технологии в справочнике по нормализованному имени.
+'' Ищет запись технологии в каталоге по нормализованному имени.
+'' Сравнивает $name со всеми альтернативными именами (aliases[]) каждой записи.
 '' Чистая функция: идемпотентна, без побочных эффектов.
 '' args: $catalog - JSON-массив записей (результат $__tech_catalog)
 ''       $name - нормализованное имя технологии (lowercase, без версии)
-'' returns: запись {alias, canonical, category, sprite} или {} если не найдена
+'' returns: запись {canonical, aliases, category, sprite} или {} если не найдена
 !function $__find_tech($catalog, $name)
     !foreach $rec in $catalog
-        !if $rec.alias == $name
-            !return $rec
-        !endif
+        '' ВАЖНО: PlantUML 1.2026.5 не позволяет foreach напрямую по $rec.aliases
+        '' (полю-массиву объекта) — сначала присваиваем в локальную переменную.
+        !$aliases = $rec.aliases
+        !foreach $alias in $aliases
+            !if $alias == $name
+                !return $rec
+            !endif
+        !endfor
     !endfor
     !return {}
 !endfunction
@@ -298,5 +268,35 @@
     !endif
     !return $rec.sprite
 !endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Возвращает состояние глобального флага авто-подбора спрайтов.
+'' Чистая функция: идемпотентна, без побочных эффектов (только читает глобальную переменную).
+'' Семантика: отсутствие переменной = ВКЛ (дефолт), "false" = ВЫКЛ.
+'' returns: %true() если авто-подбор включён, %false() если отключён
+!function $__tech_sprite_auto_enabled()
+    !if %variable_exists("TECH_SPRITE_AUTO_ENABLED")
+        !$flag = %get_variable_value("TECH_SPRITE_AUTO_ENABLED")
+        !if $flag == "false"
+            !return %false()
+        !endif
+    !endif
+    !return %true()
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Включает глобальный авто-подбор спрайтов контейнеров по технологиям (сценарий 3.3 issue #22).
+'' Это состояние по умолчанию: вызов нужен только для повторного включения после HIDE_TECH_SPRITE_AUTO().
+'' Имя соответствует конвенции stdlib C4-PlantUML (SHOW_PERSON_SPRITE / HIDE_PERSON_SPRITE).
+'' example: SHOW_TECH_SPRITE_AUTO()
+!procedure SHOW_TECH_SPRITE_AUTO()
+    %set_variable_value("TECH_SPRITE_AUTO_ENABLED", "true")
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Выключает глобальный авто-подбор спрайтов контейнеров по технологиям.
+'' После вызова контейнеры без явного спрайта рендерятся без пиктограммы,
+'' даже если их технологии есть в справочнике.
+'' example: HIDE_TECH_SPRITE_AUTO()
+!procedure HIDE_TECH_SPRITE_AUTO()
+    %set_variable_value("TECH_SPRITE_AUTO_ENABLED", "false")
+!endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 @enduml
