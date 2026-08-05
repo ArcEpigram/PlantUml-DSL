@@ -5,6 +5,7 @@
 !include ../Common.puml
 !include ../Rendering.puml
 !include ../Locator.puml
+!include Technologies.puml
 ''----------------------------------------------------------------------------------------------------------------------
 '' Регистрация процедур рендеринга элементов.
 ''----------------------------------------------------------------------------------------------------------------------
@@ -595,8 +596,13 @@ $register_rendering_proc("Container", $proc="$render_container")
     !$params = $json_add($params, "desc", $value_or_default($decorator.show_desc == %true(), $descriptor.desc))
     !if $default($decorator.sprite) != ""
         !$params = $json_add($params, "sprite", $default($decorator.sprite))
-    !else
+    !elseif $default($descriptor.sprite) != ""
         !$params = $json_add($params, "sprite", $default($descriptor.sprite))
+    !else
+        '' Авто-подбор спрайта по списку технологий (сценарий 3.3 issue #22):
+        '' если спрайт не задан явно, пытаемся вывести его из technologies.
+        !$auto_sprite = $get_sprite_from_technologies($default($descriptor.techn))
+        !$params = $json_add($params, "sprite", $auto_sprite)
     !endif
 
     !if $etype == "Db"

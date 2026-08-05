@@ -1,0 +1,26 @@
+@startuml
+'' Демонстрация сценария 3.3 из issue #22: авто-подбор пиктограммы контейнера
+'' по списку его технологий. Спрайты НЕ задаются явно через $sprite=.
+'' DSL вызывает $get_sprite_from_technologies(...) автоматически в момент рендеринга,
+'' когда ни дескриптор, ни декоратор не содержат явного спрайта.
+
+'' Спрайт-библиотеки подключаются в самом верху (требование PlantUML).
+!include <logos/spring-icon>
+!include <logos/postgresql>
+!include <logos/rabbitmq>
+
+!include ../../src/C4/Context.puml
+
+'' Регистрация контейнеров с технологиями, но БЕЗ явного $sprite=
+'' Спрайты будут выведены автоматически:
+''   Payments       — Spring Boot  → spring-icon
+''   PaymentsDb     — PostgreSQL   → postgresql
+''   PaymentsQueue  — RabbitMQ     → rabbitmq
+$Container("Payments", "Платежи", "Java 17 + Spring Boot", "Микросервис обработки платежей")
+$ContainerDb("PaymentsDb", "БД платежей", "PostgreSQL 15", "Хранилище платёжных транзакций")
+$ContainerQueue("PaymentsQueue", "Очередь событий", "RabbitMQ 3.12", "Асинхронные уведомления")
+
+'' Включение контейнеров в диаграмму и рендеринг
+Containers(Payments PaymentsDb PaymentsQueue)
+Diagram("C4 Container — авто-подбор спрайта по технологиям")
+@enduml
