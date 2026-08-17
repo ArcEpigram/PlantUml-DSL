@@ -304,6 +304,29 @@
     !assert $__tech_sprite_auto_enabled() == %true()
 !endprocedure
 
+''--------------------
+'' SET_SPRITES_MAP
+''--------------------
+!procedure set_sprites_map_should_load_catalog_from_explicit_path()
+    '' Arrange — явный путь к каталогу (cwd=корень репо при task test)
+    SET_SPRITES_MAP("src/C4/technologies.json")
+
+    '' Act
+    !$cat = $__tech_catalog()
+
+    '' Assert — каталог загружен из указанного пути
+    !assert %size($cat) == 21
+    !$rec = $__find_tech($cat, "spring boot")
+    !assert $rec.canonical == "Spring Boot"
+!endprocedure
+
+!procedure set_sprites_map_should_take_priority_over_fallback()
+    '' Arrange — SET_SPRITES_MAP с валидным путём должен использоваться,
+    '' даже если fallback-пути тоже существуют
+    SET_SPRITES_MAP("src/C4/technologies.json")
+    !$cat = $__tech_catalog()
+    !assert %size($cat) == 21
+!endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Tests RUN!
 ''----------------------------------------------------------------------------------------------------------------------
@@ -367,6 +390,9 @@ sprite_from_tech_should_return_empty_for_empty_input()
 tech_sprite_auto_should_be_enabled_by_default()
 hide_tech_sprite_auto_should_turn_flag_off()
 show_tech_sprite_auto_should_turn_flag_on()
+
+set_sprites_map_should_load_catalog_from_explicit_path()
+set_sprites_map_should_take_priority_over_fallback()
 ''----------------------------------------------------------------------------------------------------------------------
 caption OK
 @enduml
