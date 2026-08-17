@@ -8,6 +8,8 @@
 
 !include ../../src/C4/Context.puml
 
+'' HIDE_TECH_SPRITE_AUTO()
+
 '' Регистрация контейнеров с технологиями, но БЕЗ явного $sprite=
 '' Спрайты выводятся автоматически из справочника технологий:
 ''   Payments       — Spring Boot  → spring-icon
