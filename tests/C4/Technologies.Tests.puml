@@ -308,24 +308,31 @@
 '' SET_SPRITES_MAP
 ''--------------------
 !procedure set_sprites_map_should_load_catalog_from_explicit_path()
-    '' Arrange — явный путь к каталогу (cwd=корень репо при task test)
-    SET_SPRITES_MAP("src/C4/technologies.json")
+    '' Arrange — явный путь к пользовательскому каталогу (cwd=корень репо при task test)
+    SET_SPRITES_MAP("tests/C4/technologies_override.json")
 
     '' Act
     !$cat = $__tech_catalog()
 
-    '' Assert — каталог загружен из указанного пути
-    !assert %size($cat) == 21
-    !$rec = $__find_tech($cat, "spring boot")
-    !assert $rec.canonical == "Spring Boot"
+    '' Assert — каталог загружен из указанного пути (2 записи, а не 21 встроенных)
+    !assert %size($cat) == 2
+    !$rec = $__find_tech($cat, "custom framework")
+    !assert $rec.canonical == "Custom Framework"
+
+    '' Cleanup — сброс переопределения
+    SET_SPRITES_MAP("")
 !endprocedure
 
-!procedure set_sprites_map_should_take_priority_over_fallback()
-    '' Arrange — SET_SPRITES_MAP с валидным путём должен использоваться,
-    '' даже если fallback-пути тоже существуют
-    SET_SPRITES_MAP("src/C4/technologies.json")
+!procedure set_sprites_map_should_take_priority_over_default()
+    '' Arrange — SET_SPRITES_MAP должен переопределить встроенный каталог
+    SET_SPRITES_MAP("tests/C4/technologies_override.json")
     !$cat = $__tech_catalog()
-    !assert %size($cat) == 21
+
+    '' Assert — используется переопределённый каталог, а не встроенный (21 запись)
+    !assert %size($cat) == 2
+
+    '' Cleanup — сброс переопределения
+    SET_SPRITES_MAP("")
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Tests RUN!
@@ -392,7 +399,7 @@ hide_tech_sprite_auto_should_turn_flag_off()
 show_tech_sprite_auto_should_turn_flag_on()
 
 set_sprites_map_should_load_catalog_from_explicit_path()
-set_sprites_map_should_take_priority_over_fallback()
+set_sprites_map_should_take_priority_over_default()
 ''----------------------------------------------------------------------------------------------------------------------
 caption OK
 @enduml

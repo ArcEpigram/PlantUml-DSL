@@ -1,5 +1,6 @@
 @startuml
 !include ../Utils.puml
+!include technologies_catalog.puml
 ''----------------------------------------------------------------------------------------------------------------------
 '' Справочник технологий C4-контейнеров и авто-подбор основной технологии/спрайта.
 ''
@@ -145,77 +146,24 @@
     !return $result
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
-'' Возвращает каталог технологий C4-контейнеров из JSON-документа technologies.json.
-'' Каждая запись: {canonical, aliases[], category, sprite}, где aliases — массив
-'' альтернативных имён (lowercase, без версии). Это карта сопоставления
-'' "технология + альтернативные имена → спрайт", редактируемая без изменения логики.
+'' Возвращает каталог технологий C4-контейнеров.
+'' Каталог определён в technologies_catalog.puml (переменная $TECH_CATALOG) и
+'' подключён через !include в шапке этого модуля. !include резолвится относительно
+'' РАСПОЛОЖЕНИЯ файла (не cwd), поэтому каталог доступен при любом cwd запуска
+'' (IDE с temp-каталогом, онлайн-сервер) — в отличие от %load_json.
 ''
-'' ВАЖНО о путях: %load_json разрешает путь ОТНОСИТЕЛЬНО ТЕКУЩЕГО КАТАЛОГА ЗАПУСКА
-'' PlantUML (cwd), а не от расположения этого модуля (в отличие от !include).
-'' Поэтому каталог загружается в три этапа в порядке приоритета:
-''   1. Явный путь, заданный через SET_SPRITES_MAP($path) — пользователь указывает
-''      путь, подходящий для его среды.
-''   2. Fallback по cwd: "src/C4/technologies.json" (cwd=корень репозитория, как в
-''      task test), "C4/technologies.json", "technologies.json" и т.д.
-''   3. Встроенный каталог (вшит в модуль) — работает при ЛЮБОМ cwd (IDE с
-''      temp-каталогом, онлайн-сервер), куда первые два этапа не дотягиваются.
+'' Дополнительно можно подменить каталог на собственный JSON через SET_SPRITES_MAP($path).
 '' Чистая функция: идемпотентна, без побочных эффектов помимо чтения файла.
 '' returns: JSON-массив записей {canonical, aliases, category, sprite}
 !function $__tech_catalog()
-    '' 1. Явный путь через SET_SPRITES_MAP (приоритет)
+    '' Подмена каталога на пользовательский JSON (приоритет над встроенным)
     !if %variable_exists("TECH_SPRITES_MAP_PATH")
         !$map_path = %get_variable_value("TECH_SPRITES_MAP_PATH")
         !if %file_exists($map_path)
-            !$tech_map = %load_json($map_path)
-            !return $tech_map
+            !return %load_json($map_path)
         !endif
     !endif
-    '' 2. Fallback по cwd
-    !if %file_exists("src/C4/technologies.json")
-        !$tech_map = %load_json("src/C4/technologies.json")
-    !elseif %file_exists("C4/technologies.json")
-        !$tech_map = %load_json("C4/technologies.json")
-    !elseif %file_exists("technologies.json")
-        !$tech_map = %load_json("technologies.json")
-    !elseif %file_exists("../src/C4/technologies.json")
-        !$tech_map = %load_json("../src/C4/technologies.json")
-    !elseif %file_exists("../technologies.json")
-        !$tech_map = %load_json("../technologies.json")
-    !elseif %file_exists("../../src/C4/technologies.json")
-        !$tech_map = %load_json("../../src/C4/technologies.json")
-    !else
-        !$tech_map = []
-    !endif
-    '' 3. Встроенный fallback: если файл не найден ни по одному пути (IDE с temp-каталогом,
-    ''    онлайн-сервер и т.п.), используем каталог, вшитый прямо в модуль. Он идентичен
-    ''    содержимому technologies.json — при редактировании JSON-файла синхронизируйте
-    ''    и эту встроенную копию.
-    !if %size($tech_map) == 0
-        !$tech_map = [
-            {"canonical": "Spring Boot", "aliases": ["spring boot", "spring-boot", "spring"], "category": "framework", "sprite": "spring-icon"},
-            {"canonical": "ASP.NET", "aliases": ["asp.net", "asp net"], "category": "framework", "sprite": ""},
-            {"canonical": "Flask", "aliases": ["flask"], "category": "framework", "sprite": ""},
-            {"canonical": "Django", "aliases": ["django"], "category": "framework", "sprite": ""},
-            {"canonical": "Express", "aliases": ["express"], "category": "framework", "sprite": ""},
-            {"canonical": "React", "aliases": ["react"], "category": "framework", "sprite": ""},
-            {"canonical": "PostgreSQL", "aliases": ["postgresql", "postgres"], "category": "datastore", "sprite": "postgresql"},
-            {"canonical": "MySQL", "aliases": ["mysql"], "category": "datastore", "sprite": "mysql"},
-            {"canonical": "MongoDB", "aliases": ["mongodb", "mongo"], "category": "datastore", "sprite": "mongodb"},
-            {"canonical": "RabbitMQ", "aliases": ["rabbitmq"], "category": "queue", "sprite": "rabbitmq"},
-            {"canonical": "Kafka", "aliases": ["kafka"], "category": "queue", "sprite": "kafka"},
-            {"canonical": "Redis", "aliases": ["redis"], "category": "cache", "sprite": "redis"},
-            {"canonical": "JVM", "aliases": ["jvm"], "category": "platform", "sprite": ""},
-            {"canonical": ".NET", "aliases": [".net", "dotnet"], "category": "platform", "sprite": ""},
-            {"canonical": "Node.js", "aliases": ["node.js", "nodejs"], "category": "platform", "sprite": "nodejs"},
-            {"canonical": "Java", "aliases": ["java"], "category": "language", "sprite": "java"},
-            {"canonical": "C#", "aliases": ["c#"], "category": "language", "sprite": ""},
-            {"canonical": "Python", "aliases": ["python"], "category": "language", "sprite": ""},
-            {"canonical": "JavaScript", "aliases": ["javascript"], "category": "language", "sprite": ""},
-            {"canonical": "TypeScript", "aliases": ["typescript"], "category": "language", "sprite": ""},
-            {"canonical": "Go", "aliases": ["go", "golang"], "category": "language", "sprite": ""}
-        ]
-    !endif
-    !return $tech_map
+    !return $TECH_CATALOG
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
 '' Ищет запись технологии в каталоге по нормализованному имени.
@@ -352,14 +300,13 @@
     %set_variable_value("TECH_SPRITE_AUTO_ENABLED", "false")
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
-'' Явно задаёт путь к JSON-каталогу спрайтов технологий (technologies.json).
-'' Нужен, когда PlantUML запускается с непредсказуемым cwd (IDE с temp-каталогом,
-'' онлайн-сервер) и fallback-пути $__tech_catalog не находят файл — тогда
-'' авто-подбор не работает, а stdlib-спрайты (<logos/...>) продолжают работать,
-'' т.к. они вшиты в jar. Путь задаётся относительно cwd запуска PlantUML.
-'' Приоритет над fallback-путями.
-'' example: SET_SPRITES_MAP("C:/myproj/lib/C4/technologies.json")
-'' example: SET_SPRITES_MAP("../../src/C4/technologies.json")
+'' Подменяет встроенный каталог технологий на пользовательский JSON-файл.
+'' Встроенный каталог (technologies_catalog.puml) доступен при любом cwd, поэтому
+'' эта процедура нужна только чтобы переопределить его собственным списком
+'' технологий/спрайтов. Путь задаётся относительно cwd запуска PlantUML
+'' (как у %load_json).
+'' example: SET_SPRITES_MAP("C:/myproj/custom-technologies.json")
+'' example: SET_SPRITES_MAP("custom-technologies.json")
 !procedure SET_SPRITES_MAP($path)
     %set_variable_value("TECH_SPRITES_MAP_PATH", $path)
 !endprocedure

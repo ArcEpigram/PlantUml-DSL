@@ -71,8 +71,6 @@ tasks:
         with zipfile.ZipFile(archive_path, 'w', zipfile.ZIP_DEFLATED) as zf:
             for f in sorted(pathlib.Path('src').rglob('*.puml')):
                 zf.write(f, f.relative_to('src'))
-            for f in sorted(pathlib.Path('src').rglob('*.json')):
-                zf.write(f, f.relative_to('src'))
             zf.write('version.json', 'version.json')
         print(f'Archive created: {archive_path}')
         "
