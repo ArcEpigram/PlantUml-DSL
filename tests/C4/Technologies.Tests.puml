@@ -307,9 +307,22 @@
 ''--------------------
 '' SET_SPRITES_MAP
 ''--------------------
+'' Возвращает путь к тестовой фикстуре каталога технологий.
+'' На Linux %file_exists/%load_json не резолвят относительный путь от cwd,
+'' поэтому в CI используется абсолютный путь из GITHUB_WORKSPACE; локально —
+'' относительный путь от корня репозитория.
+!function $__tech_override_fixture_path()
+    !$ws = %getenv("GITHUB_WORKSPACE")
+    !if $ws != ""
+        !return $format("%1/tests/C4/technologies_override.json", $ws)
+    !endif
+    !return "tests/C4/technologies_override.json"
+!endfunction
+
 !procedure set_sprites_map_should_load_catalog_from_explicit_path()
-    '' Arrange — явный путь к пользовательскому каталогу (cwd=корень репо при task test)
-    SET_SPRITES_MAP("tests/C4/technologies_override.json")
+    '' Arrange — явный путь к пользовательскому каталогу
+    !$fixture = $__tech_override_fixture_path()
+    SET_SPRITES_MAP($fixture)
 
     '' Act
     !$cat = $__tech_catalog()
@@ -325,7 +338,8 @@
 
 !procedure set_sprites_map_should_take_priority_over_default()
     '' Arrange — SET_SPRITES_MAP должен переопределить встроенный каталог
-    SET_SPRITES_MAP("tests/C4/technologies_override.json")
+    !$fixture = $__tech_override_fixture_path()
+    SET_SPRITES_MAP($fixture)
     !$cat = $__tech_catalog()
 
     '' Assert — используется переопределённый каталог, а не встроенный (21 запись)
