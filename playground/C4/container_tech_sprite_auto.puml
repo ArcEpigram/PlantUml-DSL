@@ -1,0 +1,27 @@
+@startuml
+'' Демонстрация сценария 3.3 из issue #22: авто-подбор пиктограммы контейнера
+'' по списку его технологий.
+''
+'' Пользователь подключает ТОЛЬКО Context.puml — необходимые stdlib-спрайты
+'' подключаются транзитивно через src/C4/Sprites.puml, писать вручную
+'' !include <logos/...> не нужно.
+
+!include ../../src/C4/Context.puml
+
+'' HIDE_TECH_SPRITE_AUTO()
+
+'' Регистрация контейнеров с технологиями, но БЕЗ явного $sprite=
+'' Спрайты выводятся автоматически из справочника технологий:
+''   Payments       — Spring Boot  → spring-icon
+''   PaymentsDb     — PostgreSQL   → postgresql
+''   PaymentsQueue  — RabbitMQ     → rabbitmq
+$Container("Payments", "Платежи", "Java 17 + Spring Boot", "Микросервис обработки платежей")
+$ContainerDb("PaymentsDb", "БД платежей", "PostgreSQL 15", "Хранилище платёжных транзакций")
+$ContainerQueue("PaymentsQueue", "Очередь событий", "RabbitMQ 3.12", "Асинхронные уведомления")
+
+'' Включение контейнеров в диаграмму
+Containers(Payments PaymentsDb PaymentsQueue)
+
+'' и рендеринг
+Diagram("C4 Container — авто-подбор спрайта по технологиям")
+@enduml

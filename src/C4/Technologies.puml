@@ -1,0 +1,314 @@
+@startuml
+!include ../Utils.puml
+!include technologies_catalog.puml
+''----------------------------------------------------------------------------------------------------------------------
+'' Справочник технологий C4-контейнеров и авто-подбор основной технологии/спрайта.
+''
+'' Реализует сценарий 3.3 issue #22: если у контейнера задан список технологий
+'' и не указан явный спрайт, DSL автоматически подбирает пиктограмму по наиболее
+'' значимой технологии. См. также src/sprites/README.md.
+''
+'' ВАЖНО: PlantUML 1.2026.5 не предоставляет встроенную %lower_case, поэтому
+'' нормализация регистра реализована посимвольно через карту A-Z → a-z.
+''----------------------------------------------------------------------------------------------------------------------
+'' Переводит строку в нижний регистр (только латиница A-Z, остальные символы без изменений).
+'' Чистая функция: идемпотентна, без побочных эффектов.
+'' Заменяет недоступную в PlantUML 1.2026.5 встроенную %lower_case.
+'' args: $text - исходная строка
+'' returns: строка в нижнем регистре
+'' example: !$n = $__to_lower("JAVA")
+!function $__to_lower($text)
+    !$result = ""
+    !$len = %strlen($text)
+    !$i = 0
+    !while $i < $len
+        !$ch = %substr($text, $i, 1)
+        !if $ch == "A"
+            !$result = $format("%1%2", $result, "a")
+        !elseif $ch == "B"
+            !$result = $format("%1%2", $result, "b")
+        !elseif $ch == "C"
+            !$result = $format("%1%2", $result, "c")
+        !elseif $ch == "D"
+            !$result = $format("%1%2", $result, "d")
+        !elseif $ch == "E"
+            !$result = $format("%1%2", $result, "e")
+        !elseif $ch == "F"
+            !$result = $format("%1%2", $result, "f")
+        !elseif $ch == "G"
+            !$result = $format("%1%2", $result, "g")
+        !elseif $ch == "H"
+            !$result = $format("%1%2", $result, "h")
+        !elseif $ch == "I"
+            !$result = $format("%1%2", $result, "i")
+        !elseif $ch == "J"
+            !$result = $format("%1%2", $result, "j")
+        !elseif $ch == "K"
+            !$result = $format("%1%2", $result, "k")
+        !elseif $ch == "L"
+            !$result = $format("%1%2", $result, "l")
+        !elseif $ch == "M"
+            !$result = $format("%1%2", $result, "m")
+        !elseif $ch == "N"
+            !$result = $format("%1%2", $result, "n")
+        !elseif $ch == "O"
+            !$result = $format("%1%2", $result, "o")
+        !elseif $ch == "P"
+            !$result = $format("%1%2", $result, "p")
+        !elseif $ch == "Q"
+            !$result = $format("%1%2", $result, "q")
+        !elseif $ch == "R"
+            !$result = $format("%1%2", $result, "r")
+        !elseif $ch == "S"
+            !$result = $format("%1%2", $result, "s")
+        !elseif $ch == "T"
+            !$result = $format("%1%2", $result, "t")
+        !elseif $ch == "U"
+            !$result = $format("%1%2", $result, "u")
+        !elseif $ch == "V"
+            !$result = $format("%1%2", $result, "v")
+        !elseif $ch == "W"
+            !$result = $format("%1%2", $result, "w")
+        !elseif $ch == "X"
+            !$result = $format("%1%2", $result, "x")
+        !elseif $ch == "Y"
+            !$result = $format("%1%2", $result, "y")
+        !elseif $ch == "Z"
+            !$result = $format("%1%2", $result, "z")
+        !else
+            !$result = $format("%1%2", $result, $ch)
+        !endif
+        !$i = $i + 1
+    !endwhile
+    !return $result
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Проверяет, является ли токен версией (чисто числовой фрагмент, возможно с точками).
+'' Чистая функция: идемпотентна, без побочных эффектов.
+'' args: $token - фрагмент строки технологии (например, "25", "3.12", ".NET")
+'' returns: %true() если $token пустой либо состоит только из цифр и точек, иначе %false()
+'' example: !$v = $__is_version_token("25")
+!function $__is_version_token($token)
+    !$len = %strlen($token)
+    !if $len == 0
+        !return %true()
+    !endif
+    !$i = 0
+    !while $i < $len
+        !$ch = %substr($token, $i, 1)
+        !if %strpos("0123456789.", $ch) < 0
+            !return %false()
+        !endif
+        !$i = $i + 1
+    !endwhile
+    !return %true()
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Нормализует один токен технологии: обрезает пробелы, переводит в нижний регистр,
+'' отбрасывает числовые версии ("Java 25" → "java", "PostgreSQL 15" → "postgresql").
+'' Multi-word названия сохраняются ("Spring Boot" → "spring boot").
+'' Чистая функция: идемпотентна, без побочных эффектов.
+'' args: $token - фрагмент строки технологии
+'' returns: нормализованное имя технологии в нижнем регистре без версий
+'' example: !$n = $__normalize_token("Java 25")
+!function $__normalize_token($token)
+    !$parts = %splitstr($token, " ")
+    !$result = ""
+    !$first = %true()
+    !foreach $part in $parts
+        !if $__is_version_token($part) == %false()
+            !if $first == %true()
+                !$result = $part
+                !$first = %false()
+            !else
+                !$result = $format("%1 %2", $result, $part)
+            !endif
+        !endif
+    !endfor
+    !return $__to_lower($result)
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Разбивает строку технологий по разделителям (",", "+", ";", "/") и нормализует
+'' каждый токен. Возвращает массив нормализованных непустых имён технологий.
+'' Чистая функция: идемпотентна, без побочных эффектов.
+'' args: $technologies - строка со списком технологий
+'' returns: JSON-массив нормализованных имён технологий
+'' example: !$arr = $__split_technologies("Java 17, Spring Boot")
+!function $__split_technologies($technologies)
+    !$raw_parts = %splitstr_regex($technologies, "[,+/;]+")
+    !$result = []
+    !foreach $raw in $raw_parts
+        !$norm = $__normalize_token($raw)
+        !if $norm != ""
+            !$result = $append_to_list($result, $norm)
+        !endif
+    !endfor
+    !return $result
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Возвращает каталог технологий C4-контейнеров.
+'' Каталог определён в technologies_catalog.puml (переменная $TECH_CATALOG) и
+'' подключён через !include в шапке этого модуля. !include резолвится относительно
+'' РАСПОЛОЖЕНИЯ файла (не cwd), поэтому каталог доступен при любом cwd запуска
+'' (IDE с temp-каталогом, онлайн-сервер) — в отличие от %load_json.
+''
+'' Дополнительно можно подменить каталог на собственный JSON через SET_SPRITES_MAP($path).
+'' Чистая функция: идемпотентна, без побочных эффектов помимо чтения файла.
+'' returns: JSON-массив записей {canonical, aliases, category, sprite}
+!function $__tech_catalog()
+    '' Подмена каталога на пользовательский JSON (приоритет над встроенным)
+    !if %variable_exists("TECH_SPRITES_MAP_PATH")
+        !$map_path = %get_variable_value("TECH_SPRITES_MAP_PATH")
+        !if %file_exists($map_path)
+            !return %load_json($map_path)
+        !endif
+    !endif
+    !return $TECH_CATALOG
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Ищет запись технологии в каталоге по нормализованному имени.
+'' Сравнивает $name со всеми альтернативными именами (aliases[]) каждой записи.
+'' Чистая функция: идемпотентна, без побочных эффектов.
+'' args: $catalog - JSON-массив записей (результат $__tech_catalog)
+''       $name - нормализованное имя технологии (lowercase, без версии)
+'' returns: запись {canonical, aliases, category, sprite} или {} если не найдена
+!function $__find_tech($catalog, $name)
+    !foreach $rec in $catalog
+        '' ВАЖНО: PlantUML 1.2026.5 не позволяет foreach напрямую по $rec.aliases
+        '' (полю-массиву объекта) — сначала присваиваем в локальную переменную.
+        !$aliases = $rec.aliases
+        !foreach $alias in $aliases
+            !if $alias == $name
+                !return $rec
+            !endif
+        !endfor
+    !endfor
+    !return {}
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Возвращает числовой приоритет категории (меньше = важнее).
+'' framework/datastore/queue/cache = 1, platform = 2, language = 3, остальное = 9.
+'' Чистая функция: идемпотентна, без побочных эффектов.
+'' args: $category - имя категории из записи справочника
+'' returns: числовой приоритет
+!function $__category_priority($category)
+    !if $category == "framework"
+        !return 1
+    !elseif $category == "datastore"
+        !return 1
+    !elseif $category == "queue"
+        !return 1
+    !elseif $category == "cache"
+        !return 1
+    !elseif $category == "platform"
+        !return 2
+    !elseif $category == "language"
+        !return 3
+    !endif
+    !return 9
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Выбирает наиболее значимую технологию из списка и возвращает её каноническое имя.
+'' Приоритет категорий: framework/datastore/queue/cache (1) > platform (2) > language (3).
+'' При равенстве приоритетов побеждает технология, встретившаяся в строке раньше.
+'' Возвращает "" если список пуст или не содержит известных технологий.
+'' args: $technologies - строка со списком технологий (разделители , + ; /)
+'' returns: каноническое имя основной технологии (из справочника), либо ""
+'' example: !$tech = $get_container_main_tech_from_technologies("Java 25, Spring Boot")
+!function $get_container_main_tech_from_technologies($technologies)
+    !$names = $__split_technologies($technologies)
+    !if %size($names) == 0
+        !return ""
+    !endif
+    !$catalog = $__tech_catalog()
+    !$best_canonical = ""
+    !$best_priority = 99
+    !foreach $name in $names
+        !$rec = $__find_tech($catalog, $name)
+        !if $default($rec.canonical) != ""
+            !$prio = $__category_priority($rec.category)
+            !if $prio < $best_priority
+                !$best_priority = $prio
+                !$best_canonical = $rec.canonical
+            !endif
+        !endif
+    !endfor
+    !return $best_canonical
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Подбирает имя спрайта для наиболее значимой технологии из списка.
+'' За один проход по каталогу находит технологию с наивысшим приоритетом
+'' и сразу возвращает её спрайт. $__tech_catalog() вызывается однократно.
+'' Возвращает "" если список технологий пуст, не содержит известных технологий
+'' или основная технология не имеет спрайта.
+'' args: $technologies - строка со списком технологий (разделители , + ; /)
+'' returns: имя спрайта (для подключения пользователем <logos/...>), либо ""
+'' example: !$sprite = $get_sprite_from_technologies("Java 25, Spring Boot")
+!function $get_sprite_from_technologies($technologies)
+    !$names = $__split_technologies($technologies)
+    !if %size($names) == 0
+        !return ""
+    !endif
+    !$catalog = $__tech_catalog()
+    !$best_priority = 99
+    !$best_sprite = ""
+    !foreach $name in $names
+        !$rec = $__find_tech($catalog, $name)
+        !if $default($rec.canonical) != ""
+            !$prio = $__category_priority($rec.category)
+            !if $prio < $best_priority
+                !$best_priority = $prio
+                !$sprite = $default($rec.sprite)
+                !if $sprite == "__EMPTY__"
+                    !$best_sprite = ""
+                !else
+                    !$best_sprite = $sprite
+                !endif
+            !endif
+        !endif
+    !endfor
+    !return $best_sprite
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Возвращает состояние глобального флага авто-подбора спрайтов.
+'' Чистая функция: идемпотентна, без побочных эффектов (только читает глобальную переменную).
+'' Семантика: отсутствие переменной = ВКЛ (дефолт), "false" = ВЫКЛ.
+'' returns: %true() если авто-подбор включён, %false() если отключён
+!function $__tech_sprite_auto_enabled()
+    !if %variable_exists("TECH_SPRITE_AUTO_ENABLED")
+        !$flag = %get_variable_value("TECH_SPRITE_AUTO_ENABLED")
+        !if $flag == "false"
+            !return %false()
+        !endif
+    !endif
+    !return %true()
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Включает глобальный авто-подбор спрайтов контейнеров по технологиям (сценарий 3.3 issue #22).
+'' Это состояние по умолчанию: вызов нужен только для повторного включения после HIDE_TECH_SPRITE_AUTO().
+'' Имя соответствует конвенции stdlib C4-PlantUML (SHOW_PERSON_SPRITE / HIDE_PERSON_SPRITE).
+'' example: SHOW_TECH_SPRITE_AUTO()
+!procedure SHOW_TECH_SPRITE_AUTO()
+    %set_variable_value("TECH_SPRITE_AUTO_ENABLED", "true")
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Выключает глобальный авто-подбор спрайтов контейнеров по технологиям.
+'' После вызова контейнеры без явного спрайта рендерятся без пиктограммы,
+'' даже если их технологии есть в справочнике.
+'' example: HIDE_TECH_SPRITE_AUTO()
+!procedure HIDE_TECH_SPRITE_AUTO()
+    %set_variable_value("TECH_SPRITE_AUTO_ENABLED", "false")
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Подменяет встроенный каталог технологий на пользовательский JSON-файл.
+'' Встроенный каталог (technologies_catalog.puml) доступен при любом cwd, поэтому
+'' эта процедура нужна только чтобы переопределить его собственным списком
+'' технологий/спрайтов. Путь задаётся относительно cwd запуска PlantUML
+'' (как у %load_json).
+'' example: SET_SPRITES_MAP("C:/myproj/custom-technologies.json")
+'' example: SET_SPRITES_MAP("custom-technologies.json")
+!procedure SET_SPRITES_MAP($path)
+    %set_variable_value("TECH_SPRITES_MAP_PATH", $path)
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+@enduml

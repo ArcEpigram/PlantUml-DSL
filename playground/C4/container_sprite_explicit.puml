@@ -1,0 +1,15 @@
+@startuml
+!include <logos/java>
+!include <logos/rabbitmq>
+!include <logos/postgresql>
+!include <logos/spring-icon>
+
+!include ../../src/C4/Context.puml
+
+$Container("Payments", "Платежи", "Java + Spring Boot", "Микросервис", $sprite=spring-icon)
+$ContainerDb("PaymentsDb", "БД платежей", "PostgreSQL", "Хранилище", $sprite=postgresql)
+$ContainerQueue("PaymentsQueue", "Очередь", "RabbitMQ", $sprite="rabbitmq")
+
+Containers(Payments PaymentsDb PaymentsQueue)
+Diagram("C4 Container — explicit sprite")
+@enduml

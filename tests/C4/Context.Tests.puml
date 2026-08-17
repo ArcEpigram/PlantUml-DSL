@@ -722,6 +722,206 @@
     !$params = $resolve_container_render_params($descriptor, $decorator)
     !assert $params.desc == "My descr"
 !endprocedure
+'' Tests for auto sprite resolution from technologies (issue #22, сценарий 3.3)
+!procedure resolve_container_render_params_should_auto_resolve_sprite_from_techn()
+    !$descriptor = {}
+    !$descriptor = $json_add($descriptor, "type", "Container")
+    !$descriptor = $json_add($descriptor, "element_type", "")
+    !$descriptor = $json_add($descriptor, "label", "Payments")
+    !$descriptor = $json_add($descriptor, "techn", "Java 17 + Spring Boot")
+    !$descriptor = $json_add($descriptor, "desc", "")
+    !$descriptor = $json_add($descriptor, "sprite", "")
+    !$descriptor = $json_add($descriptor, "tags", "")
+    !$descriptor = $json_add($descriptor, "link", "")
+    !$descriptor = $json_add($descriptor, "baseShape", "")
+    !$decorator = {}
+    !$decorator = $json_add($decorator, "is_extern", %false())
+    !$decorator = $json_add($decorator, "show_desc", %true())
+    !$decorator = $json_add($decorator, "sprite", "")
+    !$decorator = $json_add($decorator, "styles", [])
+    !$params = $resolve_container_render_params($descriptor, $decorator)
+    !assert $params.sprite == "spring-icon"
+!endprocedure
+!procedure resolve_container_render_params_should_auto_resolve_db_sprite_from_techn()
+    !$descriptor = {}
+    !$descriptor = $json_add($descriptor, "type", "Container")
+    !$descriptor = $json_add($descriptor, "element_type", "Db")
+    !$descriptor = $json_add($descriptor, "label", "PaymentsDb")
+    !$descriptor = $json_add($descriptor, "techn", "PostgreSQL 15")
+    !$descriptor = $json_add($descriptor, "desc", "")
+    !$descriptor = $json_add($descriptor, "sprite", "")
+    !$descriptor = $json_add($descriptor, "tags", "")
+    !$descriptor = $json_add($descriptor, "link", "")
+    !$descriptor = $json_add($descriptor, "baseShape", "")
+    !$decorator = {}
+    !$decorator = $json_add($decorator, "is_extern", %false())
+    !$decorator = $json_add($decorator, "show_desc", %true())
+    !$decorator = $json_add($decorator, "sprite", "")
+    !$decorator = $json_add($decorator, "styles", [])
+    !$params = $resolve_container_render_params($descriptor, $decorator)
+    !assert $params.sprite == "postgresql"
+!endprocedure
+!procedure resolve_container_render_params_should_auto_resolve_queue_sprite_from_techn()
+    !$descriptor = {}
+    !$descriptor = $json_add($descriptor, "type", "Container")
+    !$descriptor = $json_add($descriptor, "element_type", "Queue")
+    !$descriptor = $json_add($descriptor, "label", "PaymentsQueue")
+    !$descriptor = $json_add($descriptor, "techn", "RabbitMQ 3.12")
+    !$descriptor = $json_add($descriptor, "desc", "")
+    !$descriptor = $json_add($descriptor, "sprite", "")
+    !$descriptor = $json_add($descriptor, "tags", "")
+    !$descriptor = $json_add($descriptor, "link", "")
+    !$descriptor = $json_add($descriptor, "baseShape", "")
+    !$decorator = {}
+    !$decorator = $json_add($decorator, "is_extern", %false())
+    !$decorator = $json_add($decorator, "show_desc", %true())
+    !$decorator = $json_add($decorator, "sprite", "")
+    !$decorator = $json_add($decorator, "styles", [])
+    !$params = $resolve_container_render_params($descriptor, $decorator)
+    !assert $params.sprite == "rabbitmq"
+!endprocedure
+!procedure resolve_container_render_params_should_prefer_explicit_descriptor_sprite_over_auto()
+    '' Явный спрайт дескриптора имеет приоритет над авто-подбором из technologies
+    !$descriptor = {}
+    !$descriptor = $json_add($descriptor, "type", "Container")
+    !$descriptor = $json_add($descriptor, "element_type", "")
+    !$descriptor = $json_add($descriptor, "label", "L")
+    !$descriptor = $json_add($descriptor, "techn", "Spring Boot")
+    !$descriptor = $json_add($descriptor, "desc", "")
+    !$descriptor = $json_add($descriptor, "sprite", "my-custom-sprite")
+    !$descriptor = $json_add($descriptor, "tags", "")
+    !$descriptor = $json_add($descriptor, "link", "")
+    !$descriptor = $json_add($descriptor, "baseShape", "")
+    !$decorator = {}
+    !$decorator = $json_add($decorator, "is_extern", %false())
+    !$decorator = $json_add($decorator, "show_desc", %true())
+    !$decorator = $json_add($decorator, "sprite", "")
+    !$decorator = $json_add($decorator, "styles", [])
+    !$params = $resolve_container_render_params($descriptor, $decorator)
+    !assert $params.sprite == "my-custom-sprite"
+!endprocedure
+!procedure resolve_container_render_params_should_prefer_decorator_sprite_over_auto()
+    '' Спрайт декоратора имеет высший приоритет над авто-подбором
+    !$descriptor = {}
+    !$descriptor = $json_add($descriptor, "type", "Container")
+    !$descriptor = $json_add($descriptor, "element_type", "")
+    !$descriptor = $json_add($descriptor, "label", "L")
+    !$descriptor = $json_add($descriptor, "techn", "Spring Boot")
+    !$descriptor = $json_add($descriptor, "desc", "")
+    !$descriptor = $json_add($descriptor, "sprite", "")
+    !$descriptor = $json_add($descriptor, "tags", "")
+    !$descriptor = $json_add($descriptor, "link", "")
+    !$descriptor = $json_add($descriptor, "baseShape", "")
+    !$decorator = {}
+    !$decorator = $json_add($decorator, "is_extern", %false())
+    !$decorator = $json_add($decorator, "show_desc", %true())
+    !$decorator = $json_add($decorator, "sprite", "decorator-sprite")
+    !$decorator = $json_add($decorator, "styles", [])
+    !$params = $resolve_container_render_params($descriptor, $decorator)
+    !assert $params.sprite == "decorator-sprite"
+!endprocedure
+!procedure resolve_container_render_params_should_return_empty_sprite_for_unknown_techn()
+    !$descriptor = {}
+    !$descriptor = $json_add($descriptor, "type", "Container")
+    !$descriptor = $json_add($descriptor, "element_type", "")
+    !$descriptor = $json_add($descriptor, "label", "L")
+    !$descriptor = $json_add($descriptor, "techn", "Brainfuck")
+    !$descriptor = $json_add($descriptor, "desc", "")
+    !$descriptor = $json_add($descriptor, "sprite", "")
+    !$descriptor = $json_add($descriptor, "tags", "")
+    !$descriptor = $json_add($descriptor, "link", "")
+    !$descriptor = $json_add($descriptor, "baseShape", "")
+    !$decorator = {}
+    !$decorator = $json_add($decorator, "is_extern", %false())
+    !$decorator = $json_add($decorator, "show_desc", %true())
+    !$decorator = $json_add($decorator, "sprite", "")
+    !$decorator = $json_add($decorator, "styles", [])
+    !$params = $resolve_container_render_params($descriptor, $decorator)
+    !assert $default($params.sprite) == ""
+!endprocedure
+'' Tests for global auto-sprite toggle (SHOW_TECH_SPRITE_AUTO/HIDE_TECH_SPRITE_AUTO)
+!procedure resolve_container_render_params_should_not_auto_resolve_when_disabled()
+    '' Arrange — отключаем авто-подбор
+    HIDE_TECH_SPRITE_AUTO()
+    !$descriptor = {}
+    !$descriptor = $json_add($descriptor, "type", "Container")
+    !$descriptor = $json_add($descriptor, "element_type", "")
+    !$descriptor = $json_add($descriptor, "label", "Payments")
+    !$descriptor = $json_add($descriptor, "techn", "Java 17 + Spring Boot")
+    !$descriptor = $json_add($descriptor, "desc", "")
+    !$descriptor = $json_add($descriptor, "sprite", "")
+    !$descriptor = $json_add($descriptor, "tags", "")
+    !$descriptor = $json_add($descriptor, "link", "")
+    !$descriptor = $json_add($descriptor, "baseShape", "")
+    !$decorator = {}
+    !$decorator = $json_add($decorator, "is_extern", %false())
+    !$decorator = $json_add($decorator, "show_desc", %true())
+    !$decorator = $json_add($decorator, "sprite", "")
+    !$decorator = $json_add($decorator, "styles", [])
+
+    '' Act
+    !$params = $resolve_container_render_params($descriptor, $decorator)
+
+    '' Assert — спрайт пустой, хотя технология известна
+    !assert $default($params.sprite) == ""
+
+    '' Cleanup — восстанавливаем дефолт (ВКЛ) для последующих тестов
+    SHOW_TECH_SPRITE_AUTO()
+!endprocedure
+!procedure resolve_container_render_params_should_auto_resolve_again_after_enable()
+    '' Arrange — отключаем и снова включаем
+    HIDE_TECH_SPRITE_AUTO()
+    SHOW_TECH_SPRITE_AUTO()
+    !$descriptor = {}
+    !$descriptor = $json_add($descriptor, "type", "Container")
+    !$descriptor = $json_add($descriptor, "element_type", "")
+    !$descriptor = $json_add($descriptor, "label", "Payments")
+    !$descriptor = $json_add($descriptor, "techn", "Java 17 + Spring Boot")
+    !$descriptor = $json_add($descriptor, "desc", "")
+    !$descriptor = $json_add($descriptor, "sprite", "")
+    !$descriptor = $json_add($descriptor, "tags", "")
+    !$descriptor = $json_add($descriptor, "link", "")
+    !$descriptor = $json_add($descriptor, "baseShape", "")
+    !$decorator = {}
+    !$decorator = $json_add($decorator, "is_extern", %false())
+    !$decorator = $json_add($decorator, "show_desc", %true())
+    !$decorator = $json_add($decorator, "sprite", "")
+    !$decorator = $json_add($decorator, "styles", [])
+
+    '' Act
+    !$params = $resolve_container_render_params($descriptor, $decorator)
+
+    '' Assert — авто-подбор восстановлен
+    !assert $params.sprite == "spring-icon"
+!endprocedure
+!procedure resolve_container_render_params_should_keep_explicit_sprite_when_disabled()
+    '' Arrange — отключаем авто-подбор, но задаём явный спрайт дескриптора
+    HIDE_TECH_SPRITE_AUTO()
+    !$descriptor = {}
+    !$descriptor = $json_add($descriptor, "type", "Container")
+    !$descriptor = $json_add($descriptor, "element_type", "")
+    !$descriptor = $json_add($descriptor, "label", "L")
+    !$descriptor = $json_add($descriptor, "techn", "Spring Boot")
+    !$descriptor = $json_add($descriptor, "desc", "")
+    !$descriptor = $json_add($descriptor, "sprite", "my-explicit-sprite")
+    !$descriptor = $json_add($descriptor, "tags", "")
+    !$descriptor = $json_add($descriptor, "link", "")
+    !$descriptor = $json_add($descriptor, "baseShape", "")
+    !$decorator = {}
+    !$decorator = $json_add($decorator, "is_extern", %false())
+    !$decorator = $json_add($decorator, "show_desc", %true())
+    !$decorator = $json_add($decorator, "sprite", "")
+    !$decorator = $json_add($decorator, "styles", [])
+
+    '' Act
+    !$params = $resolve_container_render_params($descriptor, $decorator)
+
+    '' Assert — явный спрайт приоритетнее флага авто-подбора
+    !assert $params.sprite == "my-explicit-sprite"
+
+    '' Cleanup
+    SHOW_TECH_SPRITE_AUTO()
+!endprocedure
 !endprocedure
 ''======================================================================================================================
 ''  System Tests
@@ -1340,6 +1540,46 @@
     !assert $desc.boundary == "CnBnd"
 !endprocedure
 
+!procedure container_registration_should_save_sprite_field()
+    '' Arrange, Act
+    $Container("Cn_Reg8", "MyContainer", "", "", "spring-icon")
+
+    '' Assert
+    !$serialized = $get_descriptor("Cn_Reg8")
+    !$desc = $str2json($serialized, $without_quotes = %true())
+    !assert $desc.sprite == "spring-icon"
+!endprocedure
+
+!procedure container_registration_should_default_sprite_to_empty()
+    '' Arrange, Act
+    $Container("Cn_Reg9", "MyContainer")
+
+    '' Assert
+    !$serialized = $get_descriptor("Cn_Reg9")
+    !$desc = $str2json($serialized, $without_quotes = %true())
+    !assert $default($desc.sprite) == ""
+!endprocedure
+
+!procedure containerdb_registration_should_save_sprite_field()
+    '' Arrange, Act
+    $ContainerDb("Db_Reg3", "MyDb", "PostgreSQL", "Описание", "database")
+
+    '' Assert
+    !$serialized = $get_descriptor("Db_Reg3")
+    !$desc = $str2json($serialized, $without_quotes = %true())
+    !assert $desc.sprite == "database"
+!endprocedure
+
+!procedure containerqueue_registration_should_save_sprite_field()
+    '' Arrange, Act
+    $ContainerQueue("Q_Reg3", "MyQueue", "RabbitMQ", "Описание", "server")
+
+    '' Assert
+    !$serialized = $get_descriptor("Q_Reg3")
+    !$desc = $str2json($serialized, $without_quotes = %true())
+    !assert $desc.sprite == "server"
+!endprocedure
+
 ''----------------------------------------------------------------------------------------------------------------------
 '' ContainerDb registration
 ''----------------------------------------------------------------------------------------------------------------------
@@ -1551,10 +1791,14 @@ container_registration_should_default_techn_to_empty()
 container_registration_should_default_baseShape_to_empty()
 container_registration_should_save_baseShape_field()
 container_registration_should_save_boundary_attribute()
+container_registration_should_save_sprite_field()
+container_registration_should_default_sprite_to_empty()
 containerdb_registration_should_set_element_type_to_db()
 containerdb_registration_should_not_carry_baseshape()
+containerdb_registration_should_save_sprite_field()
 containerqueue_registration_should_set_element_type_to_queue()
 containerqueue_registration_should_not_carry_baseshape()
+containerqueue_registration_should_save_sprite_field()
 resolve_container_render_params_should_map_default_to_container()
 resolve_container_render_params_should_map_db_to_containerdb()
 resolve_container_render_params_should_map_queue_to_containerqueue()
@@ -1563,6 +1807,15 @@ resolve_container_render_params_should_pass_baseShape_for_default()
 resolve_container_render_params_should_ignore_baseShape_for_db()
 resolve_container_render_params_should_ignore_baseShape_for_queue()
 resolve_container_render_params_should_pass_descr_when_show_desc_true()
+resolve_container_render_params_should_auto_resolve_sprite_from_techn()
+resolve_container_render_params_should_auto_resolve_db_sprite_from_techn()
+resolve_container_render_params_should_auto_resolve_queue_sprite_from_techn()
+resolve_container_render_params_should_prefer_explicit_descriptor_sprite_over_auto()
+resolve_container_render_params_should_prefer_decorator_sprite_over_auto()
+resolve_container_render_params_should_return_empty_sprite_for_unknown_techn()
+resolve_container_render_params_should_not_auto_resolve_when_disabled()
+resolve_container_render_params_should_auto_resolve_again_after_enable()
+resolve_container_render_params_should_keep_explicit_sprite_when_disabled()
 include_elements_should_locate_container_via_locator()
 include_elements_should_explicit_source_path_for_container()
 render_dispatch_should_call_render_container_for_default()

@@ -1,0 +1,402 @@
+@startuml
+!include ../../src/C4/Technologies.puml
+''----------------------------------------------------------------------------------------------------------------------
+'' Tests
+''----------------------------------------------------------------------------------------------------------------------
+
+''--------------------
+'' $__to_lower
+''--------------------
+!procedure to_lower_should_convert_uppercase()
+    !assert $__to_lower("JAVA") == "java"
+!endprocedure
+
+!procedure to_lower_should_keep_non_letters()
+    !assert $__to_lower(".NET 8") == ".net 8"
+!endprocedure
+
+!procedure to_lower_should_keep_spaces()
+    !assert $__to_lower("Spring Boot") == "spring boot"
+!endprocedure
+
+!procedure to_lower_should_keep_empty()
+    !assert $__to_lower("") == ""
+!endprocedure
+
+!procedure to_lower_should_keep_already_lower()
+    !assert $__to_lower("java") == "java"
+!endprocedure
+
+''--------------------
+'' $__is_version_token
+''--------------------
+!procedure is_version_token_should_recognize_pure_number()
+    !assert $__is_version_token("25") == %true()
+!endprocedure
+
+!procedure is_version_token_should_recognize_version_with_dots()
+    !assert $__is_version_token("3.12") == %true()
+!endprocedure
+
+!procedure is_version_token_should_recognize_empty()
+    !assert $__is_version_token("") == %true()
+!endprocedure
+
+!procedure is_version_token_should_reject_name()
+    !assert $__is_version_token("Java") == %false()
+!endprocedure
+
+!procedure is_version_token_should_reject_dotnet()
+    !assert $__is_version_token(".NET") == %false()
+!endprocedure
+
+''--------------------
+'' $__normalize_token
+''--------------------
+!procedure normalize_token_should_strip_version_from_language()
+    !assert $__normalize_token("Java 25") == "java"
+!endprocedure
+
+!procedure normalize_token_should_strip_version_from_db()
+    !assert $__normalize_token("PostgreSQL 15") == "postgresql"
+!endprocedure
+
+!procedure normalize_token_should_keep_multiword_name()
+    !assert $__normalize_token("Spring Boot") == "spring boot"
+!endprocedure
+
+!procedure normalize_token_should_keep_dotnet_with_version()
+    !assert $__normalize_token(".NET 8") == ".net"
+!endprocedure
+
+!procedure normalize_token_should_return_empty_for_version_only()
+    !assert $__normalize_token("17") == ""
+!endprocedure
+
+!procedure normalize_token_should_lowercase_input()
+    !assert $__normalize_token("RABBITMQ") == "rabbitmq"
+!endprocedure
+
+''--------------------
+'' $__split_technologies
+''--------------------
+!procedure split_technologies_should_split_by_comma()
+    !$arr = $__split_technologies("Java, Spring Boot")
+    !assert %size($arr) == 2
+    !assert $arr[0] == "java"
+    !assert $arr[1] == "spring boot"
+!endprocedure
+
+!procedure split_technologies_should_split_by_plus()
+    !$arr = $__split_technologies("Java + Spring Boot")
+    !assert %size($arr) == 2
+    !assert $arr[0] == "java"
+    !assert $arr[1] == "spring boot"
+!endprocedure
+
+!procedure split_technologies_should_split_by_semicolon()
+    !$arr = $__split_technologies("PostgreSQL;Redis")
+    !assert %size($arr) == 2
+    !assert $arr[0] == "postgresql"
+    !assert $arr[1] == "redis"
+!endprocedure
+
+!procedure split_technologies_should_strip_versions()
+    !$arr = $__split_technologies("Java 17, Spring Boot")
+    !assert %size($arr) == 2
+    !assert $arr[0] == "java"
+    !assert $arr[1] == "spring boot"
+!endprocedure
+
+!procedure split_technologies_should_return_empty_array_for_empty_input()
+    !$arr = $__split_technologies("")
+    !assert %size($arr) == 0
+!endprocedure
+
+!procedure split_technologies_should_skip_empty_tokens()
+    !$arr = $__split_technologies("Java, , Spring Boot")
+    !assert %size($arr) == 2
+!endprocedure
+
+''--------------------
+'' $__tech_catalog / $__find_tech
+''--------------------
+!procedure tech_catalog_should_contain_spring_boot()
+    !$cat = $__tech_catalog()
+    !$rec = $__find_tech($cat, "spring boot")
+    !assert $rec.canonical == "Spring Boot"
+    !assert $rec.category == "framework"
+    !assert $rec.sprite == "spring-icon"
+!endprocedure
+
+!procedure tech_catalog_should_resolve_alias_to_canonical()
+    !$cat = $__tech_catalog()
+    !$rec = $__find_tech($cat, "spring-boot")
+    !assert $rec.canonical == "Spring Boot"
+!endprocedure
+
+!procedure tech_catalog_should_resolve_postgres_alias()
+    !$cat = $__tech_catalog()
+    !$rec = $__find_tech($cat, "postgres")
+    !assert $rec.canonical == "PostgreSQL"
+    !assert $rec.category == "datastore"
+!endprocedure
+
+!procedure tech_catalog_should_return_empty_for_unknown()
+    !$cat = $__tech_catalog()
+    !$rec = $__find_tech($cat, "cobol")
+    !assert $default($rec.canonical) == ""
+!endprocedure
+
+!procedure category_priority_should_rank_framework_as_one()
+    !assert $__category_priority("framework") == 1
+    !assert $__category_priority("datastore") == 1
+    !assert $__category_priority("queue") == 1
+    !assert $__category_priority("cache") == 1
+!endprocedure
+
+!procedure category_priority_should_rank_platform_as_two()
+    !assert $__category_priority("platform") == 2
+!endprocedure
+
+!procedure category_priority_should_rank_language_as_three()
+    !assert $__category_priority("language") == 3
+!endprocedure
+
+''--------------------
+'' $get_container_main_tech_from_technologies
+''--------------------
+!procedure main_tech_should_select_framework_over_language()
+    !$tech = $get_container_main_tech_from_technologies("Java, Spring Boot")
+    !assert $tech == "Spring Boot"
+!endprocedure
+
+!procedure main_tech_should_select_datastore_for_db()
+    !$tech = $get_container_main_tech_from_technologies("PostgreSQL 15")
+    !assert $tech == "PostgreSQL"
+!endprocedure
+
+!procedure main_tech_should_select_queue_for_broker()
+    !$tech = $get_container_main_tech_from_technologies("RabbitMQ 3.12")
+    !assert $tech == "RabbitMQ"
+!endprocedure
+
+!procedure main_tech_should_resolve_alias_to_canonical()
+    !$tech = $get_container_main_tech_from_technologies("spring")
+    !assert $tech == "Spring Boot"
+!endprocedure
+
+!procedure main_tech_should_return_empty_for_unknown()
+    !$tech = $get_container_main_tech_from_technologies("Brainfuck")
+    !assert $tech == ""
+!endprocedure
+
+!procedure main_tech_should_return_empty_for_empty_input()
+    !$tech = $get_container_main_tech_from_technologies("")
+    !assert $tech == ""
+!endprocedure
+
+!procedure main_tech_should_select_platform_over_language()
+    !$tech = $get_container_main_tech_from_technologies("Java, JVM")
+    !assert $tech == "JVM"
+!endprocedure
+
+!procedure main_tech_should_fallback_to_language_when_no_higher()
+    !$tech = $get_container_main_tech_from_technologies("Python 3.12")
+    !assert $tech == "Python"
+!endprocedure
+
+!procedure main_tech_should_keep_first_on_equal_priority()
+    '' Java и Python оба language (P3); первая в строке — Java
+    !$tech = $get_container_main_tech_from_technologies("Java, Python")
+    !assert $tech == "Java"
+!endprocedure
+
+''--------------------
+'' $get_sprite_from_technologies
+''--------------------
+!procedure sprite_from_tech_should_return_sprite_for_framework()
+    !$sprite = $get_sprite_from_technologies("Java 25, Spring Boot")
+    !assert $sprite == "spring-icon"
+!endprocedure
+
+!procedure sprite_from_tech_should_return_sprite_for_datastore()
+    !$sprite = $get_sprite_from_technologies("PostgreSQL 15")
+    !assert $sprite == "postgresql"
+!endprocedure
+
+!procedure sprite_from_tech_should_return_sprite_for_queue()
+    !$sprite = $get_sprite_from_technologies("RabbitMQ 3.12")
+    !assert $sprite == "rabbitmq"
+!endprocedure
+
+!procedure sprite_from_tech_should_return_sprite_for_mysql()
+    !$sprite = $get_sprite_from_technologies("MySQL 8")
+    !assert $sprite == "mysql"
+!endprocedure
+
+!procedure sprite_from_tech_should_return_sprite_for_mongodb()
+    !$sprite = $get_sprite_from_technologies("MongoDB 6")
+    !assert $sprite == "mongodb"
+!endprocedure
+
+!procedure sprite_from_tech_should_return_sprite_for_kafka()
+    !$sprite = $get_sprite_from_technologies("Kafka")
+    !assert $sprite == "kafka"
+!endprocedure
+
+!procedure sprite_from_tech_should_return_sprite_for_redis()
+    !$sprite = $get_sprite_from_technologies("Redis 7")
+    !assert $sprite == "redis"
+!endprocedure
+
+!procedure sprite_from_tech_should_return_sprite_for_nodejs()
+    !$sprite = $get_sprite_from_technologies("Node.js 20")
+    !assert $sprite == "nodejs"
+!endprocedure
+
+!procedure sprite_from_tech_should_return_sprite_for_java()
+    !$sprite = $get_sprite_from_technologies("Java 25")
+    !assert $sprite == "java"
+!endprocedure
+
+!procedure sprite_from_tech_should_return_empty_for_tech_without_sprite()
+    '' Python — основной язык (P3), у неё нет стандартного спрайта в справочнике
+    !$sprite = $get_sprite_from_technologies("Python 3.12")
+    !assert $sprite == ""
+!endprocedure
+
+!procedure sprite_from_tech_should_return_empty_for_unknown()
+    !$sprite = $get_sprite_from_technologies("Brainfuck")
+    !assert $sprite == ""
+!endprocedure
+
+!procedure sprite_from_tech_should_return_empty_for_empty_input()
+    !$sprite = $get_sprite_from_technologies("")
+    !assert $sprite == ""
+!endprocedure
+
+''--------------------
+'' $__tech_sprite_auto_enabled / SHOW_TECH_SPRITE_AUTO / HIDE_TECH_SPRITE_AUTO
+''--------------------
+!procedure tech_sprite_auto_should_be_enabled_by_default()
+    '' Arrange — флаг не установлен, состояние по умолчанию
+    !assert $__tech_sprite_auto_enabled() == %true()
+!endprocedure
+
+!procedure hide_tech_sprite_auto_should_turn_flag_off()
+    '' Arrange, Act
+    HIDE_TECH_SPRITE_AUTO()
+    !assert $__tech_sprite_auto_enabled() == %false()
+    '' Cleanup — восстанавливаем дефолтное состояние для последующих тестов
+    SHOW_TECH_SPRITE_AUTO()
+!endprocedure
+
+!procedure show_tech_sprite_auto_should_turn_flag_on()
+    '' Arrange
+    HIDE_TECH_SPRITE_AUTO()
+    !assert $__tech_sprite_auto_enabled() == %false()
+
+    '' Act
+    SHOW_TECH_SPRITE_AUTO()
+
+    '' Assert
+    !assert $__tech_sprite_auto_enabled() == %true()
+!endprocedure
+
+''--------------------
+'' SET_SPRITES_MAP
+''--------------------
+!procedure set_sprites_map_should_set_path_variable()
+    '' Arrange, Act
+    SET_SPRITES_MAP("custom-technologies.json")
+
+    '' Assert — путь сохранён в глобальной переменной
+    !assert %get_variable_value("TECH_SPRITES_MAP_PATH") == "custom-technologies.json"
+
+    '' Cleanup — сброс переопределения
+    SET_SPRITES_MAP("")
+!endprocedure
+
+!procedure set_sprites_map_should_fallback_to_default_on_missing_file()
+    '' Arrange — путь к несуществующему файлу
+    SET_SPRITES_MAP("nonexistent-technologies.json")
+
+    '' Act
+    !$cat = $__tech_catalog()
+
+    '' Assert — файл не найден, возвращается встроенный каталог (21 запись)
+    !assert %size($cat) == 21
+
+    '' Cleanup — сброс переопределения
+    SET_SPRITES_MAP("")
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Tests RUN!
+''----------------------------------------------------------------------------------------------------------------------
+to_lower_should_convert_uppercase()
+to_lower_should_keep_non_letters()
+to_lower_should_keep_spaces()
+to_lower_should_keep_empty()
+to_lower_should_keep_already_lower()
+
+is_version_token_should_recognize_pure_number()
+is_version_token_should_recognize_version_with_dots()
+is_version_token_should_recognize_empty()
+is_version_token_should_reject_name()
+is_version_token_should_reject_dotnet()
+
+normalize_token_should_strip_version_from_language()
+normalize_token_should_strip_version_from_db()
+normalize_token_should_keep_multiword_name()
+normalize_token_should_keep_dotnet_with_version()
+normalize_token_should_return_empty_for_version_only()
+normalize_token_should_lowercase_input()
+
+split_technologies_should_split_by_comma()
+split_technologies_should_split_by_plus()
+split_technologies_should_split_by_semicolon()
+split_technologies_should_strip_versions()
+split_technologies_should_return_empty_array_for_empty_input()
+split_technologies_should_skip_empty_tokens()
+
+tech_catalog_should_contain_spring_boot()
+tech_catalog_should_resolve_alias_to_canonical()
+tech_catalog_should_resolve_postgres_alias()
+tech_catalog_should_return_empty_for_unknown()
+category_priority_should_rank_framework_as_one()
+category_priority_should_rank_platform_as_two()
+category_priority_should_rank_language_as_three()
+
+main_tech_should_select_framework_over_language()
+main_tech_should_select_datastore_for_db()
+main_tech_should_select_queue_for_broker()
+main_tech_should_resolve_alias_to_canonical()
+main_tech_should_return_empty_for_unknown()
+main_tech_should_return_empty_for_empty_input()
+main_tech_should_select_platform_over_language()
+main_tech_should_fallback_to_language_when_no_higher()
+main_tech_should_keep_first_on_equal_priority()
+
+sprite_from_tech_should_return_sprite_for_framework()
+sprite_from_tech_should_return_sprite_for_datastore()
+sprite_from_tech_should_return_sprite_for_queue()
+sprite_from_tech_should_return_sprite_for_mysql()
+sprite_from_tech_should_return_sprite_for_mongodb()
+sprite_from_tech_should_return_sprite_for_kafka()
+sprite_from_tech_should_return_sprite_for_redis()
+sprite_from_tech_should_return_sprite_for_nodejs()
+sprite_from_tech_should_return_sprite_for_java()
+sprite_from_tech_should_return_empty_for_tech_without_sprite()
+sprite_from_tech_should_return_empty_for_unknown()
+sprite_from_tech_should_return_empty_for_empty_input()
+
+tech_sprite_auto_should_be_enabled_by_default()
+hide_tech_sprite_auto_should_turn_flag_off()
+show_tech_sprite_auto_should_turn_flag_on()
+
+set_sprites_map_should_set_path_variable()
+set_sprites_map_should_fallback_to_default_on_missing_file()
+''----------------------------------------------------------------------------------------------------------------------
+caption OK
+@enduml
