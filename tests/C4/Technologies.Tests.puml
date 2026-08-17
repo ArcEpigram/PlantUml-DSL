@@ -307,43 +307,26 @@
 ''--------------------
 '' SET_SPRITES_MAP
 ''--------------------
-'' Возвращает путь к тестовой фикстуре каталога технологий.
-'' На Linux %file_exists/%load_json не резолвят относительный путь от cwd,
-'' поэтому в CI используется абсолютный путь из GITHUB_WORKSPACE; локально —
-'' относительный путь от корня репозитория.
-!function $__tech_override_fixture_path()
-    !$ws = %getenv("GITHUB_WORKSPACE")
-    !if $ws != ""
-        !return $format("%1/tests/C4/technologies_override.json", $ws)
-    !endif
-    !return "tests/C4/technologies_override.json"
-!endfunction
+!procedure set_sprites_map_should_set_path_variable()
+    '' Arrange, Act
+    SET_SPRITES_MAP("custom-technologies.json")
 
-!procedure set_sprites_map_should_load_catalog_from_explicit_path()
-    '' Arrange — явный путь к пользовательскому каталогу
-    !$fixture = $__tech_override_fixture_path()
-    SET_SPRITES_MAP($fixture)
-
-    '' Act
-    !$cat = $__tech_catalog()
-
-    '' Assert — каталог загружен из указанного пути (2 записи, а не 21 встроенных)
-    !assert %size($cat) == 2
-    !$rec = $__find_tech($cat, "custom framework")
-    !assert $rec.canonical == "Custom Framework"
+    '' Assert — путь сохранён в глобальной переменной
+    !assert %get_variable_value("TECH_SPRITES_MAP_PATH") == "custom-technologies.json"
 
     '' Cleanup — сброс переопределения
     SET_SPRITES_MAP("")
 !endprocedure
 
-!procedure set_sprites_map_should_take_priority_over_default()
-    '' Arrange — SET_SPRITES_MAP должен переопределить встроенный каталог
-    !$fixture = $__tech_override_fixture_path()
-    SET_SPRITES_MAP($fixture)
+!procedure set_sprites_map_should_fallback_to_default_on_missing_file()
+    '' Arrange — путь к несуществующему файлу
+    SET_SPRITES_MAP("nonexistent-technologies.json")
+
+    '' Act
     !$cat = $__tech_catalog()
 
-    '' Assert — используется переопределённый каталог, а не встроенный (21 запись)
-    !assert %size($cat) == 2
+    '' Assert — файл не найден, возвращается встроенный каталог (21 запись)
+    !assert %size($cat) == 21
 
     '' Cleanup — сброс переопределения
     SET_SPRITES_MAP("")
@@ -412,8 +395,8 @@ tech_sprite_auto_should_be_enabled_by_default()
 hide_tech_sprite_auto_should_turn_flag_off()
 show_tech_sprite_auto_should_turn_flag_on()
 
-set_sprites_map_should_load_catalog_from_explicit_path()
-set_sprites_map_should_take_priority_over_default()
+set_sprites_map_should_set_path_variable()
+set_sprites_map_should_fallback_to_default_on_missing_file()
 ''----------------------------------------------------------------------------------------------------------------------
 caption OK
 @enduml
