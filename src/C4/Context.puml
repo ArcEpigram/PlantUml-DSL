@@ -13,7 +13,6 @@
 $register_rendering_proc("Person", $proc="$render_person")
 $register_rendering_proc("Relation", $proc="$render_relation")
 $register_rendering_proc("System", $proc="$render_system")
-$register_rendering_proc("Boundary", $proc="$render_boundary")
 $register_rendering_proc("Container", $proc="$render_container")
 ''----------------------------------------------------------------------------------------------------------------------
 '' Регистрирует архитектурный элемент типа Person.
@@ -390,6 +389,7 @@ $register_rendering_proc("Container", $proc="$render_container")
 !unquoted procedure Systems_Ext($source, $aliases)
     $include_elements("system", $source, $aliases, %true())
 !endprocedure
+''----------------------------------------------------------------------------------------------------------------------
 '' Рендерит элемент типа Person в нотации C4 Context.
 '' Десериализует дескриптор, проверяет флаги show_desc и is_extern,
 '' затем вызывает стандартную функцию Person() или Person_Ext().
@@ -483,6 +483,10 @@ $register_rendering_proc("Container", $proc="$render_container")
         !endif
     !endif
 !endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+'' Рендерит C4-элемент (Person, System) через нативную процедуру C4-PlantUML.
+'' args: $alias - алиас элемента
+''       $params - JSON с полями {label, desc, sprite, render_proc, tags, type, link, is_extern}
 !procedure $render_c4_element($alias, $params)
     !if $params.is_extern == %true()
         !$render_proc_name = $format("%1_Ext", $params.render_proc)
@@ -502,13 +506,12 @@ $register_rendering_proc("Container", $proc="$render_container")
     )
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
-'' Вычисляет параметры рендеринга для C4-элемента на основе дескриптора и декоратора.
-'' Чистая функция: не имеет побочных эффектов, всегда возвращает одинаковый результат при одинаковых аргументах.
-'' args: $descriptor - JSON-объект {type, label, desc, sprite, tags, link, element_type, reason, reason_source}
+'' Вычисляет общие поля параметров рендеринга C4-элемента: label, desc, sprite, tags, link, is_extern.
+'' Чистая функция: не имеет побочных эффектов.
+'' args: $descriptor - JSON-объект {type, label, desc, sprite, tags, link, element_type}
 ''       $decorator - JSON-объект {is_extern, show_desc, sprite, styles}
-''       $render_proc - имя нативной функции рендеринга ("Person", "System", "SystemQueue", "SystemDb")
-'' returns: JSON-объект {label, desc, sprite, render_proc, tags, type, link, is_extern} — вычисленные параметры для нативного рендеринга
-!function $resolve_c4_element_render_params($descriptor, $decorator, $render_proc)
+'' returns: JSON-объект {label, desc, sprite, tags, link, is_extern}
+!function $__resolve_common_render_params($descriptor, $decorator)
     !$params = {}
 
     !$params = $json_add($params, "label", $descriptor.label)
@@ -522,16 +525,25 @@ $register_rendering_proc("Container", $proc="$render_container")
         !$params = $json_add($params, "sprite", $default($descriptor.sprite))
     !endif
 
-    !$params = $json_add($params, "render_proc", $render_proc)
-
     !$params = $json_add($params, "tags", $combine_tags($default($descriptor.tags), $array2str($decorator.styles, "+")))
-
-    !$params = $json_add($params, "type", $default($descriptor.element_type))
 
     !$params = $json_add($params, "link", $default($descriptor.link))
 
     !$params = $json_add($params, "is_extern", $decorator.is_extern)
 
+    !return $params
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
+'' Вычисляет параметры рендеринга для C4-элемента на основе дескриптора и декоратора.
+'' Чистая функция: не имеет побочных эффектов, всегда возвращает одинаковый результат при одинаковых аргументах.
+'' args: $descriptor - JSON-объект {type, label, desc, sprite, tags, link, element_type, reason, reason_source}
+''       $decorator - JSON-объект {is_extern, show_desc, sprite, styles}
+''       $render_proc - имя нативной функции рендеринга ("Person", "System", "SystemQueue", "SystemDb")
+'' returns: JSON-объект {label, desc, sprite, render_proc, tags, type, link, is_extern} — вычисленные параметры для нативного рендеринга
+!function $resolve_c4_element_render_params($descriptor, $decorator, $render_proc)
+    !$params = $__resolve_common_render_params($descriptor, $decorator)
+    !$params = $json_add($params, "render_proc", $render_proc)
+    !$params = $json_add($params, "type", $default($descriptor.element_type))
     !return $params
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
@@ -546,19 +558,7 @@ $register_rendering_proc("Container", $proc="$render_container")
 ''   "Queue" → SystemQueue, "Db" → SystemDb, иначе → System
 !function $resolve_system_render_params($descriptor, $decorator)
     !$etype = $default($descriptor.element_type)
-    '' NOTE: Не используем $resolve_c4_element_render_params напрямую, т.к. нужен маппинг $etype
-    !$params = {}
-
-    !$params = $json_add($params, "label", $descriptor.label)
-
-    !$params = $json_add($params, "desc", $value_or_default($decorator.show_desc == %true(), $descriptor.desc))
-
-    !$decor_sprite = $default($decorator.sprite)
-    !if $decor_sprite != ""
-        !$params = $json_add($params, "sprite", $decor_sprite)
-    !else
-        !$params = $json_add($params, "sprite", $default($descriptor.sprite))
-    !endif
+    !$params = $__resolve_common_render_params($descriptor, $decorator)
 
     '' Маппинг element_type → render_proc
     !if $etype == "Queue"
@@ -572,12 +572,6 @@ $register_rendering_proc("Container", $proc="$render_container")
         !$params = $json_add($params, "type", $etype)
     !endif
 
-    !$params = $json_add($params, "tags", $combine_tags($default($descriptor.tags), $array2str($decorator.styles, "+")))
-
-    !$params = $json_add($params, "link", $default($descriptor.link))
-
-    !$params = $json_add($params, "is_extern", $decorator.is_extern)
-
     !return $params
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
@@ -589,24 +583,14 @@ $register_rendering_proc("Container", $proc="$render_container")
 ''       $decorator - JSON-объект {is_extern, show_desc, sprite, styles}
 '' returns: JSON-объект {label, techn, desc, sprite, render_proc, baseShape, tags, type, link, is_extern}
 !function $resolve_container_render_params($descriptor, $decorator)
-    !$params = {}
     !$etype = $default($descriptor.element_type)
-
-    !$params = $json_add($params, "label", $descriptor.label)
+    !$params = $__resolve_common_render_params($descriptor, $decorator)
     !$params = $json_add($params, "techn", $default($descriptor.techn))
-    !$params = $json_add($params, "desc", $value_or_default($decorator.show_desc == %true(), $descriptor.desc))
-    !if $default($decorator.sprite) != ""
-        !$params = $json_add($params, "sprite", $default($decorator.sprite))
-    !elseif $default($descriptor.sprite) != ""
-        !$params = $json_add($params, "sprite", $default($descriptor.sprite))
-    !elseif $__tech_sprite_auto_enabled() == %true()
-        '' Авто-подбор спрайта по списку технологий (сценарий 3.3 issue #22):
-        '' если спрайт не задан явно и авто-подбор включён (по умолчанию ВКЛ,
-        '' управляется SHOW_TECH_SPRITE_AUTO/HIDE_TECH_SPRITE_AUTO).
-        !$auto_sprite = $get_sprite_from_technologies($default($descriptor.techn))
-        !$params = $json_add($params, "sprite", $auto_sprite)
-    !else
-        !$params = $json_add($params, "sprite", "")
+
+    '' Авто-подбор спрайта по технологиям (fallback, если спрайт не задан явно).
+    '' Управляется SHOW_TECH_SPRITE_AUTO/HIDE_TECH_SPRITE_AUTO (по умолчанию ВКЛ).
+    !if $default($params.sprite) == "" && $__tech_sprite_auto_enabled() == %true()
+        !$params = $json_add($params, "sprite", $get_sprite_from_technologies($default($descriptor.techn)))
     !endif
 
     !if $etype == "Db"
@@ -620,10 +604,7 @@ $register_rendering_proc("Container", $proc="$render_container")
         !$params = $json_add($params, "baseShape", $default($descriptor.baseShape))
     !endif
 
-    !$params = $json_add($params, "tags", $combine_tags($default($descriptor.tags), $array2str($decorator.styles, "+")))
     !$params = $json_add($params, "type", $etype)
-    !$params = $json_add($params, "link", $default($descriptor.link))
-    !$params = $json_add($params, "is_extern", $decorator.is_extern)
     !return $params
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
@@ -645,7 +626,7 @@ $register_rendering_proc("Container", $proc="$render_container")
     !$descriptor = $json_add($descriptor, "label", $label)
     !$descriptor = $json_add($descriptor, "techn", $techn)
     !$descriptor = $json_add($descriptor, "descr", $descr)
-    !$descriptor = $json_add($descriptor, "tags", [])
+    !$descriptor = $json_add($descriptor, "tags", $tags)
     !$descriptor = $json_add($descriptor, "reason", $reason)
     !$descriptor = $json_add($descriptor, "reason_source", $reason_source)
     !return $descriptor
@@ -739,41 +720,42 @@ $register_rendering_proc("Container", $proc="$render_container")
     $include_relations($source, $aliases)
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
+'' Внутренняя реализация задания направления связи для списка связей.
+'' Изменяет декоратор каждой связи, добавляя lay_direction = $direction.
+'' args: $aliases - перечисление алиасов связей (разделенные пробелом)
+''       $direction - направление связи: "Down", "Up", "Left", "Right"
+!procedure $align($aliases, $direction)
+    !foreach $alias in %splitstr($aliases, " ")
+        $update_decorator($alias, "lay_direction", $direction)
+    !endfor
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
 '' Устанавливает направление связи "вниз" для заданных связей.
-'' Изменяет декоратор каждой связи, добавляя lay_direction = "Down".
 '' args: $aliases - перечисление алиасов связей (разделенные пробелом)
 '' example: Align_Down("User-ERP ERP-1C")
 !unquoted procedure Align_Down($aliases)
-    !foreach $alias in %splitstr($aliases, " ")
-        $update_decorator($alias, "lay_direction", "Down")
-    !endfor
+    $align($aliases, "Down")
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Устанавливает направление связи "вверх" для заданных связей.
 '' args: $aliases - перечисление алиасов связей (разделенные пробелом)
 '' example: Align_Up("User-ERP")
 !unquoted procedure Align_Up($aliases)
-    !foreach $alias in %splitstr($aliases, " ")
-        $update_decorator($alias, "lay_direction", "Up")
-    !endfor
+    $align($aliases, "Up")
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Устанавливает направление связи "влево" для заданных связей.
 '' args: $aliases - перечисление алиасов связей (разделенные пробелом)
 '' example: Align_Left("ERP-1C")
 !unquoted procedure Align_Left($aliases)
-    !foreach $alias in %splitstr($aliases, " ")
-        $update_decorator($alias, "lay_direction", "Left")
-    !endfor
+    $align($aliases, "Left")
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Устанавливает направление связи "вправо" для заданных связей.
 '' args: $aliases - перечисление алиасов связей (разделенные пробелом)
 '' example: Align_Right("ERP-SSO")
 !unquoted procedure Align_Right($aliases)
-    !foreach $alias in %splitstr($aliases, " ")
-        $update_decorator($alias, "lay_direction", "Right")
-    !endfor
+    $align($aliases, "Right")
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Вычисляет параметры рендеринга для связи Relation на основе дескриптора и декоратора.
@@ -794,7 +776,7 @@ $register_rendering_proc("Container", $proc="$render_container")
     !$params = $json_add($params, "sprite", $decorator.sprite)
     !$params = $json_add($params, "link", $decorator.link)
 
-    !$params = $json_add($params, "tags", $array2str($decorator.styles, "+"))
+    !$params = $json_add($params, "tags", $combine_tags($default($descriptor.tags), $array2str($decorator.styles, "+")))
 
     !$params = $json_add($params, "lay_direction", $default($decorator.lay_direction))
 
@@ -893,12 +875,6 @@ $register_rendering_proc("Container", $proc="$render_container")
 !unquoted procedure $Boundary($alias, $label, $descr="", $tags="", $link="", $type="")
     !$descriptor = $default_boundary_descriptor($label, $descr, $tags, $link, $type)
     $register_descriptor($alias, $json2str($descriptor, %true()))
-!endprocedure
-''----------------------------------------------------------------------------------------------------------------------
-'' Рендерит элемент Boundary (заглушка).
-'' Boundary рендерится как контейнер в Diagram(), а не как отдельный элемент.
-!procedure $render_boundary($alias, $serialized_descriptor, $decorator)
-    '' NOOP: Boundary rendering is handled by Diagram() via BOUNDARY_GROUPS
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Открывает блок Enterprise_Boundary.
