@@ -60,14 +60,6 @@
 '' example: !$text = $format("This is %1 with arguments %2 and %3.", "expression", "x", "y")
 !function $format($text, $p1, $p2="", $p3="", $p4="", $p5="", $p6="", $p7="", $p8="")
     !$result = ""
-    !$pos1 = %strpos($text, "%1")
-    !$pos2 = %strpos($text, "%2")
-    !$pos3 = %strpos($text, "%3")
-    !$pos4 = %strpos($text, "%4")
-    !$pos5 = %strpos($text, "%5")
-    !$pos6 = %strpos($text, "%6")
-    !$pos7 = %strpos($text, "%7")
-    !$pos8 = %strpos($text, "%8")
 
     !foreach $fragment in %splitstr($text, "%")
         !if (%substr($fragment, 0, 1) == "1")
@@ -133,7 +125,7 @@
 '' example: !$obj = $json_add($obj, "name", "Alice")
 !function $json_add($json, $key, $value)
     !$str = %string($json)
-    !$len = %size($str)
+    !$len = %strlen($str)
 
     !$json_value = $__serialize_json_value($value)
 
@@ -164,7 +156,7 @@
     !endif
 
     !$json_value = $__serialize_json_value($value)
-    !$key_len = %size($json_key)
+    !$key_len = %strlen($json_key)
 
     !$before = %substr($str, 0, $key_pos)
 
