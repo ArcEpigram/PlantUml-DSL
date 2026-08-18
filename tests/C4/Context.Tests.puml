@@ -332,7 +332,7 @@
     !assert $desc.label == "TestLabel"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
-!procedure relation_registration_should_save_techn_and_descr()
+!procedure relation_registration_should_save_techn_and_desc()
     '' Arrange, Act
     $Relation("X", "Y", "Link", "", "HTTP", "Описание связи")
     !$desc_str = $get_descriptor("X-Y")
@@ -340,7 +340,7 @@
 
     '' Assert
     !assert $desc.techn == "HTTP"
-    !assert $desc.descr == "Описание связи"
+    !assert $desc.desc == "Описание связи"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure relation_registration_should_save_tags()
@@ -403,11 +403,11 @@
     !$desc = $json_add($desc, "to", "B")
     !$desc = $json_add($desc, "label", "L")
     !$desc = $json_add($desc, "techn", "HTTP")
-    !$desc = $json_add($desc, "descr", "Описание")
+    !$desc = $json_add($desc, "desc", "Описание")
     !$decor = {}
     !$decor = $json_add($decor, "show_label", %true())
     !$decor = $json_add($decor, "show_techn", %true())
-    !$decor = $json_add($decor, "show_descr", %true())
+    !$decor = $json_add($decor, "show_desc", %true())
     !$decor = $json_add($decor, "link", "")
     !$decor = $json_add($decor, "sprite", "")
     !$decor = $json_add($decor, "styles", [])
@@ -420,7 +420,7 @@
     !assert $params.to == "B"
     !assert $params.label == "L"
     !assert $params.techn == "HTTP"
-    !assert $params.descr == "Описание"
+    !assert $params.desc == "Описание"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_relation_render_params_hides_label_when_show_label_false()
@@ -433,7 +433,7 @@
     !$decor = {}
     !$decor = $json_add($decor, "show_label", %false())
     !$decor = $json_add($decor, "show_techn", %true())
-    !$decor = $json_add($decor, "show_descr", %true())
+    !$decor = $json_add($decor, "show_desc", %true())
     !$decor = $json_add($decor, "link", "")
     !$decor = $json_add($decor, "sprite", "")
     !$decor = $json_add($decor, "styles", [])
@@ -456,7 +456,7 @@
     !$decor = {}
     !$decor = $json_add($decor, "show_label", %true())
     !$decor = $json_add($decor, "show_techn", %false())
-    !$decor = $json_add($decor, "show_descr", %true())
+    !$decor = $json_add($decor, "show_desc", %true())
     !$decor = $json_add($decor, "link", "")
     !$decor = $json_add($decor, "sprite", "")
     !$decor = $json_add($decor, "styles", [])
@@ -468,18 +468,18 @@
     !assert $default($params.techn) == ""
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
-!procedure resolve_relation_render_params_hides_descr_when_show_descr_false()
+!procedure resolve_relation_render_params_hides_desc_when_show_desc_false()
     '' Arrange
     !$desc = {}
     !$desc = $json_add($desc, "type", "Relation")
     !$desc = $json_add($desc, "from", "A")
     !$desc = $json_add($desc, "to", "B")
     !$desc = $json_add($desc, "label", "L")
-    !$desc = $json_add($desc, "descr", "Скрыто")
+    !$desc = $json_add($desc, "desc", "Скрыто")
     !$decor = {}
     !$decor = $json_add($decor, "show_label", %true())
     !$decor = $json_add($decor, "show_techn", %true())
-    !$decor = $json_add($decor, "show_descr", %false())
+    !$decor = $json_add($decor, "show_desc", %false())
     !$decor = $json_add($decor, "link", "")
     !$decor = $json_add($decor, "sprite", "")
     !$decor = $json_add($decor, "styles", [])
@@ -488,7 +488,7 @@
     !$params = $resolve_relation_render_params($desc, $decor)
 
     '' Assert
-    !assert $default($params.descr) == ""
+    !assert $default($params.desc) == ""
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_relation_render_params_joins_styles_as_tags()
@@ -501,7 +501,7 @@
     !$decor = {}
     !$decor = $json_add($decor, "show_label", %true())
     !$decor = $json_add($decor, "show_techn", %true())
-    !$decor = $json_add($decor, "show_descr", %true())
+    !$decor = $json_add($decor, "show_desc", %true())
     !$decor = $json_add($decor, "link", "")
     !$decor = $json_add($decor, "sprite", "")
     !$decor = $json_add($decor, "styles", [])
@@ -526,7 +526,7 @@
     !$decor = {}
     !$decor = $json_add($decor, "show_label", %true())
     !$decor = $json_add($decor, "show_techn", %true())
-    !$decor = $json_add($decor, "show_descr", %true())
+    !$decor = $json_add($decor, "show_desc", %true())
     !$decor = $json_add($decor, "link", "")
     !$decor = $json_add($decor, "sprite", "")
     !$decor = $json_add($decor, "styles", ["new"])
@@ -869,7 +869,7 @@
     !assert $desc.boundary_type == "Enterprise"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
-!procedure boundary_registration_should_save_label_and_descr()
+!procedure boundary_registration_should_save_label_and_desc()
     '' Arrange, Act
     $Boundary("B_LD", "Test Label", "Test Description")
     !$desc_str = $get_descriptor("B_LD")
@@ -1159,7 +1159,7 @@ person_registration_should_save_boundary_attribute()
 person_registration_should_default_boundary_to_empty()
 boundary_registration_should_create_descriptor_with_boundary_type()
 boundary_registration_should_save_boundary_type_field()
-boundary_registration_should_save_label_and_descr()
+boundary_registration_should_save_label_and_desc()
 boundary_registration_should_default_to_empty_boundary_type()
 include_elements_should_auto_group_by_boundary()
 include_elements_without_boundary_should_not_create_group()
@@ -1179,7 +1179,7 @@ resolve_person_render_params_includes_sprite_from_descriptor()
 resolve_person_render_params_should_use_decorator_sprite_when_set()
 resolve_person_render_params_should_fallback_to_descriptor_sprite()
 relation_registration_should_create_descriptor_with_relation_type()
-relation_registration_should_save_techn_and_descr()
+relation_registration_should_save_techn_and_desc()
 relation_registration_should_save_tags()
 relations_should_add_registered_alias_to_rendering_queue()
 relations_should_skip_unregistered_alias()
@@ -1187,7 +1187,7 @@ relations_should_add_multiple_aliases()
 resolve_relation_render_params_returns_all_fields_when_shown()
 resolve_relation_render_params_hides_label_when_show_label_false()
 resolve_relation_render_params_hides_techn_when_show_techn_false()
-resolve_relation_render_params_hides_descr_when_show_descr_false()
+resolve_relation_render_params_hides_desc_when_show_desc_false()
 resolve_relation_render_params_joins_styles_as_tags()
 resolve_relation_render_params_combines_descriptor_tags_with_styles()
 resolve_boundary_native_proc_should_map_enterprise()

@@ -71,7 +71,7 @@
     !$decor = {}
     !$decor = $json_add($decor, "show_label", %true())
     !$decor = $json_add($decor, "show_techn", %true())
-    !$decor = $json_add($decor, "show_descr", %true())
+    !$decor = $json_add($decor, "show_desc", %true())
     !$decor = $json_add($decor, "link", "")
     !$decor = $json_add($decor, "sprite", "")
     !$decor = $json_add($decor, "styles", [])
@@ -92,7 +92,7 @@
     !$decor = {}
     !$decor = $json_add($decor, "show_label", %true())
     !$decor = $json_add($decor, "show_techn", %true())
-    !$decor = $json_add($decor, "show_descr", %true())
+    !$decor = $json_add($decor, "show_desc", %true())
     !$decor = $json_add($decor, "link", "")
     !$decor = $json_add($decor, "sprite", "")
     !$decor = $json_add($decor, "styles", [])
@@ -104,27 +104,6 @@
 
     '' Assert
     !assert $decorator.show_techn == %false()
-!endprocedure
-''----------------------------------------------------------------------------------------------------------------------
-'' Tests for HideDescription on relations
-''----------------------------------------------------------------------------------------------------------------------
-!procedure hidedescription_should_hide_descr_for_relation()
-    '' Arrange
-    !$decor = {}
-    !$decor = $json_add($decor, "show_label", %true())
-    !$decor = $json_add($decor, "show_techn", %true())
-    !$decor = $json_add($decor, "show_descr", %true())
-    !$decor = $json_add($decor, "link", "")
-    !$decor = $json_add($decor, "sprite", "")
-    !$decor = $json_add($decor, "styles", [])
-    $register_decorator("RD", $decor)
-
-    '' Act
-    HideDescription(RD)
-    !$decorator = $get_decorator("RD")
-
-    '' Assert
-    !assert $decorator.show_descr == %false()
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure apply_sprite_should_set_sprite_field()
@@ -155,7 +134,6 @@ apply_style_should_add_to_styles_array()
 apply_style_should_not_duplicate()
 hidelabel_should_set_show_label_false()
 hidetechnology_should_set_show_techn_false()
-hidedescription_should_hide_descr_for_relation()
 apply_sprite_should_set_sprite_field()
 ''----------------------------------------------------------------------------------------------------------------------
 caption OK

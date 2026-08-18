@@ -182,14 +182,14 @@
     !assert $default($params.baseShape) == ""
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
-!procedure resolve_container_render_params_should_pass_descr_when_show_desc_true()
+!procedure resolve_container_render_params_should_pass_desc_when_show_desc_true()
     '' Arrange
     !$descriptor = {}
     !$descriptor = $json_add($descriptor, "type", "Container")
     !$descriptor = $json_add($descriptor, "element_type", "")
     !$descriptor = $json_add($descriptor, "label", "L")
     !$descriptor = $json_add($descriptor, "techn", "")
-    !$descriptor = $json_add($descriptor, "desc", "My descr")
+    !$descriptor = $json_add($descriptor, "desc", "My desc")
     !$descriptor = $json_add($descriptor, "sprite", "")
     !$descriptor = $json_add($descriptor, "tags", "")
     !$descriptor = $json_add($descriptor, "link", "")
@@ -204,7 +204,7 @@
     !$params = $resolve_container_render_params($descriptor, $decorator)
 
     '' Assert
-    !assert $params.desc == "My descr"
+    !assert $params.desc == "My desc"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Tests for auto sprite resolution from technologies (issue #22, сценарий 3.3)
@@ -427,7 +427,7 @@ resolve_container_render_params_should_pass_techn_to_label_position()
 resolve_container_render_params_should_pass_baseShape_for_default()
 resolve_container_render_params_should_ignore_baseShape_for_db()
 resolve_container_render_params_should_ignore_baseShape_for_queue()
-resolve_container_render_params_should_pass_descr_when_show_desc_true()
+resolve_container_render_params_should_pass_desc_when_show_desc_true()
 resolve_container_render_params_should_auto_resolve_sprite_from_techn()
 resolve_container_render_params_should_auto_resolve_db_sprite_from_techn()
 resolve_container_render_params_should_auto_resolve_queue_sprite_from_techn()

@@ -10,10 +10,10 @@ $register_rendering_proc("System", $proc="$render_system")
 '' Регистрирует архитектурный элемент типа Person.
 '' Создаёт дескриптор (атрибуты) и декоратор (опции отображения по умолчанию),
 '' сохраняет оба в глобальный реестр.
-'' Совместима со стандартной библиотекой C4-PlantUML: Person(alias, label, ?descr, ?sprite, ?tags, ?link, ?type)
+'' Совместима со стандартной библиотекой C4-PlantUML: Person(alias, label, ?desc, ?sprite, ?tags, ?link, ?type)
 '' args: $alias - уникальный алиас элемента
 ''       $label - отображаемое имя элемента
-''       $descr - описание элемента (опционально)
+''       $desc - описание элемента (опционально)
 ''       $sprite - спрайт элемента (опционально)
 ''       $tags - теги элемента (опционально)
 ''       $link - ссылка элемента (опционально)
@@ -21,8 +21,8 @@ $register_rendering_proc("System", $proc="$render_system")
 ''       $reason - обоснование присутствия элемента в архитектуре (опционально)
 ''       $reason_source - источник обоснования: требование, документ, глоссарий (опционально)
 '' example: $Person("User", "Пользователь", "Описание пользователя")
-!unquoted procedure $Person($alias, $label, $descr="", $sprite="", $tags="", $link="", $type="", $reason="", $reason_source="", $boundary="")
-    !$descriptor = $default_c4_element_descriptor("Person", $label, $descr, $sprite, $tags, $link, $type, $reason, $reason_source, $boundary)
+!unquoted procedure $Person($alias, $label, $desc="", $sprite="", $tags="", $link="", $type="", $reason="", $reason_source="", $boundary="")
+    !$descriptor = $default_c4_element_descriptor("Person", $label, $desc, $sprite, $tags, $link, $type, $reason, $reason_source, $boundary)
     $register_descriptor($alias, $json2str($descriptor, %true()))
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
@@ -57,10 +57,10 @@ $register_rendering_proc("System", $proc="$render_system")
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Регистрирует архитектурный элемент типа System.
-'' Совместима со стандартной библиотекой C4-PlantUML: System(alias, label, ?descr, ?sprite, ?tags, ?link, ?type)
+'' Совместима со стандартной библиотекой C4-PlantUML: System(alias, label, ?desc, ?sprite, ?tags, ?link, ?type)
 '' args: $alias - уникальный алиас элемента
 ''       $label - отображаемое имя элемента
-''       $descr - описание элемента (опционально)
+''       $desc - описание элемента (опционально)
 ''       $sprite - спрайт элемента (опционально)
 ''       $tags - теги элемента (опционально)
 ''       $link - ссылка элемента (опционально)
@@ -68,8 +68,8 @@ $register_rendering_proc("System", $proc="$render_system")
 ''       $reason - обоснование присутствия элемента в архитектуре (опционально)
 ''       $reason_source - источник обоснования: требование, документ, глоссарий (опционально)
 '' example: $System("ERP", "ERP-система", "Основная учётная система")
-!unquoted procedure $System($alias, $label, $descr="", $sprite="", $tags="", $link="", $type="", $reason="", $reason_source="", $boundary="")
-    !$descriptor = $default_c4_element_descriptor("System", $label, $descr, $sprite, $tags, $link, $type, $reason, $reason_source, $boundary)
+!unquoted procedure $System($alias, $label, $desc="", $sprite="", $tags="", $link="", $type="", $reason="", $reason_source="", $boundary="")
+    !$descriptor = $default_c4_element_descriptor("System", $label, $desc, $sprite, $tags, $link, $type, $reason, $reason_source, $boundary)
     $register_descriptor($alias, $json2str($descriptor, %true()))
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------

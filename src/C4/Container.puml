@@ -10,11 +10,11 @@ $register_rendering_proc("Container", $proc="$render_container")
 ''----------------------------------------------------------------------------------------------------------------------
 '' Регистрирует архитектурный элемент типа Container.
 '' Совместима со стандартной библиотекой C4-PlantUML.
-'' Сигнатура: Container($alias, $label, $techn, $descr, $sprite, $tags, $link, $baseShape).
+'' Сигнатура: Container($alias, $label, $techn, $desc, $sprite, $tags, $link, $baseShape).
 '' args: $alias - уникальный алиас элемента
 ''       $label - отображаемое имя элемента
 ''       $techn - технология (опционально)
-''       $descr - описание элемента (опционально)
+''       $desc - описание элемента (опционально)
 ''       $sprite - спрайт элемента (опционально)
 ''       $tags - теги элемента (опционально)
 ''       $link - ссылка элемента (опционально)
@@ -23,13 +23,13 @@ $register_rendering_proc("Container", $proc="$render_container")
 ''       $reason_source - источник обоснования: требование, документ, глоссарий (опционально)
 ''       $boundary - алиас Boundary для авто-группировки (опционально)
 '' example: $Container("Payments", "Платежи", "Java 17 + Spring Boot", "Микросервис платежей")
-!unquoted procedure $Container($alias, $label, $techn="", $descr="", $sprite="", \
+!unquoted procedure $Container($alias, $label, $techn="", $desc="", $sprite="", \
     $tags="", $link="", $baseShape="rectangle", $reason="", \
     $reason_source="", $boundary="")
     !assert $alias != "" : "Container alias is required"
     !assert $label != "" : "Container label is required"
     !$descriptor = $default_c4_element_descriptor("Container", \
-        $label, $descr, $sprite, $tags, $link, "", \
+        $label, $desc, $sprite, $tags, $link, "", \
         $reason, $reason_source, $boundary, $techn, $baseShape \
     )
     $register_descriptor($alias, $json2str($descriptor, %true()))
@@ -37,11 +37,11 @@ $register_rendering_proc("Container", $proc="$render_container")
 ''----------------------------------------------------------------------------------------------------------------------
 '' Регистрирует архитектурный элемент типа ContainerDb (БД в форме "цилиндр").
 '' Совместима со стандартной библиотекой C4-PlantUML.
-'' Сигнатура: ContainerDb($alias, $label, $techn, $descr, $sprite, $tags, $link).
+'' Сигнатура: ContainerDb($alias, $label, $techn, $desc, $sprite, $tags, $link).
 '' args: $alias - уникальный алиас элемента
 ''       $label - отображаемое имя элемента
 ''       $techn - технология (опционально)
-''       $descr - описание элемента (опционально)
+''       $desc - описание элемента (опционально)
 ''       $sprite - спрайт элемента (опционально)
 ''       $tags - теги элемента (опционально)
 ''       $link - ссылка элемента (опционально)
@@ -49,12 +49,12 @@ $register_rendering_proc("Container", $proc="$render_container")
 ''       $reason_source - источник обоснования (опционально)
 ''       $boundary - алиас Boundary для авто-группировки (опционально)
 '' example: $ContainerDb("PaymentsDb", "БД платежей", "PostgreSQL 15", "Хранилище транзакций")
-!unquoted procedure $ContainerDb($alias, $label, $techn="", $descr="", $sprite="", \
+!unquoted procedure $ContainerDb($alias, $label, $techn="", $desc="", $sprite="", \
     $tags="", $link="", $reason="", $reason_source="", $boundary="")
     !assert $alias != "" : "ContainerDb alias is required"
     !assert $label != "" : "ContainerDb label is required"
     !$descriptor = $default_c4_element_descriptor("Container", \
-        $label, $descr, $sprite, $tags, $link, "Db", \
+        $label, $desc, $sprite, $tags, $link, "Db", \
         $reason, $reason_source, $boundary, $techn, "" \
     )
     $register_descriptor($alias, $json2str($descriptor, %true()))
@@ -62,11 +62,11 @@ $register_rendering_proc("Container", $proc="$render_container")
 ''----------------------------------------------------------------------------------------------------------------------
 '' Регистрирует архитектурный элемент типа ContainerQueue (очередь в форме "pipeline").
 '' Совместима со стандартной библиотекой C4-PlantUML.
-'' Сигнатура: ContainerQueue($alias, $label, $techn, $descr, $sprite, $tags, $link).
+'' Сигнатура: ContainerQueue($alias, $label, $techn, $desc, $sprite, $tags, $link).
 '' args: $alias - уникальный алиас элемента
 ''       $label - отображаемое имя элемента
 ''       $techn - технология (опционально)
-''       $descr - описание элемента (опционально)
+''       $desc - описание элемента (опционально)
 ''       $sprite - спрайт элемента (опционально)
 ''       $tags - теги элемента (опционально)
 ''       $link - ссылка элемента (опционально)
@@ -74,12 +74,12 @@ $register_rendering_proc("Container", $proc="$render_container")
 ''       $reason_source - источник обоснования (опционально)
 ''       $boundary - алиас Boundary для авто-группировки (опционально)
 '' example: $ContainerQueue("PaymentsQueue", "Очередь событий", "RabbitMQ 3.12", "Уведомления")
-!unquoted procedure $ContainerQueue($alias, $label, $techn="", $descr="", $sprite="", \
+!unquoted procedure $ContainerQueue($alias, $label, $techn="", $desc="", $sprite="", \
     $tags="", $link="", $reason="", $reason_source="", $boundary="")
     !assert $alias != "" : "ContainerQueue alias is required"
     !assert $label != "" : "ContainerQueue label is required"
     !$descriptor = $default_c4_element_descriptor("Container", \
-        $label, $descr, $sprite, $tags, $link, "Queue", \
+        $label, $desc, $sprite, $tags, $link, "Queue", \
         $reason, $reason_source, $boundary, $techn, "" \
     )
     $register_descriptor($alias, $json2str($descriptor, %true()))
