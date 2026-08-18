@@ -1,4 +1,1 @@
-@startuml
-
 $Relation("A", "B", "TestRel", "", "HTTP", "Описание")
-@enduml
