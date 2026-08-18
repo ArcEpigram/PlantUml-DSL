@@ -332,7 +332,7 @@
     !assert $desc.label == "TestLabel"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
-!procedure relation_registration_should_save_techn_and_descr()
+!procedure relation_registration_should_save_techn_and_desc()
     '' Arrange, Act
     $Relation("X", "Y", "Link", "", "HTTP", "Описание связи")
     !$desc_str = $get_descriptor("X-Y")
@@ -340,7 +340,17 @@
 
     '' Assert
     !assert $desc.techn == "HTTP"
-    !assert $desc.descr == "Описание связи"
+    !assert $desc.desc == "Описание связи"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure relation_registration_should_save_tags()
+    '' Arrange, Act
+    $Relation("T1", "T2", "TaggedLink", "", "", "", "critical+external")
+    !$desc_str = $get_descriptor("T1-T2")
+    !$desc = $str2json($desc_str, $without_quotes = %true())
+
+    '' Assert
+    !assert $desc.tags == "critical+external"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Tests for Relations inclusion
@@ -393,11 +403,11 @@
     !$desc = $json_add($desc, "to", "B")
     !$desc = $json_add($desc, "label", "L")
     !$desc = $json_add($desc, "techn", "HTTP")
-    !$desc = $json_add($desc, "descr", "Описание")
+    !$desc = $json_add($desc, "desc", "Описание")
     !$decor = {}
     !$decor = $json_add($decor, "show_label", %true())
     !$decor = $json_add($decor, "show_techn", %true())
-    !$decor = $json_add($decor, "show_descr", %true())
+    !$decor = $json_add($decor, "show_desc", %true())
     !$decor = $json_add($decor, "link", "")
     !$decor = $json_add($decor, "sprite", "")
     !$decor = $json_add($decor, "styles", [])
@@ -410,7 +420,7 @@
     !assert $params.to == "B"
     !assert $params.label == "L"
     !assert $params.techn == "HTTP"
-    !assert $params.descr == "Описание"
+    !assert $params.desc == "Описание"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_relation_render_params_hides_label_when_show_label_false()
@@ -423,7 +433,7 @@
     !$decor = {}
     !$decor = $json_add($decor, "show_label", %false())
     !$decor = $json_add($decor, "show_techn", %true())
-    !$decor = $json_add($decor, "show_descr", %true())
+    !$decor = $json_add($decor, "show_desc", %true())
     !$decor = $json_add($decor, "link", "")
     !$decor = $json_add($decor, "sprite", "")
     !$decor = $json_add($decor, "styles", [])
@@ -446,7 +456,7 @@
     !$decor = {}
     !$decor = $json_add($decor, "show_label", %true())
     !$decor = $json_add($decor, "show_techn", %false())
-    !$decor = $json_add($decor, "show_descr", %true())
+    !$decor = $json_add($decor, "show_desc", %true())
     !$decor = $json_add($decor, "link", "")
     !$decor = $json_add($decor, "sprite", "")
     !$decor = $json_add($decor, "styles", [])
@@ -458,18 +468,18 @@
     !assert $default($params.techn) == ""
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
-!procedure resolve_relation_render_params_hides_descr_when_show_descr_false()
+!procedure resolve_relation_render_params_hides_desc_when_show_desc_false()
     '' Arrange
     !$desc = {}
     !$desc = $json_add($desc, "type", "Relation")
     !$desc = $json_add($desc, "from", "A")
     !$desc = $json_add($desc, "to", "B")
     !$desc = $json_add($desc, "label", "L")
-    !$desc = $json_add($desc, "descr", "Скрыто")
+    !$desc = $json_add($desc, "desc", "Скрыто")
     !$decor = {}
     !$decor = $json_add($decor, "show_label", %true())
     !$decor = $json_add($decor, "show_techn", %true())
-    !$decor = $json_add($decor, "show_descr", %false())
+    !$decor = $json_add($decor, "show_desc", %false())
     !$decor = $json_add($decor, "link", "")
     !$decor = $json_add($decor, "sprite", "")
     !$decor = $json_add($decor, "styles", [])
@@ -478,7 +488,7 @@
     !$params = $resolve_relation_render_params($desc, $decor)
 
     '' Assert
-    !assert $default($params.descr) == ""
+    !assert $default($params.desc) == ""
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure resolve_relation_render_params_joins_styles_as_tags()
@@ -491,7 +501,7 @@
     !$decor = {}
     !$decor = $json_add($decor, "show_label", %true())
     !$decor = $json_add($decor, "show_techn", %true())
-    !$decor = $json_add($decor, "show_descr", %true())
+    !$decor = $json_add($decor, "show_desc", %true())
     !$decor = $json_add($decor, "link", "")
     !$decor = $json_add($decor, "sprite", "")
     !$decor = $json_add($decor, "styles", [])
@@ -503,6 +513,29 @@
 
     '' Assert
     !assert $params.tags == "a+b"
+!endprocedure
+''----------------------------------------------------------------------------------------------------------------------
+!procedure resolve_relation_render_params_combines_descriptor_tags_with_styles()
+    '' Arrange
+    !$desc = {}
+    !$desc = $json_add($desc, "type", "Relation")
+    !$desc = $json_add($desc, "from", "A")
+    !$desc = $json_add($desc, "to", "B")
+    !$desc = $json_add($desc, "label", "L")
+    !$desc = $json_add($desc, "tags", "old")
+    !$decor = {}
+    !$decor = $json_add($decor, "show_label", %true())
+    !$decor = $json_add($decor, "show_techn", %true())
+    !$decor = $json_add($decor, "show_desc", %true())
+    !$decor = $json_add($decor, "link", "")
+    !$decor = $json_add($decor, "sprite", "")
+    !$decor = $json_add($decor, "styles", ["new"])
+
+    '' Act
+    !$params = $resolve_relation_render_params($desc, $decor)
+
+    '' Assert
+    !assert $params.tags == "old+new"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
 '' Tests for $resolve_relation_native_proc
@@ -563,366 +596,8 @@
 
     '' Assert
     !assert $descriptor.baseShape == "hexagon"
-''----------------------------------------------------------------------------------------------------------------------
-'' Tests for $resolve_container_render_params
-''----------------------------------------------------------------------------------------------------------------------
-!procedure resolve_container_render_params_should_map_default_to_container()
-    !$descriptor = {}
-    !$descriptor = $json_add($descriptor, "type", "Container")
-    !$descriptor = $json_add($descriptor, "element_type", "")
-    !$descriptor = $json_add($descriptor, "label", "L")
-    !$descriptor = $json_add($descriptor, "techn", "T")
-    !$descriptor = $json_add($descriptor, "desc", "D")
-    !$descriptor = $json_add($descriptor, "sprite", "")
-    !$descriptor = $json_add($descriptor, "tags", "")
-    !$descriptor = $json_add($descriptor, "link", "")
-    !$descriptor = $json_add($descriptor, "baseShape", "hexagon")
-    !$decorator = {}
-    !$decorator = $json_add($decorator, "is_extern", %false())
-    !$decorator = $json_add($decorator, "show_desc", %true())
-    !$decorator = $json_add($decorator, "sprite", "")
-    !$decorator = $json_add($decorator, "styles", [])
-    !$params = $resolve_container_render_params($descriptor, $decorator)
-    !assert $params.render_proc == "Container"
-    !assert $params.baseShape == "hexagon"
 !endprocedure
-!procedure resolve_container_render_params_should_map_db_to_containerdb()
-    !$descriptor = {}
-    !$descriptor = $json_add($descriptor, "type", "Container")
-    !$descriptor = $json_add($descriptor, "element_type", "Db")
-    !$descriptor = $json_add($descriptor, "label", "L")
-    !$descriptor = $json_add($descriptor, "techn", "T")
-    !$descriptor = $json_add($descriptor, "desc", "D")
-    !$descriptor = $json_add($descriptor, "sprite", "")
-    !$descriptor = $json_add($descriptor, "tags", "")
-    !$descriptor = $json_add($descriptor, "link", "")
-    !$descriptor = $json_add($descriptor, "baseShape", "hexagon")
-    !$decorator = {}
-    !$decorator = $json_add($decorator, "is_extern", %false())
-    !$decorator = $json_add($decorator, "show_desc", %true())
-    !$decorator = $json_add($decorator, "sprite", "")
-    !$decorator = $json_add($decorator, "styles", [])
-    !$params = $resolve_container_render_params($descriptor, $decorator)
-    !assert $params.render_proc == "ContainerDb"
-    !assert $params.baseShape == ""
-!endprocedure
-!procedure resolve_container_render_params_should_map_queue_to_containerqueue()
-    !$descriptor = {}
-    !$descriptor = $json_add($descriptor, "type", "Container")
-    !$descriptor = $json_add($descriptor, "element_type", "Queue")
-    !$descriptor = $json_add($descriptor, "label", "L")
-    !$descriptor = $json_add($descriptor, "techn", "T")
-    !$descriptor = $json_add($descriptor, "desc", "D")
-    !$descriptor = $json_add($descriptor, "sprite", "")
-    !$descriptor = $json_add($descriptor, "tags", "")
-    !$descriptor = $json_add($descriptor, "link", "")
-    !$descriptor = $json_add($descriptor, "baseShape", "hexagon")
-    !$decorator = {}
-    !$decorator = $json_add($decorator, "is_extern", %false())
-    !$decorator = $json_add($decorator, "show_desc", %true())
-    !$decorator = $json_add($decorator, "sprite", "")
-    !$decorator = $json_add($decorator, "styles", [])
-    !$params = $resolve_container_render_params($descriptor, $decorator)
-    !assert $params.render_proc == "ContainerQueue"
-    !assert $params.baseShape == ""
-!endprocedure
-!procedure resolve_container_render_params_should_pass_techn_to_label_position()
-    !$descriptor = {}
-    !$descriptor = $json_add($descriptor, "type", "Container")
-    !$descriptor = $json_add($descriptor, "element_type", "")
-    !$descriptor = $json_add($descriptor, "label", "MyLabel")
-    !$descriptor = $json_add($descriptor, "techn", "Java + Spring")
-    !$descriptor = $json_add($descriptor, "desc", "")
-    !$descriptor = $json_add($descriptor, "sprite", "")
-    !$descriptor = $json_add($descriptor, "tags", "")
-    !$descriptor = $json_add($descriptor, "link", "")
-    !$descriptor = $json_add($descriptor, "baseShape", "")
-    !$decorator = {}
-    !$decorator = $json_add($decorator, "is_extern", %false())
-    !$decorator = $json_add($decorator, "show_desc", %true())
-    !$decorator = $json_add($decorator, "sprite", "")
-    !$decorator = $json_add($decorator, "styles", [])
-    !$params = $resolve_container_render_params($descriptor, $decorator)
-    !assert $params.techn == "Java + Spring"
-    !assert $params.label == "MyLabel"
-!endprocedure
-!procedure resolve_container_render_params_should_pass_baseShape_for_default()
-    !$descriptor = {}
-    !$descriptor = $json_add($descriptor, "type", "Container")
-    !$descriptor = $json_add($descriptor, "element_type", "")
-    !$descriptor = $json_add($descriptor, "label", "L")
-    !$descriptor = $json_add($descriptor, "techn", "")
-    !$descriptor = $json_add($descriptor, "desc", "")
-    !$descriptor = $json_add($descriptor, "sprite", "")
-    !$descriptor = $json_add($descriptor, "tags", "")
-    !$descriptor = $json_add($descriptor, "link", "")
-    !$descriptor = $json_add($descriptor, "baseShape", "rectangle")
-    !$decorator = {}
-    !$decorator = $json_add($decorator, "is_extern", %false())
-    !$decorator = $json_add($decorator, "show_desc", %true())
-    !$decorator = $json_add($decorator, "sprite", "")
-    !$decorator = $json_add($decorator, "styles", [])
-    !$params = $resolve_container_render_params($descriptor, $decorator)
-    !assert $params.baseShape == "rectangle"
-!endprocedure
-!procedure resolve_container_render_params_should_ignore_baseShape_for_db()
-    !$descriptor = {}
-    !$descriptor = $json_add($descriptor, "type", "Container")
-    !$descriptor = $json_add($descriptor, "element_type", "Db")
-    !$descriptor = $json_add($descriptor, "label", "L")
-    !$descriptor = $json_add($descriptor, "techn", "")
-    !$descriptor = $json_add($descriptor, "desc", "")
-    !$descriptor = $json_add($descriptor, "sprite", "")
-    !$descriptor = $json_add($descriptor, "tags", "")
-    !$descriptor = $json_add($descriptor, "link", "")
-    !$descriptor = $json_add($descriptor, "baseShape", "hexagon")
-    !$decorator = {}
-    !$decorator = $json_add($decorator, "is_extern", %false())
-    !$decorator = $json_add($decorator, "show_desc", %true())
-    !$decorator = $json_add($decorator, "sprite", "")
-    !$decorator = $json_add($decorator, "styles", [])
-    !$params = $resolve_container_render_params($descriptor, $decorator)
-    !assert $params.baseShape == ""
-!endprocedure
-!procedure resolve_container_render_params_should_ignore_baseShape_for_queue()
-    !$descriptor = {}
-    !$descriptor = $json_add($descriptor, "type", "Container")
-    !$descriptor = $json_add($descriptor, "element_type", "Queue")
-    !$descriptor = $json_add($descriptor, "label", "L")
-    !$descriptor = $json_add($descriptor, "techn", "")
-    !$descriptor = $json_add($descriptor, "desc", "")
-    !$descriptor = $json_add($descriptor, "sprite", "")
-    !$descriptor = $json_add($descriptor, "tags", "")
-    !$descriptor = $json_add($descriptor, "link", "")
-    !$descriptor = $json_add($descriptor, "baseShape", "hexagon")
-    !$decorator = {}
-    !$decorator = $json_add($decorator, "is_extern", %false())
-    !$decorator = $json_add($decorator, "show_desc", %true())
-    !$decorator = $json_add($decorator, "sprite", "")
-    !$decorator = $json_add($decorator, "styles", [])
-    !$params = $resolve_container_render_params($descriptor, $decorator)
-    !assert $params.baseShape == ""
-!endprocedure
-!procedure resolve_container_render_params_should_pass_descr_when_show_desc_true()
-    !$descriptor = {}
-    !$descriptor = $json_add($descriptor, "type", "Container")
-    !$descriptor = $json_add($descriptor, "element_type", "")
-    !$descriptor = $json_add($descriptor, "label", "L")
-    !$descriptor = $json_add($descriptor, "techn", "")
-    !$descriptor = $json_add($descriptor, "desc", "My descr")
-    !$descriptor = $json_add($descriptor, "sprite", "")
-    !$descriptor = $json_add($descriptor, "tags", "")
-    !$descriptor = $json_add($descriptor, "link", "")
-    !$descriptor = $json_add($descriptor, "baseShape", "")
-    !$decorator = {}
-    !$decorator = $json_add($decorator, "is_extern", %false())
-    !$decorator = $json_add($decorator, "show_desc", %true())
-    !$decorator = $json_add($decorator, "sprite", "")
-    !$decorator = $json_add($decorator, "styles", [])
-    !$params = $resolve_container_render_params($descriptor, $decorator)
-    !assert $params.desc == "My descr"
-!endprocedure
-'' Tests for auto sprite resolution from technologies (issue #22, сценарий 3.3)
-!procedure resolve_container_render_params_should_auto_resolve_sprite_from_techn()
-    !$descriptor = {}
-    !$descriptor = $json_add($descriptor, "type", "Container")
-    !$descriptor = $json_add($descriptor, "element_type", "")
-    !$descriptor = $json_add($descriptor, "label", "Payments")
-    !$descriptor = $json_add($descriptor, "techn", "Java 17 + Spring Boot")
-    !$descriptor = $json_add($descriptor, "desc", "")
-    !$descriptor = $json_add($descriptor, "sprite", "")
-    !$descriptor = $json_add($descriptor, "tags", "")
-    !$descriptor = $json_add($descriptor, "link", "")
-    !$descriptor = $json_add($descriptor, "baseShape", "")
-    !$decorator = {}
-    !$decorator = $json_add($decorator, "is_extern", %false())
-    !$decorator = $json_add($decorator, "show_desc", %true())
-    !$decorator = $json_add($decorator, "sprite", "")
-    !$decorator = $json_add($decorator, "styles", [])
-    !$params = $resolve_container_render_params($descriptor, $decorator)
-    !assert $params.sprite == "spring-icon"
-!endprocedure
-!procedure resolve_container_render_params_should_auto_resolve_db_sprite_from_techn()
-    !$descriptor = {}
-    !$descriptor = $json_add($descriptor, "type", "Container")
-    !$descriptor = $json_add($descriptor, "element_type", "Db")
-    !$descriptor = $json_add($descriptor, "label", "PaymentsDb")
-    !$descriptor = $json_add($descriptor, "techn", "PostgreSQL 15")
-    !$descriptor = $json_add($descriptor, "desc", "")
-    !$descriptor = $json_add($descriptor, "sprite", "")
-    !$descriptor = $json_add($descriptor, "tags", "")
-    !$descriptor = $json_add($descriptor, "link", "")
-    !$descriptor = $json_add($descriptor, "baseShape", "")
-    !$decorator = {}
-    !$decorator = $json_add($decorator, "is_extern", %false())
-    !$decorator = $json_add($decorator, "show_desc", %true())
-    !$decorator = $json_add($decorator, "sprite", "")
-    !$decorator = $json_add($decorator, "styles", [])
-    !$params = $resolve_container_render_params($descriptor, $decorator)
-    !assert $params.sprite == "postgresql"
-!endprocedure
-!procedure resolve_container_render_params_should_auto_resolve_queue_sprite_from_techn()
-    !$descriptor = {}
-    !$descriptor = $json_add($descriptor, "type", "Container")
-    !$descriptor = $json_add($descriptor, "element_type", "Queue")
-    !$descriptor = $json_add($descriptor, "label", "PaymentsQueue")
-    !$descriptor = $json_add($descriptor, "techn", "RabbitMQ 3.12")
-    !$descriptor = $json_add($descriptor, "desc", "")
-    !$descriptor = $json_add($descriptor, "sprite", "")
-    !$descriptor = $json_add($descriptor, "tags", "")
-    !$descriptor = $json_add($descriptor, "link", "")
-    !$descriptor = $json_add($descriptor, "baseShape", "")
-    !$decorator = {}
-    !$decorator = $json_add($decorator, "is_extern", %false())
-    !$decorator = $json_add($decorator, "show_desc", %true())
-    !$decorator = $json_add($decorator, "sprite", "")
-    !$decorator = $json_add($decorator, "styles", [])
-    !$params = $resolve_container_render_params($descriptor, $decorator)
-    !assert $params.sprite == "rabbitmq"
-!endprocedure
-!procedure resolve_container_render_params_should_prefer_explicit_descriptor_sprite_over_auto()
-    '' Явный спрайт дескриптора имеет приоритет над авто-подбором из technologies
-    !$descriptor = {}
-    !$descriptor = $json_add($descriptor, "type", "Container")
-    !$descriptor = $json_add($descriptor, "element_type", "")
-    !$descriptor = $json_add($descriptor, "label", "L")
-    !$descriptor = $json_add($descriptor, "techn", "Spring Boot")
-    !$descriptor = $json_add($descriptor, "desc", "")
-    !$descriptor = $json_add($descriptor, "sprite", "my-custom-sprite")
-    !$descriptor = $json_add($descriptor, "tags", "")
-    !$descriptor = $json_add($descriptor, "link", "")
-    !$descriptor = $json_add($descriptor, "baseShape", "")
-    !$decorator = {}
-    !$decorator = $json_add($decorator, "is_extern", %false())
-    !$decorator = $json_add($decorator, "show_desc", %true())
-    !$decorator = $json_add($decorator, "sprite", "")
-    !$decorator = $json_add($decorator, "styles", [])
-    !$params = $resolve_container_render_params($descriptor, $decorator)
-    !assert $params.sprite == "my-custom-sprite"
-!endprocedure
-!procedure resolve_container_render_params_should_prefer_decorator_sprite_over_auto()
-    '' Спрайт декоратора имеет высший приоритет над авто-подбором
-    !$descriptor = {}
-    !$descriptor = $json_add($descriptor, "type", "Container")
-    !$descriptor = $json_add($descriptor, "element_type", "")
-    !$descriptor = $json_add($descriptor, "label", "L")
-    !$descriptor = $json_add($descriptor, "techn", "Spring Boot")
-    !$descriptor = $json_add($descriptor, "desc", "")
-    !$descriptor = $json_add($descriptor, "sprite", "")
-    !$descriptor = $json_add($descriptor, "tags", "")
-    !$descriptor = $json_add($descriptor, "link", "")
-    !$descriptor = $json_add($descriptor, "baseShape", "")
-    !$decorator = {}
-    !$decorator = $json_add($decorator, "is_extern", %false())
-    !$decorator = $json_add($decorator, "show_desc", %true())
-    !$decorator = $json_add($decorator, "sprite", "decorator-sprite")
-    !$decorator = $json_add($decorator, "styles", [])
-    !$params = $resolve_container_render_params($descriptor, $decorator)
-    !assert $params.sprite == "decorator-sprite"
-!endprocedure
-!procedure resolve_container_render_params_should_return_empty_sprite_for_unknown_techn()
-    !$descriptor = {}
-    !$descriptor = $json_add($descriptor, "type", "Container")
-    !$descriptor = $json_add($descriptor, "element_type", "")
-    !$descriptor = $json_add($descriptor, "label", "L")
-    !$descriptor = $json_add($descriptor, "techn", "Brainfuck")
-    !$descriptor = $json_add($descriptor, "desc", "")
-    !$descriptor = $json_add($descriptor, "sprite", "")
-    !$descriptor = $json_add($descriptor, "tags", "")
-    !$descriptor = $json_add($descriptor, "link", "")
-    !$descriptor = $json_add($descriptor, "baseShape", "")
-    !$decorator = {}
-    !$decorator = $json_add($decorator, "is_extern", %false())
-    !$decorator = $json_add($decorator, "show_desc", %true())
-    !$decorator = $json_add($decorator, "sprite", "")
-    !$decorator = $json_add($decorator, "styles", [])
-    !$params = $resolve_container_render_params($descriptor, $decorator)
-    !assert $default($params.sprite) == ""
-!endprocedure
-'' Tests for global auto-sprite toggle (SHOW_TECH_SPRITE_AUTO/HIDE_TECH_SPRITE_AUTO)
-!procedure resolve_container_render_params_should_not_auto_resolve_when_disabled()
-    '' Arrange — отключаем авто-подбор
-    HIDE_TECH_SPRITE_AUTO()
-    !$descriptor = {}
-    !$descriptor = $json_add($descriptor, "type", "Container")
-    !$descriptor = $json_add($descriptor, "element_type", "")
-    !$descriptor = $json_add($descriptor, "label", "Payments")
-    !$descriptor = $json_add($descriptor, "techn", "Java 17 + Spring Boot")
-    !$descriptor = $json_add($descriptor, "desc", "")
-    !$descriptor = $json_add($descriptor, "sprite", "")
-    !$descriptor = $json_add($descriptor, "tags", "")
-    !$descriptor = $json_add($descriptor, "link", "")
-    !$descriptor = $json_add($descriptor, "baseShape", "")
-    !$decorator = {}
-    !$decorator = $json_add($decorator, "is_extern", %false())
-    !$decorator = $json_add($decorator, "show_desc", %true())
-    !$decorator = $json_add($decorator, "sprite", "")
-    !$decorator = $json_add($decorator, "styles", [])
 
-    '' Act
-    !$params = $resolve_container_render_params($descriptor, $decorator)
-
-    '' Assert — спрайт пустой, хотя технология известна
-    !assert $default($params.sprite) == ""
-
-    '' Cleanup — восстанавливаем дефолт (ВКЛ) для последующих тестов
-    SHOW_TECH_SPRITE_AUTO()
-!endprocedure
-!procedure resolve_container_render_params_should_auto_resolve_again_after_enable()
-    '' Arrange — отключаем и снова включаем
-    HIDE_TECH_SPRITE_AUTO()
-    SHOW_TECH_SPRITE_AUTO()
-    !$descriptor = {}
-    !$descriptor = $json_add($descriptor, "type", "Container")
-    !$descriptor = $json_add($descriptor, "element_type", "")
-    !$descriptor = $json_add($descriptor, "label", "Payments")
-    !$descriptor = $json_add($descriptor, "techn", "Java 17 + Spring Boot")
-    !$descriptor = $json_add($descriptor, "desc", "")
-    !$descriptor = $json_add($descriptor, "sprite", "")
-    !$descriptor = $json_add($descriptor, "tags", "")
-    !$descriptor = $json_add($descriptor, "link", "")
-    !$descriptor = $json_add($descriptor, "baseShape", "")
-    !$decorator = {}
-    !$decorator = $json_add($decorator, "is_extern", %false())
-    !$decorator = $json_add($decorator, "show_desc", %true())
-    !$decorator = $json_add($decorator, "sprite", "")
-    !$decorator = $json_add($decorator, "styles", [])
-
-    '' Act
-    !$params = $resolve_container_render_params($descriptor, $decorator)
-
-    '' Assert — авто-подбор восстановлен
-    !assert $params.sprite == "spring-icon"
-!endprocedure
-!procedure resolve_container_render_params_should_keep_explicit_sprite_when_disabled()
-    '' Arrange — отключаем авто-подбор, но задаём явный спрайт дескриптора
-    HIDE_TECH_SPRITE_AUTO()
-    !$descriptor = {}
-    !$descriptor = $json_add($descriptor, "type", "Container")
-    !$descriptor = $json_add($descriptor, "element_type", "")
-    !$descriptor = $json_add($descriptor, "label", "L")
-    !$descriptor = $json_add($descriptor, "techn", "Spring Boot")
-    !$descriptor = $json_add($descriptor, "desc", "")
-    !$descriptor = $json_add($descriptor, "sprite", "my-explicit-sprite")
-    !$descriptor = $json_add($descriptor, "tags", "")
-    !$descriptor = $json_add($descriptor, "link", "")
-    !$descriptor = $json_add($descriptor, "baseShape", "")
-    !$decorator = {}
-    !$decorator = $json_add($decorator, "is_extern", %false())
-    !$decorator = $json_add($decorator, "show_desc", %true())
-    !$decorator = $json_add($decorator, "sprite", "")
-    !$decorator = $json_add($decorator, "styles", [])
-
-    '' Act
-    !$params = $resolve_container_render_params($descriptor, $decorator)
-
-    '' Assert — явный спрайт приоритетнее флага авто-подбора
-    !assert $params.sprite == "my-explicit-sprite"
-
-    '' Cleanup
-    SHOW_TECH_SPRITE_AUTO()
-!endprocedure
-!endprocedure
 ''======================================================================================================================
 ''  System Tests
 ''======================================================================================================================
@@ -1194,7 +869,7 @@
     !assert $desc.boundary_type == "Enterprise"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
-!procedure boundary_registration_should_save_label_and_descr()
+!procedure boundary_registration_should_save_label_and_desc()
     '' Arrange, Act
     $Boundary("B_LD", "Test Label", "Test Description")
     !$desc_str = $get_descriptor("B_LD")
@@ -1262,8 +937,6 @@
     !assert $groups[0].label == "Корп. окружение"
     !assert $groups[0].b_type == "Enterprise"
 !endprocedure
-''----------------------------------------------------------------------------------------------------------------------
-'' Boundaries inclusion
 ''----------------------------------------------------------------------------------------------------------------------
 !procedure boundaries_should_add_registered_alias_to_rendering_queue()
     '' Arrange
@@ -1452,254 +1125,25 @@
     !assert $desc_write.techn == "REST"
 !endprocedure
 ''----------------------------------------------------------------------------------------------------------------------
-!function $__can_call_container()
-    !return %true()
-!endfunction
-
-!procedure c4_container_stdlib_should_be_loaded()
-    '' Arrange, Act
-
-    '' Assert: проверяем, что после include <C4/C4_Container> можно вызвать Container()
-    '' (если include не подключён — PlantUML упадёт на этапе парсинга при вызове)
-    !$result = %true()
-
-    !assert $result == %true()
-!endprocedure
+'' Dispatch
 ''----------------------------------------------------------------------------------------------------------------------
-'' Container registration
-''----------------------------------------------------------------------------------------------------------------------
-!procedure container_registration_should_create_descriptor_with_type_container()
-    '' Arrange, Act
-    $Container("Cn_Reg1", "MyContainer")
-
-    '' Assert
-    !$serialized = $get_descriptor("Cn_Reg1")
-    !$desc = $str2json($serialized, $without_quotes = %true())
-    !assert $desc.type == "Container"
+!procedure $render_spy($alias, $descriptor, $decorator)
+    %set_variable_value("SPY_INVOKED_ALIAS", $alias)
 !endprocedure
 
-!procedure container_registration_should_save_label_and_descr()
-    '' Arrange, Act
-    $Container("Cn_Reg2", "MyContainer", "", "My descr")
-
-    '' Assert
-    !$serialized = $get_descriptor("Cn_Reg2")
-    !$desc = $str2json($serialized, $without_quotes = %true())
-    !assert $desc.label == "MyContainer"
-    !assert $desc.desc == "My descr"
-!endprocedure
-
-!procedure container_registration_should_save_techn_field()
-    '' Arrange, Act
-    $Container("Cn_Reg3", "MyContainer", "Java 17 + Spring")
-
-    '' Assert
-    !$serialized = $get_descriptor("Cn_Reg3")
-    !$desc = $str2json($serialized, $without_quotes = %true())
-    !assert $default($desc.techn) == "Java 17 + Spring"
-!endprocedure
-
-!procedure container_registration_should_default_techn_to_empty()
-    '' Arrange, Act
-    $Container("Cn_Reg4", "MyContainer")
-
-    '' Assert
-    !$serialized = $get_descriptor("Cn_Reg4")
-    !$desc = $str2json($serialized, $without_quotes = %true())
-    !assert $default($desc.techn) == ""
-!endprocedure
-
-!procedure container_registration_should_default_baseShape_to_empty()
-    '' Arrange, Act
-    $Container("Cn_Reg5", "MyContainer")
-
-    '' Assert
-    !$serialized = $get_descriptor("Cn_Reg5")
-    !$desc = $str2json($serialized, $without_quotes = %true())
-    !assert $default($desc.baseShape) == ""
-!endprocedure
-
-!procedure container_registration_should_save_baseShape_field()
-    '' Arrange, Act
-    $Container("Cn_Reg6", "MyContainer", "", "", "", "", "", "hexagon")
-
-    '' Assert
-    !$serialized = $get_descriptor("Cn_Reg6")
-    !$desc = $str2json($serialized, $without_quotes = %true())
-    !assert $desc.baseShape == "hexagon"
-!endprocedure
-
-!procedure container_registration_should_save_boundary_attribute()
-    '' Arrange, Act
-    $Boundary("CnBnd", "Test Boundary", "", "", "", "System")
-    $Container("Cn_Reg7", "MyContainer", "", "", "", "", "", "", "", "", "CnBnd")
-
-    '' Assert
-    !$serialized = $get_descriptor("Cn_Reg7")
-    !$desc = $str2json($serialized, $without_quotes = %true())
-    !assert $desc.boundary == "CnBnd"
-!endprocedure
-
-!procedure container_registration_should_save_sprite_field()
-    '' Arrange, Act
-    $Container("Cn_Reg8", "MyContainer", "", "", "spring-icon")
-
-    '' Assert
-    !$serialized = $get_descriptor("Cn_Reg8")
-    !$desc = $str2json($serialized, $without_quotes = %true())
-    !assert $desc.sprite == "spring-icon"
-!endprocedure
-
-!procedure container_registration_should_default_sprite_to_empty()
-    '' Arrange, Act
-    $Container("Cn_Reg9", "MyContainer")
-
-    '' Assert
-    !$serialized = $get_descriptor("Cn_Reg9")
-    !$desc = $str2json($serialized, $without_quotes = %true())
-    !assert $default($desc.sprite) == ""
-!endprocedure
-
-!procedure containerdb_registration_should_save_sprite_field()
-    '' Arrange, Act
-    $ContainerDb("Db_Reg3", "MyDb", "PostgreSQL", "Описание", "database")
-
-    '' Assert
-    !$serialized = $get_descriptor("Db_Reg3")
-    !$desc = $str2json($serialized, $without_quotes = %true())
-    !assert $desc.sprite == "database"
-!endprocedure
-
-!procedure containerqueue_registration_should_save_sprite_field()
-    '' Arrange, Act
-    $ContainerQueue("Q_Reg3", "MyQueue", "RabbitMQ", "Описание", "server")
-
-    '' Assert
-    !$serialized = $get_descriptor("Q_Reg3")
-    !$desc = $str2json($serialized, $without_quotes = %true())
-    !assert $desc.sprite == "server"
-!endprocedure
-
-''----------------------------------------------------------------------------------------------------------------------
-'' ContainerDb registration
-''----------------------------------------------------------------------------------------------------------------------
-!procedure containerdb_registration_should_set_element_type_to_db()
-    '' Arrange, Act
-    $ContainerDb("Db_Reg1", "MyDb")
-
-    '' Assert
-    !$serialized = $get_descriptor("Db_Reg1")
-    !$desc = $str2json($serialized, $without_quotes = %true())
-    !assert $desc.type == "Container"
-    !assert $desc.element_type == "Db"
-!endprocedure
-
-!procedure containerdb_registration_should_not_carry_baseshape()
-    '' Arrange, Act
-    $ContainerDb("Db_Reg2", "MyDb", "PostgreSQL 15")
-
-    '' Assert
-    !$serialized = $get_descriptor("Db_Reg2")
-    !$desc = $str2json($serialized, $without_quotes = %true())
-    !assert $default($desc.baseShape) == ""
-    !assert $default($desc.techn) == "PostgreSQL 15"
-!endprocedure
-
-''----------------------------------------------------------------------------------------------------------------------
-'' ContainerQueue registration
-''----------------------------------------------------------------------------------------------------------------------
-!procedure containerqueue_registration_should_set_element_type_to_queue()
-    '' Arrange, Act
-    $ContainerQueue("Q_Reg1", "MyQueue")
-
-    '' Assert
-    !$serialized = $get_descriptor("Q_Reg1")
-    !$desc = $str2json($serialized, $without_quotes = %true())
-    !assert $desc.type == "Container"
-    !assert $desc.element_type == "Queue"
-!endprocedure
-
-!procedure containerqueue_registration_should_not_carry_baseshape()
-    '' Arrange, Act
-    $ContainerQueue("Q_Reg2", "MyQueue", "RabbitMQ 3.12")
-
-    '' Assert
-    !$serialized = $get_descriptor("Q_Reg2")
-    !$desc = $str2json($serialized, $without_quotes = %true())
-    !assert $default($desc.baseShape) == ""
-    !assert $default($desc.techn) == "RabbitMQ 3.12"
-!endprocedure
-''----------------------------------------------------------------------------------------------------------------------
-!procedure include_elements_should_locate_container_via_locator()
+!procedure render_dispatch_should_invoke_proc_registered_for_element_type()
     '' Arrange
-    !$LOCATOR_CONTAINERS_ROOT = "TestContainers"
-    $Container("Cn_Inc1", "MyContainer", "Java")
+    $register_rendering_proc("Spy", $proc="$render_spy")
+    !$descriptor = {}
+    !$descriptor = $json_add($descriptor, "type", "Spy")
+    $register_descriptor("spy1", $json2str($descriptor, %true()))
+    !$decorator = {"dummy": "x"}
 
     '' Act
-    Containers(Cn_Inc1)
+    $render_dispatch("spy1", $get_descriptor("spy1"), $decorator)
 
-    '' Assert: элемент попал в очередь рендеринга
-    !$queue = $get_rendering_queue()
-    !assert $contain_in_list($queue, "Cn_Inc1") == %true()
-
-    '' Cleanup
-    $reset_rendering_queue()
-!endprocedure
-
-!procedure include_elements_should_explicit_source_path_for_container()
-    '' Arrange
-    $Container("Cn_Inc2", "MyContainer2", "Go")
-
-    '' Act
-    Containers("TestContainers", Cn_Inc2)
-
-    '' Assert: элемент в очереди (включение с явным source)
-    !$queue = $get_rendering_queue()
-    !assert $contain_in_list($queue, "Cn_Inc2") == %true()
-
-    '' Cleanup
-    $reset_rendering_queue()
-!endprocedure
-''----------------------------------------------------------------------------------------------------------------------
-'' Container dispatch
-''----------------------------------------------------------------------------------------------------------------------
-!procedure render_dispatch_should_call_render_container_for_default()
-    '' Arrange
-    $Container("Cn_Disp1", "MyContainer", "Java")
-    !$descriptor = $get_descriptor("Cn_Disp1")
-    !$decorator = $get_decorator("Cn_Disp1")
-
-    '' Act
-    !$render_proc_key = "RENDER_PROC_Container"
-    !assert %variable_exists($render_proc_key) == %true()
-    !$render_proc = %get_variable_value($render_proc_key)
-    !assert $render_proc == "$render_container"
-!endprocedure
-
-!procedure render_dispatch_should_call_render_container_for_db()
-    '' Arrange
-    $ContainerDb("Cn_Disp2", "MyDb", "PostgreSQL")
-    !$descriptor = $get_descriptor("Cn_Disp2")
-    !$decorator = $get_decorator("Cn_Disp2")
-
-    '' Act
-    !$render_proc_key = "RENDER_PROC_Container"
-    !assert %variable_exists($render_proc_key) == %true()
-    !$render_proc = %get_variable_value($render_proc_key)
-    !assert $render_proc == "$render_container"
-!endprocedure
-
-!procedure render_dispatch_should_call_render_container_for_queue()
-    '' Arrange
-    $ContainerQueue("Cn_Disp3", "MyQueue", "RabbitMQ")
-    !$descriptor = $get_descriptor("Cn_Disp3")
-    !$decorator = $get_decorator("Cn_Disp3")
-
-    '' Act
-    !$render_proc_key = "RENDER_PROC_Container"
-    !assert %variable_exists($render_proc_key) == %true()
-    !$render_proc = %get_variable_value($render_proc_key)
-    !assert $render_proc == "$render_container"
+    '' Assert
+    !assert %get_variable_value("SPY_INVOKED_ALIAS") == "spy1"
 !endprocedure
 
 person_registration_should_create_descriptor_with_person_type()
@@ -1715,7 +1159,7 @@ person_registration_should_save_boundary_attribute()
 person_registration_should_default_boundary_to_empty()
 boundary_registration_should_create_descriptor_with_boundary_type()
 boundary_registration_should_save_boundary_type_field()
-boundary_registration_should_save_label_and_descr()
+boundary_registration_should_save_label_and_desc()
 boundary_registration_should_default_to_empty_boundary_type()
 include_elements_should_auto_group_by_boundary()
 include_elements_without_boundary_should_not_create_group()
@@ -1735,15 +1179,17 @@ resolve_person_render_params_includes_sprite_from_descriptor()
 resolve_person_render_params_should_use_decorator_sprite_when_set()
 resolve_person_render_params_should_fallback_to_descriptor_sprite()
 relation_registration_should_create_descriptor_with_relation_type()
-relation_registration_should_save_techn_and_descr()
+relation_registration_should_save_techn_and_desc()
+relation_registration_should_save_tags()
 relations_should_add_registered_alias_to_rendering_queue()
 relations_should_skip_unregistered_alias()
 relations_should_add_multiple_aliases()
 resolve_relation_render_params_returns_all_fields_when_shown()
 resolve_relation_render_params_hides_label_when_show_label_false()
 resolve_relation_render_params_hides_techn_when_show_techn_false()
-resolve_relation_render_params_hides_descr_when_show_descr_false()
+resolve_relation_render_params_hides_desc_when_show_desc_false()
 resolve_relation_render_params_joins_styles_as_tags()
+resolve_relation_render_params_combines_descriptor_tags_with_styles()
 resolve_boundary_native_proc_should_map_enterprise()
 resolve_boundary_native_proc_should_map_system()
 resolve_boundary_native_proc_should_map_container()
@@ -1783,44 +1229,7 @@ resolve_system_render_params_returns_label_from_descriptor()
 resolve_system_render_params_sets_render_proc_to_System()
 resolve_system_render_params_maps_queue_type_to_SystemQueue()
 resolve_system_render_params_maps_db_type_to_SystemDb()
-c4_container_stdlib_should_be_loaded()
-container_registration_should_create_descriptor_with_type_container()
-container_registration_should_save_label_and_descr()
-container_registration_should_save_techn_field()
-container_registration_should_default_techn_to_empty()
-container_registration_should_default_baseShape_to_empty()
-container_registration_should_save_baseShape_field()
-container_registration_should_save_boundary_attribute()
-container_registration_should_save_sprite_field()
-container_registration_should_default_sprite_to_empty()
-containerdb_registration_should_set_element_type_to_db()
-containerdb_registration_should_not_carry_baseshape()
-containerdb_registration_should_save_sprite_field()
-containerqueue_registration_should_set_element_type_to_queue()
-containerqueue_registration_should_not_carry_baseshape()
-containerqueue_registration_should_save_sprite_field()
-resolve_container_render_params_should_map_default_to_container()
-resolve_container_render_params_should_map_db_to_containerdb()
-resolve_container_render_params_should_map_queue_to_containerqueue()
-resolve_container_render_params_should_pass_techn_to_label_position()
-resolve_container_render_params_should_pass_baseShape_for_default()
-resolve_container_render_params_should_ignore_baseShape_for_db()
-resolve_container_render_params_should_ignore_baseShape_for_queue()
-resolve_container_render_params_should_pass_descr_when_show_desc_true()
-resolve_container_render_params_should_auto_resolve_sprite_from_techn()
-resolve_container_render_params_should_auto_resolve_db_sprite_from_techn()
-resolve_container_render_params_should_auto_resolve_queue_sprite_from_techn()
-resolve_container_render_params_should_prefer_explicit_descriptor_sprite_over_auto()
-resolve_container_render_params_should_prefer_decorator_sprite_over_auto()
-resolve_container_render_params_should_return_empty_sprite_for_unknown_techn()
-resolve_container_render_params_should_not_auto_resolve_when_disabled()
-resolve_container_render_params_should_auto_resolve_again_after_enable()
-resolve_container_render_params_should_keep_explicit_sprite_when_disabled()
-include_elements_should_locate_container_via_locator()
-include_elements_should_explicit_source_path_for_container()
-render_dispatch_should_call_render_container_for_default()
-render_dispatch_should_call_render_container_for_db()
-render_dispatch_should_call_render_container_for_queue()
+render_dispatch_should_invoke_proc_registered_for_element_type()
 ''----------------------------------------------------------------------------------------------------------------------
 caption OK
 @enduml

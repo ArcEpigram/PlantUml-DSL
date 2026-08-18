@@ -1,5 +1,5 @@
 @startuml
-!include ../../../src/C4/Context.puml
+!include ../../../src/C4/Container.puml
 
 '' Регистрация элемента
 $Container(Payments, "Платежи", "Java 17 + Spring Boot", \

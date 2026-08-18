@@ -208,6 +208,33 @@
     !return 9
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
+'' Находит запись технологии с наивысшим приоритетом из списка технологий.
+'' Разбивает список, нормализует токены и за один проход по каталогу выбирает запись
+'' с наименьшим числовым приоритетом категории. При равенстве побеждает первая в строке.
+'' Чистая функция: идемпотентна, без побочных эффектов.
+'' args: $technologies - строка со списком технологий (разделители , + ; /)
+'' returns: запись {canonical, aliases, category, sprite} или {} если список пуст/без известных технологий
+!function $__find_best_tech_record($technologies)
+    !$names = $__split_technologies($technologies)
+    !if %size($names) == 0
+        !return {}
+    !endif
+    !$catalog = $__tech_catalog()
+    !$best_rec = {}
+    !$best_priority = 99
+    !foreach $name in $names
+        !$rec = $__find_tech($catalog, $name)
+        !if $default($rec.canonical) != ""
+            !$prio = $__category_priority($rec.category)
+            !if $prio < $best_priority
+                !$best_priority = $prio
+                !$best_rec = $rec
+            !endif
+        !endif
+    !endfor
+    !return $best_rec
+!endfunction
+''----------------------------------------------------------------------------------------------------------------------
 '' Выбирает наиболее значимую технологию из списка и возвращает её каноническое имя.
 '' Приоритет категорий: framework/datastore/queue/cache (1) > platform (2) > language (3).
 '' При равенстве приоритетов побеждает технология, встретившаяся в строке раньше.
@@ -216,58 +243,19 @@
 '' returns: каноническое имя основной технологии (из справочника), либо ""
 '' example: !$tech = $get_container_main_tech_from_technologies("Java 25, Spring Boot")
 !function $get_container_main_tech_from_technologies($technologies)
-    !$names = $__split_technologies($technologies)
-    !if %size($names) == 0
-        !return ""
-    !endif
-    !$catalog = $__tech_catalog()
-    !$best_canonical = ""
-    !$best_priority = 99
-    !foreach $name in $names
-        !$rec = $__find_tech($catalog, $name)
-        !if $default($rec.canonical) != ""
-            !$prio = $__category_priority($rec.category)
-            !if $prio < $best_priority
-                !$best_priority = $prio
-                !$best_canonical = $rec.canonical
-            !endif
-        !endif
-    !endfor
-    !return $best_canonical
+    !$rec = $__find_best_tech_record($technologies)
+    !return $default($rec.canonical)
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
 '' Подбирает имя спрайта для наиболее значимой технологии из списка.
-'' За один проход по каталогу находит технологию с наивысшим приоритетом
-'' и сразу возвращает её спрайт. $__tech_catalog() вызывается однократно.
 '' Возвращает "" если список технологий пуст, не содержит известных технологий
 '' или основная технология не имеет спрайта.
 '' args: $technologies - строка со списком технологий (разделители , + ; /)
 '' returns: имя спрайта (для подключения пользователем <logos/...>), либо ""
 '' example: !$sprite = $get_sprite_from_technologies("Java 25, Spring Boot")
 !function $get_sprite_from_technologies($technologies)
-    !$names = $__split_technologies($technologies)
-    !if %size($names) == 0
-        !return ""
-    !endif
-    !$catalog = $__tech_catalog()
-    !$best_priority = 99
-    !$best_sprite = ""
-    !foreach $name in $names
-        !$rec = $__find_tech($catalog, $name)
-        !if $default($rec.canonical) != ""
-            !$prio = $__category_priority($rec.category)
-            !if $prio < $best_priority
-                !$best_priority = $prio
-                !$sprite = $default($rec.sprite)
-                !if $sprite == "__EMPTY__"
-                    !$best_sprite = ""
-                !else
-                    !$best_sprite = $sprite
-                !endif
-            !endif
-        !endif
-    !endfor
-    !return $best_sprite
+    !$rec = $__find_best_tech_record($technologies)
+    !return $default($rec.sprite)
 !endfunction
 ''----------------------------------------------------------------------------------------------------------------------
 '' Возвращает состояние глобального флага авто-подбора спрайтов.

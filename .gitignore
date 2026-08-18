@@ -221,6 +221,7 @@ bin/
 
 # Artifacts
 out/
+*.Tests.png
 CHANGELOG.md
 
 .zcode/

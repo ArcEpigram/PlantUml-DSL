@@ -127,7 +127,7 @@
     !foreach $group in $groups
         !if $group.b_alias == $b_alias
             !$found = %true()
-            '' Merge aliases
+            '' Объединяем aliases
             !$merged = $group.aliases
             !foreach $a in %splitstr($aliases, " ")
                 !if $a != "" && $contain_in_list($merged, $a) == %false()
@@ -135,7 +135,7 @@
                 !endif
             !endfor
 
-            '' Build updated group
+            '' Формируем обновлённую группу
             !$updated = {}
             !$updated = $json_add($updated, "b_alias", $group.b_alias)
             !$updated = $json_add($updated, "label", $value_or_default($label != "", $label, $group.label))
@@ -152,7 +152,7 @@
     !endfor
 
     !if $found == %false()
-        '' Build new aliases array
+        '' Формируем массив aliases
         !$new_aliases = []
         !foreach $a in %splitstr($aliases, " ")
             !if $a != ""
@@ -160,7 +160,7 @@
             !endif
         !endfor
 
-        '' Create new group
+        '' Создаём новую группу
         !$new_group = {}
         !$new_group = $json_add($new_group, "b_alias", $b_alias)
         !$new_group = $json_add($new_group, "label", $label)

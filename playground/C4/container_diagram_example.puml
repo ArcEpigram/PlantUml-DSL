@@ -1,5 +1,6 @@
 @startuml
 !include ../../src/C4/Context.puml
+!include ../../src/C4/Container.puml
 
 '' ======================================================================
 '' C4 Container — демонстрация работы с контейнерами
