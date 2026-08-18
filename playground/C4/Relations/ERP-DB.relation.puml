@@ -1,4 +1,4 @@
 @startuml
-!include ../../../src/C4/Context.puml
+!include ../../../src/C4/C4.puml
 $Relation(ERP, DB, "Читает и пишет", "", "JDBC", "Основной канал данных")
 @enduml

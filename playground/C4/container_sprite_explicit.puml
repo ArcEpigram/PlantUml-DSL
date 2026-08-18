@@ -4,7 +4,7 @@
 !include <logos/postgresql>
 !include <logos/spring-icon>
 
-!include ../../src/C4/Context.puml
+!include ../../src/C4/Container.puml
 
 $Container("Payments", "Платежи", "Java + Spring Boot", "Микросервис", $sprite=spring-icon)
 $ContainerDb("PaymentsDb", "БД платежей", "PostgreSQL", "Хранилище", $sprite=postgresql)
