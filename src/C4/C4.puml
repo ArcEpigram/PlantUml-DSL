@@ -146,7 +146,7 @@ $register_rendering_proc("Relation", $proc="$render_relation")
                 !$b_label = $b_desc.label
                 $add_boundary_group($boundary_alias, $b_label, $b_type, $alias, "", "", "")
             !else
-                '' Boundary not registered yet, use alias as label
+                '' Boundary ещё не зарегистрирован — используем alias как label
                 $add_boundary_group($boundary_alias, $boundary_alias, "", $alias, "", "", "")
             !endif
         !endif
